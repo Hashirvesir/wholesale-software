@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invenco — System Reference</title>
+<meta name="description" content="How Sales, Purchases and the Reports work inside Invenco">
+<style>
+  :root {
+    --bg: #F3F6F2;
+    --bg-band: #ECF1E9;
+    --panel: #FFFFFF;
+    --panel-soft: #F7FAF6;
+    --ink: #1C2B3A;
+    --ink-soft: #4B5D6B;
+    --ink-faint: #7C8B93;
+    --accent: #1E5F74;
+    --accent-soft: #E4EEEE;
+    --credit: #2F6B4F;
+    --credit-soft: #E6F1EA;
+    --debit: #9C4436;
+    --debit-soft: #F5E9E5;
+    --line: #D8E0D6;
+    --line-strong: #B9C6B7;
+    --code-bg: #EEF2EC;
+    --shadow: 0 1px 2px rgba(28,43,58,0.06), 0 8px 24px rgba(28,43,58,0.05);
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #10171A;
+    --bg-band: #131C1F;
+    --panel: #17211F;
+    --panel-soft: #14201E;
+    --ink: #E8EDE7;
+    --ink-soft: #9FB0A8;
+    --ink-faint: #6F8078;
+    --accent: #6FB8C9;
+    --accent-soft: #1B2E33;
+    --credit: #6FBE93;
+    --credit-soft: #17281F;
+    --debit: #E08A73;
+    --debit-soft: #2A1D18;
+    --line: #2A3733;
+    --line-strong: #38473F;
+    --code-bg: #101B18;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10171A;
+      --bg-band: #131C1F;
+      --panel: #17211F;
+      --panel-soft: #14201E;
+      --ink: #E8EDE7;
+      --ink-soft: #9FB0A8;
+      --ink-faint: #6F8078;
+      --accent: #6FB8C9;
+      --accent-soft: #1B2E33;
+      --credit: #6FBE93;
+      --credit-soft: #17281F;
+      --debit: #E08A73;
+      --debit-soft: #2A1D18;
+      --line: #2A3733;
+      --line-strong: #38473F;
+      --code-bg: #101B18;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--accent-soft); color: var(--ink); }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    color: var(--ink);
+    text-wrap: balance;
+    margin: 0;
+    font-weight: 400;
+  }
+
+  code, .mono, .num {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  code {
+    background: var(--code-bg);
+    color: var(--ink);
+    padding: 0.1em 0.4em;
+    border-radius: 4px;
+    font-size: 0.88em;
+    border: 1px solid var(--line);
+  }
+
+  /* ---------- Header / masthead ---------- */
+
+  .masthead {
+    background:
+      repeating-linear-gradient(
+        var(--bg) 0px, var(--bg) 27px,
+        var(--bg-band) 27px, var(--bg-band) 54px
+      );
+    border-bottom: 1px solid var(--line-strong);
+    padding: 64px 32px 40px;
+  }
+
+  .masthead-inner {
+    max-width: 920px;
+    margin: 0 auto;
+  }
+
+  .eyebrow {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .eyebrow::before {
+    content: "";
+    width: 22px;
+    height: 1px;
+    background: var(--accent);
+    display: inline-block;
+  }
+
+  .masthead h1 {
+    font-size: clamp(32px, 5vw, 46px);
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+  }
+
+  .masthead p.lede {
+    margin-top: 16px;
+    max-width: 62ch;
+    color: var(--ink-soft);
+    font-size: 17px;
+  }
+
+  .masthead-meta {
+    margin-top: 28px;
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--ink-faint);
+  }
+
+  .masthead-meta strong {
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+
+  /* ---------- Shell layout ---------- */
+
+  .shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 48px 32px 120px;
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 56px;
+    align-items: start;
+  }
+
+  nav.toc {
+    position: sticky;
+    top: 24px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    padding-right: 8px;
+  }
+
+  nav.toc .toc-group + .toc-group { margin-top: 22px; }
+
+  nav.toc .toc-label {
+    font-family: ui-monospace, "SF Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 8px;
+  }
+
+  nav.toc ul { list-style: none; margin: 0; padding: 0; }
+
+  nav.toc li a {
+    display: block;
+    padding: 5px 0 5px 12px;
+    border-left: 2px solid transparent;
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-size: 14px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  nav.toc li a:hover,
+  nav.toc li a:focus-visible {
+    color: var(--ink);
+    border-left-color: var(--line-strong);
+  }
+
+  nav.toc li a.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    font-weight: 600;
+  }
+
+  main { min-width: 0; }
+
+  section.doc-section { padding-top: 12px; margin-bottom: 64px; scroll-margin-top: 24px; }
+
+  section.doc-section > .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    border-bottom: 1px solid var(--line-strong);
+    padding-bottom: 14px;
+    margin-bottom: 28px;
+  }
+
+  section.doc-section > .section-head h2 {
+    font-size: 26px;
+  }
+
+  section.doc-section > .section-head .section-no {
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+    color: var(--accent);
+    border: 1px solid var(--line-strong);
+    border-radius: 3px;
+    padding: 2px 7px;
+  }
+
+  .prose { max-width: 74ch; }
+  .prose p { margin: 0 0 14px; color: var(--ink); }
+  .prose p.soft { color: var(--ink-soft); }
+  .prose ul, .prose ol { max-width: 74ch; padding-left: 22px; margin: 0 0 14px; }
+  .prose li { margin-bottom: 6px; }
+  .prose h3 { font-size: 19px; margin: 30px 0 10px; }
+  .prose h4 { font-size: 15px; font-family: -apple-system, "Segoe UI", sans-serif; font-weight: 700; margin: 22px 0 8px; color: var(--ink); }
+
+  /* ---------- Callouts ---------- */
+
+  .note {
+    display: flex;
+    gap: 12px;
+    background: var(--panel-soft);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin: 18px 0 22px;
+    max-width: 74ch;
+  }
+
+  .note.warn { border-left-color: var(--debit); }
+
+  .note .note-tag {
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    white-space: nowrap;
+    padding-top: 2px;
+  }
+
+  .note.warn .note-tag { color: var(--debit); }
+
+  .note p { margin: 0; font-size: 14.5px; color: var(--ink-soft); }
+
+  /* ---------- Ledger legend ---------- */
+
+  .legend {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 6px 0 26px;
+  }
+
+  .legend .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: ui-monospace, monospace;
+    font-size: 12.5px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+  }
+
+  .legend .chip.credit { background: var(--credit-soft); color: var(--credit); border-color: var(--credit); }
+  .legend .chip.debit { background: var(--debit-soft); color: var(--debit); border-color: var(--debit); }
+
+  /* ---------- Ledger entry blocks ---------- */
+
+  .ledger-block {
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 16px 0 24px;
+    max-width: 74ch;
+    background: var(--panel);
+    box-shadow: var(--shadow);
+  }
+
+  .ledger-block .lb-title {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 14px;
+    background: var(--panel-soft);
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-soft);
+  }
+
+  .ledger-row {
+    display: grid;
+    grid-template-columns: 20px 1fr auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 14px;
+    font-size: 13.5px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .ledger-row:last-child { border-bottom: none; }
+
+  .ledger-row .side {
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .ledger-row.dr .side { color: var(--debit); }
+  .ledger-row.cr .side { color: var(--credit); }
+
+  .ledger-row .acct { color: var(--ink); }
+  .ledger-row .acct .party { color: var(--ink-faint); font-size: 12px; margin-left: 6px; }
+
+  .ledger-row .amt { font-family: ui-monospace, monospace; text-align: right; min-width: 6ch; }
+  .ledger-row.dr .amt { color: var(--debit); }
+  .ledger-row.cr .amt { color: var(--credit); }
+
+  /* ---------- Report cards ---------- */
+
+  .report-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 18px;
+    margin: 8px 0 8px;
+  }
+
+  .report-card {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    border-radius: 6px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+  }
+
+  .report-card h4 {
+    font-family: Georgia, "Iowan Old Style", serif;
+    font-size: 18px;
+    margin: 0 0 4px;
+    font-weight: 400;
+    color: var(--ink);
+  }
+
+  .report-card .path {
+    font-family: ui-monospace, monospace;
+    font-size: 11.5px;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .report-card .question {
+    font-size: 14px;
+    color: var(--ink-soft);
+    font-style: italic;
+    margin: 0 0 10px;
+  }
+
+  .report-card .desc { font-size: 13.5px; color: var(--ink); margin: 0 0 10px; }
+
+  .report-card .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .report-card .filters span {
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    background: var(--panel-soft);
+    border: 1px solid var(--line);
+    color: var(--ink-faint);
+    padding: 2px 7px;
+    border-radius: 3px;
+  }
+
+  .report-card .formula {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--ink);
+    background: var(--panel-soft);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 10px 12px;
+    margin: 0 0 10px;
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+
+  .group-label {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 34px 0 14px;
+    padding-top: 22px;
+    border-top: 1px dashed var(--line-strong);
+  }
+
+  .group-label:first-of-type { border-top: none; padding-top: 0; margin-top: 10px; }
+
+  /* ---------- Flow steps ---------- */
+
+  .flow {
+    counter-reset: flow;
+    margin: 20px 0 28px;
+    max-width: 74ch;
+  }
+
+  .flow-step {
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    gap: 14px;
+  }
+
+  .flow-step:not(:last-child) {
+    padding-bottom: 18px;
+    position: relative;
+  }
+
+  .flow-step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: 16px;
+    top: 30px;
+    bottom: -2px;
+    width: 1px;
+    background: var(--line-strong);
+  }
+
+  .flow-step .fs-num {
+    counter-increment: flow;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    background: var(--panel);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+    color: var(--accent);
+    z-index: 1;
+  }
+
+  .flow-step .fs-num::before { content: counter(flow); }
+
+  .flow-step h4 { margin: 3px 0 4px; font-size: 15px; }
+  .flow-step p { margin: 0; font-size: 14px; color: var(--ink-soft); }
+
+  /* ---------- Table ---------- */
+
+  .tbl-wrap { overflow-x: auto; margin: 18px 0 26px; max-width: 74ch; }
+  table.spec { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  table.spec th {
+    text-align: left;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    border-bottom: 1px solid var(--line-strong);
+    padding: 6px 12px 8px 0;
+    white-space: nowrap;
+  }
+  table.spec td {
+    padding: 9px 12px 9px 0;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
+    vertical-align: top;
+  }
+  table.spec tr:last-child td { border-bottom: none; }
+
+  /* ---------- Footer ---------- */
+
+  footer {
+    border-top: 1px solid var(--line-strong);
+    padding: 28px 32px 60px;
+    max-width: 1180px;
+    margin: 0 auto;
+    font-size: 13px;
+    color: var(--ink-faint);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  @media (max-width: 860px) {
+    .shell { grid-template-columns: 1fr; }
+    nav.toc { position: static; max-height: none; margin-bottom: 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+
+  /* ---------- Language toggle ---------- */
+
+  .lang-toggle {
+    display: inline-flex;
+    border: 1px solid var(--line-strong);
+    border-radius: 20px;
+    padding: 3px;
+    gap: 2px;
+    background: var(--panel);
+  }
+
+  .lang-toggle button {
+    font-family: ui-monospace, "SF Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    padding: 6px 14px;
+    border-radius: 16px;
+    cursor: pointer;
+  }
+
+  .lang-toggle button[aria-pressed="true"] {
+    background: var(--accent);
+    color: var(--panel);
+    font-weight: 600;
+  }
+
+  :root[data-theme="dark"] .lang-toggle button[aria-pressed="true"],
+  html[data-lang] .lang-toggle button[aria-pressed="true"] {
+    color: var(--bg);
+  }
+
+  html:not([data-lang="ur"]) .shell.lang-ur,
+  html:not([data-lang="ur"]) .masthead .lang-ur-block { display: none; }
+  html[data-lang="ur"] .shell.lang-en,
+  html[data-lang="ur"] .masthead .lang-en-block { display: none; }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="eyebrow">Invenco · Internal Reference</div>
+
+    <div class="lang-en-block">
+      <h1>How Sales, Purchases &amp; Reports work</h1>
+      <p class="lede">A working explanation of what happens inside the system on every sale and purchase, how the double-entry ledger behind it is built, and what each report is actually reading when it renders a number.</p>
+      <div class="masthead-meta">
+        <span><strong>Scope</strong> — Sales, Purchases, Ledger, Reports</span>
+        <span><strong>Audience</strong> — Invenco team &amp; implementation partners</span>
+        <span><strong>Status</strong> — Reflects current production logic</span>
+      </div>
+    </div>
+
+    <div class="lang-ur-block">
+      <h1>Sale, Purchase aur Reports kaise kaam karte hain</h1>
+      <p class="lede">Ye ek working explanation hai ke har sale aur purchase ke andar asal mein kya hota hai, iske peeche wala double-entry ledger kaise banta hai, aur har report number dikhate waqt asal mein kya padh rahi hoti hai.</p>
+      <div class="masthead-meta">
+        <span><strong>Scope</strong> — Sales, Purchases, Ledger, Reports</span>
+        <span><strong>Audience</strong> — Invenco team aur implementation partners</span>
+        <span><strong>Status</strong> — Current production logic ko reflect karta hai</span>
+      </div>
+    </div>
+
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button type="button" id="lang-en-btn" aria-pressed="true">EN</button>
+      <button type="button" id="lang-ur-btn" aria-pressed="false">Roman Urdu</button>
+    </div>
+  </div>
+</div>
+
+<div class="shell lang-en">
+  <nav class="toc" aria-label="Table of contents">
+    <div class="toc-group">
+      <div class="toc-label">Foundations</div>
+      <ul>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#ledger">The Ledger</a></li>
+      </ul>
+    </div>
+    <div class="toc-group">
+      <div class="toc-label">Transactions</div>
+      <ul>
+        <li><a href="#sales">Sales</a></li>
+        <li><a href="#purchases">Purchases</a></li>
+        <li><a href="#cargo">Cargo &amp; Landed Cost</a></li>
+      </ul>
+    </div>
+    <div class="toc-group">
+      <div class="toc-label">Reports</div>
+      <ul>
+        <li><a href="#reports-financial">Financial Statements</a></li>
+        <li><a href="#reports-collections">Collections &amp; Aging</a></li>
+        <li><a href="#reports-stock">Inventory &amp; Stock</a></li>
+        <li><a href="#reports-analytics">Sales &amp; Purchase Analytics</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+
+    <section class="doc-section" id="overview">
+      <div class="section-head"><span class="section-no">§1</span><h2>Overview</h2></div>
+      <div class="prose">
+        <p>Invenco runs on three kinds of records: <strong>parties</strong> (customers, vendors, and cargo/transport parties), <strong>products</strong> held as <strong>stock</strong> inside one or more <strong>warehouses</strong>, and a <strong>chart of accounts</strong> that every transaction eventually posts to. A Sale or a Purchase is the form you fill in; underneath it, the system writes proper double-entry <strong>ledger entries</strong> that everything else — Party statements, Trial Balance, Profit &amp; Loss, Aging — is calculated from.</p>
+        <p class="soft">Nothing in this system is "just a number saved on the invoice." Every rupee that moves is traceable back to a ledger entry with a date, an account, and — where relevant — a party.</p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="ledger">
+      <div class="section-head"><span class="section-no">§2</span><h2>The Ledger</h2></div>
+      <div class="prose">
+        <p>Every transaction — a Sale, a Purchase, a Payment, an Expense, a Stock Transfer — writes one or more rows to a single <code>ledger_entries</code> table. Each row has an <strong>account</strong>, a <strong>debit</strong> or a <strong>credit</strong> amount (never both), a <strong>date</strong>, and, when it concerns a customer, vendor, or cargo party, a <strong>party</strong>. Rows always come in matched pairs (or groups) so that total debits equal total credits for the transaction — that balance is what Trial Balance checks across the whole system.</p>
+        <div class="legend">
+          <span class="chip debit">Dr — Debit</span>
+          <span class="chip credit">Cr — Credit</span>
+        </div>
+        <p>Reading direction depends on the account type, same as any set of books:</p>
+        <ul>
+          <li><strong>Asset</strong> accounts (Cash, Bank, Inventory, Accounts Receivable) — a debit increases the balance, a credit decreases it.</li>
+          <li><strong>Liability</strong> accounts (Accounts Payable) — a credit increases what's owed, a debit reduces it.</li>
+          <li><strong>Income</strong> accounts (Sales) grow on credit; <strong>Expense</strong> accounts (COGS, Cargo Expense, and every operating expense category) grow on debit.</li>
+        </ul>
+        <p>The accounts that Sales and Purchases post to by name: <code>Cash</code>, <code>Bank</code> (and any other payment account), <code>Accounts Receivable</code>, <code>Accounts Payable</code>, <code>Sales</code>, <code>COGS</code>, <code>Inventory</code>, and <code>Cargo Expense</code>.</p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="sales">
+      <div class="section-head"><span class="section-no">§3</span><h2>Sales</h2></div>
+      <div class="prose">
+        <p>A Sale is created against one customer, one warehouse (the stock source), a list of products with quantity and price, an optional flat discount, and payment — split across as many accounts as needed (part Cash, part Bank, and so on).</p>
+
+        <h3>Creating a sale</h3>
+      </div>
+      <div class="flow">
+        <div class="flow-step">
+          <span class="fs-num"></span>
+          <div><h4>Pick the customer &amp; warehouse</h4><p>Search selects the customer and shows their running balance right there in the dropdown, so you see who owes what before you even add an item.</p></div>
+        </div>
+        <div class="flow-step">
+          <span class="fs-num"></span>
+          <div><h4>Add line items</h4><p>Each row is a product, quantity, and price against the selected warehouse's live stock — the same product can't be added twice at the same price, and quantity can't exceed what the form allows.</p></div>
+        </div>
+        <div class="flow-step">
+          <span class="fs-num"></span>
+          <div><h4>Split the payment (optional)</h4><p>Add as many payment rows as needed — Cash, Bank, any configured account — each with its own amount. Leave it empty and the sale posts entirely on credit.</p></div>
+        </div>
+        <div class="flow-step">
+          <span class="fs-num"></span>
+          <div><h4>Save</h4><p>Stock is reduced immediately from the chosen warehouse, and the ledger entries below are written in the same transaction — either all of them succeed, or none do.</p></div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <h4>What gets posted</h4>
+        <p class="soft">For a sale of <span class="num">5,000</span> where <span class="num">3,000</span> is collected split across Cash and Bank, and the stock cost (average cost) of the goods sold is <span class="num">2,100</span>:</p>
+      </div>
+      <div class="ledger-block">
+        <div class="lb-title">Sale — goods leave, revenue is recognised</div>
+        <div class="ledger-row dr"><span class="side">Dr</span><span class="acct">Accounts Receivable <span class="party">customer</span></span><span></span><span class="amt num">5,000</span></div>
+        <div class="ledger-row cr"><span class="side">Cr</span><span class="acct">Sales</span><span></span><span class="amt num">5,000</span></div>
+        <div class="ledger-row dr"><span class="side">Dr</span><span class="acct">COGS</span><span></span><span class="amt num">2,100</span></div>
+        <div class="ledger-row cr"><span class="side">Cr</span><span class="acct">Inventory</span><span></span><span class="amt num">2,100</span></div>
+      </div>
+      <div class="ledger-block">
+        <div class="lb-title">Payment — one pair per split, collected at sale time</div>
+        <div class="ledger-row dr"><span class="side">Dr</span><span class="acct">Cash</span><span></span><span class="amt num">1,800</span></div>
+        <div class="ledger-row cr"><span class="side">Cr</span><span class="acct">Accounts Receivable <span class="party">customer</span></span><span></span><span class="amt num">1,800</span></div>
+        <div class="ledger-row dr"><span class="side">Dr</span><span class="acct">Bank</span><span></span><span class="amt num">1,200</span></div>
+        <div class="ledger-row cr"><span class="side">Cr</span><span class="acct">Accounts Receivable <span class="party">customer</span></span><span></span><span class="amt num">1,200</span></div>
+      </div>
+      <div class="prose">
+        <p>The remaining <span class="num">2,000</span> stays on the customer's Accounts Receivable balance — that's the "credit" your Party Ledger and Aging Report are reading.</p>
+
+        <h4>Walk-In Customer</h4>
+        <p>One customer and one warehouse can be marked as the defaults in <strong>Settings → Walk-In Customer Defaults</strong>. When that customer is selected, the Sale form pre-fills both fields automatically (nothing to search for on a quick counter sale), and enforces one rule that doesn't apply to anyone else: <strong>the sale must be paid in full</strong> — split across as many accounts as you like, but the total can't leave a balance due. This is checked in the form and again on the server, so it can't be skipped.</p>
+
+        <h4>Sharing an invoice</h4>
+        <p>Every Sale can be sent on WhatsApp directly from its page — the message text is a fully editable template (Settings → WhatsApp Message Templates) with placeholders for the customer name, invoice number, totals, previous balance, and a link to the invoice PDF. That PDF link is a signed URL: it opens without logging in, but the signature means the ID can't be swapped for someone else's invoice.</p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="purchases">
+      <div class="section-head"><span class="section-no">§4</span><h2>Purchases</h2></div>
+      <div class="prose">
+        <p>A Purchase works the same shape as a Sale in reverse — a vendor, a destination warehouse, line items with quantity and price (in PKR or RMB, converted at the exchange rate entered), and split payment. Stock increases immediately, and each item's <strong>average cost</strong> is recalculated on the spot using the standard weighted-average formula:</p>
+        <div class="tbl-wrap">
+          <table class="spec">
+            <tr><td class="mono">new avg cost</td><td>= ( (old qty × old avg cost) + (added qty × price) ) ÷ new total qty</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="ledger-block">
+        <div class="lb-title">Purchase — goods arrive, vendor is owed</div>
+        <div class="ledger-row dr"><span class="side">Dr</span><span class="acct">Inventory</span><span></span><span class="amt num">10,000</span></div>
+        <div class="ledger-row cr"><span class="side">Cr</span><span class="acct">Accounts Payable <span class="party">vendor</span></span><span></span><span class="amt num">10,000</span></div>
+      </div>
+      <div class="prose">
+        <p>If part of the bill is paid immediately, that split is posted the same way a Sale's payment is — Debit the payment account, Credit Accounts Payable — reducing what's owed to the vendor.</p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="cargo">
+      <div class="section-head"><span class="section-no">§5</span><h2>Cargo &amp; Landed Cost</h2></div>
+      <div class="prose">
+        <p>Freight paid to a separate cargo/transport party can be added to a Purchase in two ways, and the system treats them differently on purpose:</p>
+
+        <h3>Per-item cargo</h3>
+        <p>A cargo amount entered against a specific line item is <strong>capitalized</strong> — folded straight into that item's average cost, the same way the goods price is. A line of 10 units at <span class="num">100</span> with <span class="num">50</span> cargo lands at <span class="num">105</span>/unit, permanently, until the next purchase changes the average again.</p>
+        <div class="ledger-block">
+          <div class="lb-title">Per-item cargo — one landed-cost debit, split across two payables</div>
+          <div class="ledger-row dr"><span class="side">Dr</span><span class="acct">Inventory <span class="party">goods + cargo</span></span><span></span><span class="amt num">1,050</span></div>
+          <div class="ledger-row cr"><span class="side">Cr</span><span class="acct">Accounts Payable <span class="party">vendor</span></span><span></span><span class="amt num">1,000</span></div>
+          <div class="ledger-row cr"><span class="side">Cr</span><span class="acct">Accounts Payable <span class="party">cargo party</span></span><span></span><span class="amt num">50</span></div>
+        </div>
+        <div class="note">
+          <span class="note-tag">Balanced</span>
+          <p>There's deliberately no separate "Cargo Expense" line here — the cargo cost is already inside the Inventory debit above. Adding a second expense entry for the same rupees would double-count it and throw Debit and Credit out of balance, which is exactly what used to happen before this was fixed.</p>
+        </div>
+
+        <h3>Transport-mode cargo</h3>
+        <p>Cargo billed as <span class="mono">total weight × rate per kg</span> isn't split across individual items — it's tracked as its own <code>CargoCharge</code> record and, in the ledger, as a genuine period expense.</p>
+        <div class="ledger-block">
+          <div class="lb-title">Transport-mode cargo — its own expense line</div>
+          <div class="ledger-row dr"><span class="side">Dr</span><span class="acct">Cargo Expense</span><span></span><span class="amt num">200</span></div>
+          <div class="ledger-row cr"><span class="side">Cr</span><span class="acct">Accounts Payable <span class="party">cargo party</span></span><span></span><span class="amt num">200</span></div>
+        </div>
+        <p>For reporting, Profit &amp; Loss still treats this as landed cost — see <a href="#pl-note">the note under Profit &amp; Loss</a> for how it's reconciled back into Cost of Goods Sold even though the ledger keeps it in its own account.</p>
+
+        <h3>Returning goods bought with cargo</h3>
+        <p>When items from a per-item-cargo purchase are sent back through a Purchase Return, the cost removed from Inventory is the same <strong>landed cost</strong> the item came in at — goods price plus its cargo share, not goods price alone. Using goods price alone would remove less value than was actually capitalized, artificially inflating the average cost of whatever's left in stock, and understating Cost of Goods Sold on Profit &amp; Loss for every sale after it.</p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="reports-financial">
+      <div class="section-head"><span class="section-no">§6</span><h2>Financial Statements</h2></div>
+      <div class="prose"><p class="soft">Read the underlying ledger directly — no report-specific shortcuts, so these always tie back to the entries above.</p></div>
+
+      <div class="report-grid">
+        <div class="report-card">
+          <h4>Account Ledger</h4>
+          <span class="path">Reports → Account Ledger</span>
+          <p class="question">"What moved through this one account, and what's its running balance?"</p>
+          <p class="desc">Every ledger entry for a chosen Chart of Accounts account, in date order, with a running balance and the contra-account each line was paired with — including split-payment lines, matched by amount so multi-account payments show the correct counterpart, not just the first match.</p>
+          <div class="filters"><span>date range</span><span>warehouse</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Party Ledger</h4>
+          <span class="path">Reports → Party Ledger</span>
+          <p class="question">"What does this customer or vendor's statement look like?"</p>
+          <p class="desc">The same running-balance statement, scoped to one party instead of one account — opening balance carried forward, every entry in the period, and a closing balance in <span class="mono">Dr</span> / <span class="mono">Cr</span>. Shareable straight to WhatsApp as a signed PDF link.</p>
+          <div class="filters"><span>party</span><span>date range</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Trial Balance</h4>
+          <span class="path">Reports → Trial Balance</span>
+          <p class="question">"Does everything actually balance, as of today?"</p>
+          <p class="desc">Every account's net Debit or Credit balance as of a single date, including opening balances carried in from party records. If total Debit ≠ total Credit here, something upstream broke double-entry — it shouldn't ever happen.</p>
+          <div class="filters"><span>as-of date</span></div>
+        </div>
+
+        <div class="report-card" id="pl-note">
+          <h4>Profit &amp; Loss</h4>
+          <span class="path">Reports → Profit &amp; Loss</span>
+          <p class="question">"What did we actually make, after the true cost of the goods we sold?"</p>
+          <p class="desc">Gross Profit is Sales less Cost of Goods Sold, where COGS is <strong>landed cost</strong> — goods price plus cargo, for both cargo modes. Per-item cargo is already inside the purchase cost it reads; transport-mode cargo is added back in proportionally by value even though it's booked to its own ledger account, and that account is then excluded from Operating Expenses below the line so it's never counted twice.</p>
+          <pre class="formula">COGS = Opening Stock Value + Net Purchases − Closing Stock Value
+  Opening/Closing Stock Value = WAC stock valuation as of that date (landed cost)
+  Net Purchases = (Purchases + Cargo) − Purchase Returns + mid-period Opening Stock
+
+Net Sales    = Total Sales − Sales Returns
+Gross Profit = Net Sales − COGS
+
+Total Income  = Gross Profit + Other Income (non-Sales income accounts)
+Total Expense = Other Operating Expenses (Purchase / COGS / Cargo Expense / Return
+                accounts excluded — already folded into COGS above)
+Net Profit    = Total Income − Total Expense</pre>
+          <div class="filters"><span>date range</span><span>warehouse</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Balance Sheet</h4>
+          <span class="path">Reports → Balance Sheet</span>
+          <p class="question">"What do we own, what do we owe, as of today?"</p>
+          <p class="desc">Total Assets against total Liabilities as of a single date, with Equity computed as the difference — not its own ledger account, just what's left over.</p>
+          <div class="filters"><span>as-of date</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="doc-section" id="reports-collections">
+      <div class="section-head"><span class="section-no">§7</span><h2>Collections &amp; Aging</h2></div>
+      <div class="report-grid">
+        <div class="report-card">
+          <h4>Receivable / Payable Aging</h4>
+          <span class="path">Reports → Aging</span>
+          <p class="question">"Who's overdue, and by how long?"</p>
+          <p class="desc">Every party's outstanding balance, bucketed by age into 0-30 / 31-60 / 61-90 / 90+ days. Reads real ledger balances — including opening-balance-only dues and cargo-party payables that have no invoice of their own — and ages them against invoices oldest-first, so the totals always tie back to the Party Ledger exactly.</p>
+          <div class="filters"><span>as-of date</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Daily Collection</h4>
+          <span class="path">Reports → Daily Collection</span>
+          <p class="question">"How much cash and bank actually moved today?"</p>
+          <p class="desc">Every ledger entry against a payment account (Cash, Bank, and the like) in the period — received vs. paid, per account and in full detail. Picks up split-payment lines from Sales and Purchases automatically, since they post to the same accounts.</p>
+          <div class="filters"><span>date range</span><span>account</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="doc-section" id="reports-stock">
+      <div class="section-head"><span class="section-no">§8</span><h2>Inventory &amp; Stock</h2></div>
+      <div class="report-grid">
+        <div class="report-card">
+          <h4>Stock History</h4>
+          <span class="path">Product page → Stock History</span>
+          <p class="question">"What happened to this product, movement by movement?"</p>
+          <p class="desc">Every opening stock, purchase, sale, and return for one product, in order, with running quantity and running average cost recomputed over its full history — purchases fold cargo into the running cost the same way the live average does.</p>
+          <div class="filters"><span>date range</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Product Profit &amp; Loss</h4>
+          <span class="path">Product page → Product P&amp;L</span>
+          <p class="question">"Is this specific product actually profitable?"</p>
+          <p class="desc">Revenue less cost for one product over a period, using its own running average cost at the moment of each sale.</p>
+          <div class="filters"><span>date range</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Dead Stock</h4>
+          <span class="path">Reports → Dead Stock</span>
+          <p class="question">"What's sitting on the shelf not moving?"</p>
+          <p class="desc">Products with stock on hand but no sale within a chosen window, ranked by how long they've been idle, with the value tied up in each.</p>
+          <div class="filters"><span>days idle</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Stock Alert</h4>
+          <span class="path">Reports → Stock Alert</span>
+          <p class="question">"What needs reordering right now?"</p>
+          <p class="desc">Products at or below their reorder threshold — either each product's own configured level, or one threshold applied across the board — split into Out of Stock and Low Stock, with a suggested reorder quantity.</p>
+          <div class="filters"><span>threshold</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Products Summary</h4>
+          <span class="path">Reports → Products Summary</span>
+          <p class="question">"How did each product's stock move this period?"</p>
+          <p class="desc">Quantity in (purchases, returns, opening stock) and out (sales, returns) per product for the period, next to its current live stock position.</p>
+          <div class="filters"><span>date range</span><span>search</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="doc-section" id="reports-analytics">
+      <div class="section-head"><span class="section-no">§9</span><h2>Sales &amp; Purchase Analytics</h2></div>
+      <div class="report-grid">
+        <div class="report-card">
+          <h4>Sales Analysis</h4>
+          <span class="path">Reports → Sales Analysis</span>
+          <p class="question">"Who are our best customers, and what actually sells?"</p>
+          <p class="desc">Top customers and top products for a period, ranked by <strong>net</strong> sales — gross sales minus that customer or product's own returns in the same period — so a heavily-returned item doesn't rank above one that genuinely sold well.</p>
+          <div class="filters"><span>date range</span><span>top N</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Returns Summary</h4>
+          <span class="path">Reports → Returns Summary</span>
+          <p class="question">"How much came back, from which side?"</p>
+          <p class="desc">Sales Returns and Purchase Returns for a period side by side, each linked back to its original invoice.</p>
+          <div class="filters"><span>date range</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Expense Report</h4>
+          <span class="path">Reports → Expenses</span>
+          <p class="question">"Where did operating cash actually go?"</p>
+          <p class="desc">Every recorded expense for a period, grouped by category and by warehouse, with the account it was paid from.</p>
+          <div class="filters"><span>date range</span><span>category</span><span>warehouse</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Cargo Charges</h4>
+          <span class="path">Reports → Cargo Charges</span>
+          <p class="question">"How much are we paying each cargo party, and on what?"</p>
+          <p class="desc">Every cargo charge for a period — both per-item and transport-mode — grouped by cargo party, linked back to the purchase it belongs to, with weight and rate shown where transport mode applies.</p>
+          <div class="filters"><span>date range</span><span>cargo party</span></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="shell lang-ur">
+  <nav class="toc" aria-label="Table of contents">
+    <div class="toc-group">
+      <div class="toc-label">Bunyad</div>
+      <ul>
+        <li><a href="#overview-ur">Overview</a></li>
+        <li><a href="#ledger-ur">The Ledger</a></li>
+      </ul>
+    </div>
+    <div class="toc-group">
+      <div class="toc-label">Transactions</div>
+      <ul>
+        <li><a href="#sales-ur">Sales</a></li>
+        <li><a href="#purchases-ur">Purchases</a></li>
+        <li><a href="#cargo-ur">Cargo &amp; Landed Cost</a></li>
+      </ul>
+    </div>
+    <div class="toc-group">
+      <div class="toc-label">Reports</div>
+      <ul>
+        <li><a href="#reports-financial-ur">Financial Statements</a></li>
+        <li><a href="#reports-collections-ur">Collections &amp; Aging</a></li>
+        <li><a href="#reports-stock-ur">Inventory &amp; Stock</a></li>
+        <li><a href="#reports-analytics-ur">Sales &amp; Purchase Analytics</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+
+    <section class="doc-section" id="overview-ur">
+      <div class="section-head"><span class="section-no">§1</span><h2>Overview</h2></div>
+      <div class="prose">
+        <p>Invenco teen tarah ke records par chalta hai: <strong>parties</strong> (customers, vendors, aur cargo/transport parties), <strong>products</strong> jo <strong>stock</strong> ke tor par ek ya zyada <strong>warehouses</strong> mein rakhe jate hain, aur ek <strong>chart of accounts</strong> jahan har transaction aakhir mein post hoti hai. Sale ya Purchase wo form hai jo aap bharte hain; iske peeche system asal double-entry <strong>ledger entries</strong> likhta hai, jin se baaki sab kuch — Party statements, Trial Balance, Profit &amp; Loss, Aging — calculate hota hai.</p>
+        <p class="soft">Is system mein kuch bhi "sirf invoice par likha hua number" nahi hai. Jo bhi rupya move hota hai, wo ek ledger entry tak trace ho sakta hai — date, account, aur (agar relevant ho) party ke sath.</p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="ledger-ur">
+      <div class="section-head"><span class="section-no">§2</span><h2>The Ledger</h2></div>
+      <div class="prose">
+        <p>Har transaction — Sale, Purchase, Payment, Expense, Stock Transfer — ek hi <code>ledger_entries</code> table mein ek ya zyada rows likhta hai. Har row ka ek <strong>account</strong> hota hai, ek <strong>debit</strong> ya <strong>credit</strong> amount (kabhi dono nahi), ek <strong>date</strong>, aur agar wo kisi customer, vendor, ya cargo party se related ho to ek <strong>party</strong>. Rows hamesha matched pairs (ya groups) mein aati hain taake total debit = total credit rahe — yehi balance Trial Balance poore system mein check karta hai.</p>
+        <div class="legend">
+          <span class="chip debit">Dr — Debit</span>
+          <span class="chip credit">Cr — Credit</span>
+        </div>
+        <p>Reading direction account type par depend karti hai, jaisa kisi bhi accounting books mein hota hai:</p>
+        <ul>
+          <li><strong>Asset</strong> accounts (Cash, Bank, Inventory, Accounts Receivable) — debit balance badhata hai, credit ghata deta hai.</li>
+          <li><strong>Liability</strong> accounts (Accounts Payable) — credit se jo owe karte hain wo badhta hai, debit se kam hota hai.</li>
+          <li><strong>Income</strong> accounts (Sales) credit se badhte hain; <strong>Expense</strong> accounts (COGS, Cargo Expense, aur har operating expense category) debit se badhte hain.</li>
+        </ul>
+        <p>Jo accounts Sales aur Purchases apne naam se post karte hain: <code>Cash</code>, <code>Bank</code> (aur koi bhi doosra payment account), <code>Accounts Receivable</code>, <code>Accounts Payable</code>, <code>Sales</code>, <code>COGS</code>, <code>Inventory</code>, aur <code>Cargo Expense</code>.</p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="sales-ur">
+      <div class="section-head"><span class="section-no">§3</span><h2>Sales</h2></div>
+      <div class="prose">
+        <p>Sale ek customer, ek warehouse (stock source), products ki list (quantity aur price ke sath), ek optional flat discount, aur payment — jitne accounts mein chahen utna split (kuch Cash, kuch Bank, waghera) — ke against banti hai.</p>
+
+        <h3>Sale kaise banti hai</h3>
+      </div>
+      <div class="flow">
+        <div class="flow-step">
+          <span class="fs-num"></span>
+          <div><h4>Customer aur warehouse select karein</h4><p>Search se customer select hota hai aur unka running balance dropdown mein hi dikh jata hai, taake item add karne se pehle hi pata chal jaye kaun kitna owe karta hai.</p></div>
+        </div>
+        <div class="flow-step">
+          <span class="fs-num"></span>
+          <div><h4>Line items add karein</h4><p>Har row ek product, quantity, aur price hoti hai — selected warehouse ke live stock ke against. Same product same price par dobara add nahi ho sakta, aur quantity form ki limit se zyada nahi ho sakti.</p></div>
+        </div>
+        <div class="flow-step">
+          <span class="fs-num"></span>
+          <div><h4>Payment split karein (optional)</h4><p>Jitni chahen payment rows add karein — Cash, Bank, koi bhi configured account — har ek apna amount. Khali chhod dein to sale poori tarah credit par chali jayegi.</p></div>
+        </div>
+        <div class="flow-step">
+          <span class="fs-num"></span>
+          <div><h4>Save karein</h4><p>Stock foran chosen warehouse se kam ho jata hai, aur neeche wali ledger entries usi transaction mein likhi jati hain — ya to sab successful hoti hain, ya koi nahi.</p></div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <h4>Kya post hota hai</h4>
+        <p class="soft">5,000 ki sale ke liye jahan 3,000 Cash aur Bank mein split ho kar collect hota hai, aur becha gaya stock ki cost (average cost) 2,100 hai:</p>
+      </div>
+      <div class="ledger-block">
+        <div class="lb-title">Sale — maal jata hai, revenue record hoti hai</div>
+        <div class="ledger-row dr"><span class="side">Dr</span><span class="acct">Accounts Receivable <span class="party">customer</span></span><span></span><span class="amt num">5,000</span></div>
+        <div class="ledger-row cr"><span class="side">Cr</span><span class="acct">Sales</span><span></span><span class="amt num">5,000</span></div>
+        <div class="ledger-row dr"><span class="side">Dr</span><span class="acct">COGS</span><span></span><span class="amt num">2,100</span></div>
+        <div class="ledger-row cr"><span class="side">Cr</span><span class="acct">Inventory</span><span></span><span class="amt num">2,100</span></div>
+      </div>
+      <div class="ledger-block">
+        <div class="lb-title">Payment — har split ka apna pair, sale ke waqt collect hui</div>
+        <div class="ledger-row dr"><span class="side">Dr</span><span class="acct">Cash</span><span></span><span class="amt num">1,800</span></div>
+        <div class="ledger-row cr"><span class="side">Cr</span><span class="acct">Accounts Receivable <span class="party">customer</span></span><span></span><span class="amt num">1,800</span></div>
+        <div class="ledger-row dr"><span class="side">Dr</span><span class="acct">Bank</span><span></span><span class="amt num">1,200</span></div>
+        <div class="ledger-row cr"><span class="side">Cr</span><span class="acct">Accounts Receivable <span class="party">customer</span></span><span></span><span class="amt num">1,200</span></div>
+      </div>
+      <div class="prose">
+        <p>Baaki 2,000 customer ke Accounts Receivable balance par reh jata hai — yehi "credit" hai jo aapki Party Ledger aur Aging Report dikhati hain.</p>
+
+        <h4>Walk-In Customer</h4>
+        <p>Ek customer aur ek warehouse ko <strong>Settings → Walk-In Customer Defaults</strong> mein default mark kiya ja sakta hai. Jab wo customer select ho, to Sale form dono fields automatically bhar deta hai (quick counter sale ke liye kuch search karne ki zaroorat nahi), aur ek rule enforce karta hai jo kisi aur par apply nahi hota: <strong>sale poori tarah paid honi chahiye</strong> — jitne accounts mein chahen split karein, lekin total mein koi balance due nahi reh sakta. Ye form mein aur phir dobara server par check hota hai, taake skip na ho sake.</p>
+
+        <h4>Invoice share karna</h4>
+        <p>Har Sale WhatsApp par seedha uski page se bheji ja sakti hai — message text poora editable template hai (Settings → WhatsApp Message Templates) jisme customer name, invoice number, totals, previous balance, aur invoice PDF ka link ke liye placeholders hain. Wo PDF link ek signed URL hai: bina login khulta hai, lekin signature ki wajah se ID kisi aur invoice se badla nahi ja sakta.</p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="purchases-ur">
+      <div class="section-head"><span class="section-no">§4</span><h2>Purchases</h2></div>
+      <div class="prose">
+        <p>Purchase Sale jaisi hi shape mein ulta kaam karti hai — ek vendor, ek destination warehouse, line items quantity aur price ke sath (PKR ya RMB mein, entered exchange rate par convert), aur split payment. Stock foran badhta hai, aur har item ki <strong>average cost</strong> foran standard weighted-average formula se recalculate hoti hai:</p>
+        <div class="tbl-wrap">
+          <table class="spec">
+            <tr><td class="mono">naya avg cost</td><td>= ( (purani qty × purani avg cost) + (add hui qty × price) ) ÷ nayi total qty</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="ledger-block">
+        <div class="lb-title">Purchase — maal aata hai, vendor ko paisay dene hain</div>
+        <div class="ledger-row dr"><span class="side">Dr</span><span class="acct">Inventory</span><span></span><span class="amt num">10,000</span></div>
+        <div class="ledger-row cr"><span class="side">Cr</span><span class="acct">Accounts Payable <span class="party">vendor</span></span><span></span><span class="amt num">10,000</span></div>
+      </div>
+      <div class="prose">
+        <p>Agar bill ka kuch hissa foran paid ho, to wo split usi tarah post hota hai jaise Sale ki payment — payment account Debit, Accounts Payable Credit — jisse vendor ko jitna owe karte hain wo kam ho jata hai.</p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="cargo-ur">
+      <div class="section-head"><span class="section-no">§5</span><h2>Cargo &amp; Landed Cost</h2></div>
+      <div class="prose">
+        <p>Cargo/transport party ko diya gaya freight Purchase mein do tareekon se add ho sakta hai, aur system unhe jaan boojh kar alag treat karta hai:</p>
+
+        <h3>Per-item cargo</h3>
+        <p>Kisi specific line item ke against enter kiya gaya cargo amount <strong>capitalize</strong> hota hai — us item ki average cost mein seedha shamil ho jata hai, bilkul jaisa goods ki price hoti hai. 10 units @ 100 ki line jisme 50 cargo ho, wo 105/unit par land karti hai — permanently, jab tak agli purchase average ko dobara na badle.</p>
+        <div class="ledger-block">
+          <div class="lb-title">Per-item cargo — ek hi landed-cost debit, do payables mein baant kar</div>
+          <div class="ledger-row dr"><span class="side">Dr</span><span class="acct">Inventory <span class="party">goods + cargo</span></span><span></span><span class="amt num">1,050</span></div>
+          <div class="ledger-row cr"><span class="side">Cr</span><span class="acct">Accounts Payable <span class="party">vendor</span></span><span></span><span class="amt num">1,000</span></div>
+          <div class="ledger-row cr"><span class="side">Cr</span><span class="acct">Accounts Payable <span class="party">cargo party</span></span><span></span><span class="amt num">50</span></div>
+        </div>
+        <div class="note">
+          <span class="note-tag">Balanced</span>
+          <p>Yahan jaan boojh kar koi alag "Cargo Expense" line nahi hai — cargo cost pehle se Inventory wale debit ke andar hai. Usi rupay ke liye doosri expense entry banane se ye dobara count ho jata aur Debit/Credit balance se bahar chala jata — yehi exact issue tha jo is fix se pehle hota tha.</p>
+        </div>
+
+        <h3>Transport-mode cargo</h3>
+        <p>Cargo jo <span class="mono">total weight × rate per kg</span> ke tor par bill hoti hai, wo individual items mein baanti nahi jati — ye apna alag <code>CargoCharge</code> record ke tor par track hoti hai, aur ledger mein ek asal period expense ke tor par.</p>
+        <div class="ledger-block">
+          <div class="lb-title">Transport-mode cargo — apni alag expense line</div>
+          <div class="ledger-row dr"><span class="side">Dr</span><span class="acct">Cargo Expense</span><span></span><span class="amt num">200</span></div>
+          <div class="ledger-row cr"><span class="side">Cr</span><span class="acct">Accounts Payable <span class="party">cargo party</span></span><span></span><span class="amt num">200</span></div>
+        </div>
+        <p>Reporting ke liye, Profit &amp; Loss ise ab bhi landed cost hi treat karta hai — dekhein <a href="#pl-note-ur">Profit &amp; Loss ke neeche wala note</a>, ke ye Cost of Goods Sold mein wapas kaise shamil hota hai, chahe ledger ise apne alag account mein hi rakhe.</p>
+
+        <h3>Cargo wala maal wapas karna (Purchase Return)</h3>
+        <p>Jab per-item-cargo wali purchase ka maal Purchase Return ke through wapas jata hai, to Inventory se jo cost hataya jata hai wo wahi <strong>landed cost</strong> hai jis par wo item aaya tha — goods price plus uska cargo share, sirf goods price nahi. Sirf goods price use karne se asal capitalize hui value se kam value remove hoti, jis se bache hue stock ka average cost artificially badh jata, aur uske baad har sale ka Cost of Goods Sold Profit &amp; Loss mein kam dikhta.</p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="reports-financial-ur">
+      <div class="section-head"><span class="section-no">§6</span><h2>Financial Statements</h2></div>
+      <div class="prose"><p class="soft">Seedha underlying ledger se padhte hain — koi report-specific shortcut nahi, is liye ye hamesha upar wali entries se match karte hain.</p></div>
+
+      <div class="report-grid">
+        <div class="report-card">
+          <h4>Account Ledger</h4>
+          <span class="path">Reports → Account Ledger</span>
+          <p class="question">"Is ek account se kya move hua, aur uska running balance kya hai?"</p>
+          <p class="desc">Chuni gayi Chart of Accounts account ki har ledger entry, date order mein, running balance ke sath aur har line ka contra-account bhi — split-payment lines samet — amount se match karke, taake multi-account payment ka sahi counterpart dikhe, sirf pehla match nahi.</p>
+          <div class="filters"><span>date range</span><span>warehouse</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Party Ledger</h4>
+          <span class="path">Reports → Party Ledger</span>
+          <p class="question">"Is customer ya vendor ka statement kaisa dikhta hai?"</p>
+          <p class="desc">Wahi running-balance statement, ek account ki jagah ek party tak scoped — opening balance carry forward, period ki har entry, aur closing balance <span class="mono">Dr</span> / <span class="mono">Cr</span> mein. Signed PDF link ke tor par seedha WhatsApp par share ho sakti hai.</p>
+          <div class="filters"><span>party</span><span>date range</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Trial Balance</h4>
+          <span class="path">Reports → Trial Balance</span>
+          <p class="question">"Kya sab kuch asal mein balance karta hai, aaj ki date tak?"</p>
+          <p class="desc">Har account ka net Debit ya Credit balance ek single date tak, party records se aaye opening balances samet. Agar yahan total Debit ≠ total Credit ho, to kahin upstream double-entry toot gaya hai — aisa kabhi hona nahi chahiye.</p>
+          <div class="filters"><span>as-of date</span></div>
+        </div>
+
+        <div class="report-card" id="pl-note-ur">
+          <h4>Profit &amp; Loss</h4>
+          <span class="path">Reports → Profit &amp; Loss</span>
+          <p class="question">"Hum ne asal mein kitna kamaya, becha gaya maal ki asal cost ke baad?"</p>
+          <p class="desc">Gross Profit = Sales minus Cost of Goods Sold, jahan COGS <strong>landed cost</strong> hai — goods price plus cargo, dono cargo modes ke liye. Per-item cargo pehle se us purchase cost ke andar hai jo ye padhta hai; transport-mode cargo proportion se wapas add hoti hai chahe wo apne alag ledger account mein booked ho, aur wo account phir Operating Expenses se exclude ho jata hai taake dobara count na ho.</p>
+          <pre class="formula">COGS = Opening Stock Value + Net Purchases − Closing Stock Value
+  Opening/Closing Stock Value = us date tak WAC stock valuation (landed cost)
+  Net Purchases = (Purchases + Cargo) − Purchase Returns + mid-period Opening Stock
+
+Net Sales    = Total Sales − Sales Returns
+Gross Profit = Net Sales − COGS
+
+Total Income  = Gross Profit + Other Income (non-Sales income accounts)
+Total Expense = Baaki Operating Expenses (Purchase / COGS / Cargo Expense / Return
+                accounts yahan exclude — wo upar COGS mein already shamil hain)
+Net Profit    = Total Income − Total Expense</pre>
+          <div class="filters"><span>date range</span><span>warehouse</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Balance Sheet</h4>
+          <span class="path">Reports → Balance Sheet</span>
+          <p class="question">"Hamare paas kya hai, hum par kya owe hai, aaj ki date tak?"</p>
+          <p class="desc">Total Assets vs total Liabilities ek single date tak, Equity difference ke tor par calculate — apna koi alag ledger account nahi, sirf jo bach jata hai.</p>
+          <div class="filters"><span>as-of date</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="doc-section" id="reports-collections-ur">
+      <div class="section-head"><span class="section-no">§7</span><h2>Collections &amp; Aging</h2></div>
+      <div class="report-grid">
+        <div class="report-card">
+          <h4>Receivable / Payable Aging</h4>
+          <span class="path">Reports → Aging</span>
+          <p class="question">"Kaun overdue hai, aur kitne din se?"</p>
+          <p class="desc">Har party ka outstanding balance, age ke hisaab se 0-30 / 31-60 / 61-90 / 90+ din mein bucket. Asal ledger balances padhta hai — opening-balance-only dues aur cargo-party payables samet jinki koi apni invoice nahi — aur unhe invoices ke against oldest-first age karta hai, taake totals hamesha Party Ledger se exact match karein.</p>
+          <div class="filters"><span>as-of date</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Daily Collection</h4>
+          <span class="path">Reports → Daily Collection</span>
+          <p class="question">"Aaj Cash aur Bank mein asal mein kitna move hua?"</p>
+          <p class="desc">Period ki har ledger entry jo kisi payment account (Cash, Bank, waghera) ke against ho — received vs paid, har account ke hisaab se aur poori detail mein. Sales aur Purchases ki split-payment lines automatically shamil ho jati hain, kyunke wo isi accounts par post hoti hain.</p>
+          <div class="filters"><span>date range</span><span>account</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="doc-section" id="reports-stock-ur">
+      <div class="section-head"><span class="section-no">§8</span><h2>Inventory &amp; Stock</h2></div>
+      <div class="report-grid">
+        <div class="report-card">
+          <h4>Stock History</h4>
+          <span class="path">Product page → Stock History</span>
+          <p class="question">"Is product ke sath kya hua, movement by movement?"</p>
+          <p class="desc">Ek product ki har opening stock, purchase, sale, aur return, order mein, running quantity aur running average cost ke sath jo poori history se recompute hoti hai — purchases cargo ko running cost mein waise hi shamil karti hain jaise live average karta hai.</p>
+          <div class="filters"><span>date range</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Product Profit &amp; Loss</h4>
+          <span class="path">Product page → Product P&amp;L</span>
+          <p class="question">"Kya ye specific product asal mein profitable hai?"</p>
+          <p class="desc">Ek product ka revenue minus cost, ek period ke liye, har sale ke waqt ki apni running average cost use karte hue.</p>
+          <div class="filters"><span>date range</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Dead Stock</h4>
+          <span class="path">Reports → Dead Stock</span>
+          <p class="question">"Kya shelf par pada hai jo move nahi ho raha?"</p>
+          <p class="desc">Products jinke paas stock hai lekin chuni gayi window mein koi sale nahi hui, kitne din se idle hain uske hisaab se rank, aur har ek mein kitni value phansi hui hai.</p>
+          <div class="filters"><span>days idle</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Stock Alert</h4>
+          <span class="path">Reports → Stock Alert</span>
+          <p class="question">"Abhi kya reorder karna hai?"</p>
+          <p class="desc">Products jo apne reorder threshold par ya us se neeche hain — chahe har product ka apna configured level ho, ya ek threshold sab par apply ho — Out of Stock aur Low Stock mein split, suggested reorder quantity ke sath.</p>
+          <div class="filters"><span>threshold</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Products Summary</h4>
+          <span class="path">Reports → Products Summary</span>
+          <p class="question">"Is period mein har product ka stock kaise move hua?"</p>
+          <p class="desc">Quantity in (purchases, returns, opening stock) aur out (sales, returns) har product ke liye period mein, uski current live stock position ke sath.</p>
+          <div class="filters"><span>date range</span><span>search</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="doc-section" id="reports-analytics-ur">
+      <div class="section-head"><span class="section-no">§9</span><h2>Sales &amp; Purchase Analytics</h2></div>
+      <div class="report-grid">
+        <div class="report-card">
+          <h4>Sales Analysis</h4>
+          <span class="path">Reports → Sales Analysis</span>
+          <p class="question">"Hamare best customers kaun hain, aur asal mein kya bikta hai?"</p>
+          <p class="desc">Ek period ke top customers aur top products, <strong>net</strong> sales ke hisaab se rank — gross sales minus us customer ya product ke apne returns usi period mein — taake bohot zyada return hone wala item us se aage na aaye jo genuinely acha bika ho.</p>
+          <div class="filters"><span>date range</span><span>top N</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Returns Summary</h4>
+          <span class="path">Reports → Returns Summary</span>
+          <p class="question">"Kitna wapas aaya, kis side se?"</p>
+          <p class="desc">Ek period ki Sales Returns aur Purchase Returns side-by-side, har ek apni original invoice se linked.</p>
+          <div class="filters"><span>date range</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Expense Report</h4>
+          <span class="path">Reports → Expenses</span>
+          <p class="question">"Operating cash asal mein kahan gaya?"</p>
+          <p class="desc">Ek period ka har record hua expense, category aur warehouse ke hisaab se group, jis account se paid hua uske sath.</p>
+          <div class="filters"><span>date range</span><span>category</span><span>warehouse</span></div>
+        </div>
+
+        <div class="report-card">
+          <h4>Cargo Charges</h4>
+          <span class="path">Reports → Cargo Charges</span>
+          <p class="question">"Hum har cargo party ko kitna de rahe hain, aur kis cheez ke liye?"</p>
+          <p class="desc">Ek period ka har cargo charge — per-item aur transport-mode dono — cargo party ke hisaab se group, jis purchase se belong karta hai us se linked, transport mode ho to weight aur rate ke sath.</p>
+          <div class="filters"><span>date range</span><span>cargo party</span></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <span class="lang-en-block">Invenco — System Reference · Describes current production behaviour, not a roadmap.</span>
+  <span class="lang-ur-block">Invenco — System Reference · Current production behavior batata hai, koi roadmap nahi.</span>
+</footer>
+
+<script>
+  (function () {
+    var enBtn = document.getElementById('lang-en-btn');
+    var urBtn = document.getElementById('lang-ur-btn');
+    var root = document.documentElement;
+
+    function activeToc() {
+      var lang = root.getAttribute('data-lang') === 'ur' ? 'ur' : 'en';
+      var shell = document.querySelector('.shell.lang-' + lang);
+      return shell ? Array.prototype.slice.call(shell.querySelectorAll('nav.toc a')) : [];
+    }
+
+    function setLang(lang) {
+      root.setAttribute('data-lang', lang);
+      try { localStorage.setItem('invenco-docs-lang', lang); } catch (e) {}
+      enBtn.setAttribute('aria-pressed', lang === 'en' ? 'true' : 'false');
+      urBtn.setAttribute('aria-pressed', lang === 'ur' ? 'true' : 'false');
+      bindScrollSpy();
+      onScroll();
+    }
+
+    enBtn.addEventListener('click', function () { setLang('en'); });
+    urBtn.addEventListener('click', function () { setLang('ur'); });
+
+    var links = [];
+    var sections = [];
+
+    function bindScrollSpy() {
+      links = activeToc();
+      sections = links
+        .map(function (a) { return document.querySelector(a.getAttribute('href')); })
+        .filter(Boolean);
+    }
+
+    function onScroll() {
+      if (!sections.length) return;
+      var pos = window.scrollY + 120;
+      var current = sections[0];
+      sections.forEach(function (sec) {
+        if (sec.offsetTop <= pos) current = sec;
+      });
+      links.forEach(function (a) {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + current.id);
+      });
+    }
+
+    var savedLang = 'en';
+    try { savedLang = localStorage.getItem('invenco-docs-lang') || 'en'; } catch (e) {}
+    setLang(savedLang === 'ur' ? 'ur' : 'en');
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+  })();
+</script>
+</body>
+</html>

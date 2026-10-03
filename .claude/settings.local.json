@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan tinker '--execute= *)",
+      "Bash(grep -v \"^PHP Warning\\\\|WARNING\\\\|storage.\\\\|^$\")",
+      "Artifact"
+    ]
+  }
+}
