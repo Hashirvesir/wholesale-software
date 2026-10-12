@@ -306,123 +306,146 @@ class ReportController extends Controller
         $warehouseId = $request->warehouse_id;
         $warehouses = \App\Models\Warehouse::all();
 
-        // 1. Calculate Inventory Valuation (Opening & Closing) using proper WAC
+        // 1. Calculate Inventory Valuation (Opening & Closing) using fast bulk WAC
         $openingValuation = $this->calculateStockValue($startDate, $warehouseId);
 
         $closingDate = \Carbon\Carbon::parse($endDate)->addDay()->toDateString();
         $closingValuation = $this->calculateStockValue($closingDate, $warehouseId);
 
-        // 2. Calculate Purchases directly from PurchaseItem records (not ledger)
-        // PurchaseController uses perpetual inventory (Debit Inventory, Credit AP)
-        // so "Purchase" expense account has no entries — we must read actual purchase data.
-        // Landed cost: goods + per-item cargo (both stored per line in PurchaseItem).
-        $purchaseQuery = \App\Models\PurchaseItem::whereHas('purchase', function($q) use ($startDate, $endDate, $warehouseId) {
+        // 2. Calculate Purchases Breakdown (Gross Goods + Inward Cargo - Discounts - Returns)
+        $purchaseItemQuery = \App\Models\PurchaseItem::whereHas('purchase', function($q) use ($startDate, $endDate, $warehouseId) {
             $q->whereBetween('date', [$startDate, $endDate]);
             if ($warehouseId) $q->where('warehouse_id', $warehouseId);
         });
-        $totalPurchases = round($purchaseQuery->sum(DB::raw('qty * price_pkr + cargo_amount')), 2);
+        $grossPurchases = round((float) $purchaseItemQuery->sum(DB::raw('qty * price_pkr')), 2);
+        $itemCargo = round((float) $purchaseItemQuery->sum('cargo_amount'), 2);
 
-        // Transport-mode cargo (total_weight × rate_per_kg) isn't stored per line item, so add
-        // it separately for purchases dated within the period — it's still part of landed cost.
+        // Transport-mode cargo (weight x rate)
         $transportCargoQuery = \App\Models\CargoCharge::whereHas('purchase', function($q) use ($startDate, $endDate, $warehouseId) {
             $q->whereBetween('date', [$startDate, $endDate]);
             if ($warehouseId) $q->where('warehouse_id', $warehouseId);
         })->where('total_weight', '>', 0);
-        $totalPurchases += round($transportCargoQuery->sum('total_amount'), 2);
+        $transportCargo = round((float) $transportCargoQuery->sum('total_amount'), 2);
+        $totalCargoCharges = round($itemCargo + $transportCargo, 2);
+
+        // Purchase Discounts
+        $purchaseDiscountQuery = \App\Models\Purchase::whereBetween('date', [$startDate, $endDate]);
+        if ($warehouseId) {
+            $purchaseDiscountQuery->where('warehouse_id', $warehouseId);
+        }
+        $totalPurchaseDiscount = round((float) $purchaseDiscountQuery->sum('discount_amount'), 2);
+
+        // Landed Total Purchases (Goods + Cargo - Discounts)
+        $totalPurchases = round(max(0, $grossPurchases - $totalPurchaseDiscount + $totalCargoCharges), 2);
 
         // Purchase Returns
         $purchaseReturnQuery = \App\Models\PurchaseReturnItem::whereHas('purchaseReturn', function($q) use ($startDate, $endDate, $warehouseId) {
             $q->whereBetween('date', [$startDate, $endDate]);
             if ($warehouseId) $q->where('warehouse_id', $warehouseId);
         });
-        $totalPurchaseReturn = round($purchaseReturnQuery->sum(DB::raw('qty * cost')), 2);
+        $totalPurchaseReturn = round((float) $purchaseReturnQuery->sum(DB::raw('qty * cost')), 2);
 
-        // Also account for Opening Stock entries added during this period
-        // (these are new stock brought into system — similar to purchases for COGS purposes)
+        // Opening Stock entries added mid-period
         $midPeriodOpeningStockQuery = \App\Models\OpeningStock::whereBetween('date', [$startDate, $endDate]);
         if ($warehouseId) {
             $midPeriodOpeningStockQuery->where('warehouse_id', $warehouseId);
         }
-        $midPeriodOpeningStockVal = round($midPeriodOpeningStockQuery->sum('total'), 2);
+        $midPeriodOpeningStockVal = round((float) $midPeriodOpeningStockQuery->sum('total'), 2);
 
-        // 3. Fetch Income and Expense accounts
-        $incomeAccounts = \App\Models\ChartOfAccount::where('type', 'Income')->get();
-        $expenseAccounts = \App\Models\ChartOfAccount::where('type', 'Expense')->get();
+        // Net Purchases Available for COGS
+        $netPurchases = round($totalPurchases - $totalPurchaseReturn + $midPeriodOpeningStockVal, 2);
 
+        // 3. Revenue from Double Entry Ledger (Sales & Sales Returns)
+        $salesAccount = \App\Models\ChartOfAccount::where('name', 'Sales')->first();
         $totalSales = 0;
+        if ($salesAccount) {
+            $query = LedgerEntry::where('account_id', $salesAccount->id)
+                ->whereBetween('date', [$startDate, $endDate]);
+            if ($warehouseId) $query->where('warehouse_id', $warehouseId);
+            $totalSales = round((float) $query->sum(DB::raw('credit - debit')), 2);
+        }
+
+        $salesReturnAccount = \App\Models\ChartOfAccount::where('name', 'Sales Return')->first();
         $totalSalesReturn = 0;
+        if ($salesReturnAccount) {
+            $query = LedgerEntry::where('account_id', $salesReturnAccount->id)
+                ->whereBetween('date', [$startDate, $endDate]);
+            if ($warehouseId) $query->where('warehouse_id', $warehouseId);
+            $totalSalesReturn = round((float) abs($query->sum(DB::raw('debit - credit'))), 2);
+        }
+
+        $netSales = round($totalSales - $totalSalesReturn, 2);
+
+        // 4. Calculate COGS (Reconciliation between Perpetual Ledger & Periodic Trading Account)
+        $totalStock = round($openingValuation + $netPurchases, 2);
+        $periodicCogs = round($totalStock - $closingValuation, 2);
+
+        $cogsAccount = \App\Models\ChartOfAccount::where('name', 'COGS')->first();
+        $ledgerCogs = 0;
+        if ($cogsAccount) {
+            $cogsQuery = LedgerEntry::where('account_id', $cogsAccount->id)
+                ->whereBetween('date', [$startDate, $endDate]);
+            if ($warehouseId) $cogsQuery->where('warehouse_id', $warehouseId);
+            $ledgerCogs = round((float) $cogsQuery->sum(DB::raw('debit - credit')), 2);
+        }
+
+        // Authoritative COGS: use real-time perpetual ledger COGS if available, otherwise periodic formula
+        $cogs = $ledgerCogs > 0 ? $ledgerCogs : $periodicCogs;
+        $inventoryVariance = round($periodicCogs - $cogs, 2);
+
+        $grossProfit = round($netSales - $cogs, 2);
+        $grossMarginPercent = $netSales > 0 ? round(($grossProfit / $netSales) * 100, 1) : 0;
+
+        // 5. Operating Expenses & Other Income from Ledger
+        $incomeAccounts = \App\Models\ChartOfAccount::where('type', 'Income')
+            ->whereNotIn('name', ['Sales', 'Sales Return', 'Purchase Return'])
+            ->get();
+        $expenseAccounts = \App\Models\ChartOfAccount::where('type', 'Expense')
+            ->whereNotIn('name', ['Purchase', 'COGS', 'Cargo Expense', 'Sales Return', 'Purchase Return'])
+            ->get();
+
         $incomeData = [];
         $expenseData = [];
         $totalOtherIncome = 0;
         $totalOtherExpenses = 0;
 
-        // 4. Process Income Accounts (Sales & Other Income)
         foreach ($incomeAccounts as $account) {
             $query = LedgerEntry::where('account_id', $account->id)
                 ->whereBetween('date', [$startDate, $endDate]);
-            if ($warehouseId) {
-                $query->where('warehouse_id', $warehouseId);
-            }
-            $balance = round($query->sum(DB::raw('credit - debit')), 2);
+            if ($warehouseId) $query->where('warehouse_id', $warehouseId);
+            $balance = round((float) $query->sum(DB::raw('credit - debit')), 2);
             if ($balance != 0) {
-                if ($account->name === 'Sales') {
-                    $totalSales += $balance;
-                } elseif (str_contains(strtolower($account->name), 'sales return')) {
-                    $totalSalesReturn += abs($balance);
-                } elseif (str_contains(strtolower($account->name), 'purchase return')) {
-                    // Already accounted for via $totalPurchaseReturn (from PurchaseReturnItem
-                    // records, reducing COGS above) — skip regardless of this account's type
-                    // to avoid double-counting it again as Other Income.
-                    continue;
-                } else {
-                    $incomeData[] = ['name' => $account->name, 'amount' => $balance];
-                    $totalOtherIncome += $balance;
-                }
+                $incomeData[] = ['name' => $account->name, 'amount' => $balance];
+                $totalOtherIncome += $balance;
             }
         }
 
-        // 5. Process Expense Accounts (Operating Expenses only — Purchases & COGS handled separately)
         foreach ($expenseAccounts as $account) {
             $query = LedgerEntry::where('account_id', $account->id)
                 ->whereBetween('date', [$startDate, $endDate]);
-            if ($warehouseId) {
-                $query->where('warehouse_id', $warehouseId);
-            }
-            $balance = round($query->sum(DB::raw('debit - credit')), 2);
+            if ($warehouseId) $query->where('warehouse_id', $warehouseId);
+            $balance = round((float) $query->sum(DB::raw('debit - credit')), 2);
             if ($balance != 0) {
-                // Skip Purchase, Purchase Return, Sales Return, and COGS accounts
-                // (these are calculated from actual records above, not ledger). Cargo Expense
-                // is skipped too — it's now folded into COGS (landed cost) above, so counting
-                // it again here would double it.
-                if ($account->name === 'Purchase' || $account->name === 'COGS' || $account->name === 'Cargo Expense') {
-                    continue;
-                } elseif (str_contains(strtolower($account->name), 'purchase return')) {
-                    continue;
-                } elseif (str_contains(strtolower($account->name), 'sales return')) {
-                    $totalSalesReturn += $balance;
-                } else {
-                    $expenseData[] = ['name' => $account->name, 'amount' => $balance];
-                    $totalOtherExpenses += $balance;
-                }
+                $expenseData[] = ['name' => $account->name, 'amount' => $balance];
+                $totalOtherExpenses += $balance;
             }
         }
 
-        // 6. Formula
-        $netSales = $totalSales - $totalSalesReturn;
-        $netPurchases = $totalPurchases - $totalPurchaseReturn + $midPeriodOpeningStockVal;
-        $totalStock = $openingValuation + $netPurchases;
-        $cogs = $totalStock - $closingValuation;
-        $grossProfit = $netSales - $cogs;
-        $totalIncome = $grossProfit + $totalOtherIncome;
-        $totalExpense = $totalOtherExpenses;
-        $netProfit = $totalIncome - $totalExpense;
+        // 6. Net Profit Calculation
+        $totalIncome = round($grossProfit + $totalOtherIncome, 2);
+        $totalExpense = round($totalOtherExpenses, 2);
+        $netProfit = round($totalIncome - $totalExpense, 2);
+        $netMarginPercent = $netSales > 0 ? round(($netProfit / $netSales) * 100, 1) : 0;
 
         $settings = Setting::first();
         $data = compact(
             'incomeData', 'expenseData', 'totalSales', 'totalSalesReturn', 'netSales',
+            'grossPurchases', 'totalPurchaseDiscount', 'totalCargoCharges',
             'totalPurchases', 'totalPurchaseReturn', 'netPurchases', 'totalStock',
-            'openingValuation', 'closingValuation', 'cogs', 'grossProfit',
-            'totalOtherIncome', 'totalOtherExpenses', 'totalIncome', 'totalExpense', 'netProfit',
+            'openingValuation', 'closingValuation', 'periodicCogs', 'ledgerCogs',
+            'cogs', 'inventoryVariance', 'grossProfit', 'grossMarginPercent',
+            'totalOtherIncome', 'totalOtherExpenses', 'totalIncome', 'totalExpense',
+            'netProfit', 'netMarginPercent',
             'startDate', 'endDate', 'warehouses', 'warehouseId', 'settings'
         );
 
@@ -1101,131 +1124,145 @@ class ReportController extends Controller
         $products = \App\Models\Product::all();
         $totalValue = 0;
 
+        // 1. Bulk load all historical movements up to $date in 6 fast queries
+        $osQuery = \App\Models\OpeningStock::where('date', '<', $date);
+        if ($warehouseId) $osQuery->where('warehouse_id', $warehouseId);
+        $osGrouped = $osQuery->get()->groupBy('product_id');
+
+        $purQuery = \App\Models\PurchaseItem::whereHas('purchase', function($q) use ($date, $warehouseId) {
+            $q->where('date', '<', $date);
+            if ($warehouseId) $q->where('warehouse_id', $warehouseId);
+        })->with('purchase');
+        $purGrouped = $purQuery->get()->groupBy('product_id');
+
+        $saleQuery = \App\Models\SaleItem::whereHas('sale', function($q) use ($date, $warehouseId) {
+            $q->where('date', '<', $date);
+            if ($warehouseId) $q->where('warehouse_id', $warehouseId);
+        })->with('sale');
+        $saleGrouped = $saleQuery->get()->groupBy('product_id');
+
+        $srQuery = \App\Models\SalesReturnItem::whereHas('salesReturn', function($q) use ($date, $warehouseId) {
+            $q->where('date', '<', $date);
+            if ($warehouseId) $q->where('warehouse_id', $warehouseId);
+        })->with('salesReturn');
+        $srGrouped = $srQuery->get()->groupBy('product_id');
+
+        $prQuery = \App\Models\PurchaseReturnItem::whereHas('purchaseReturn', function($q) use ($date, $warehouseId) {
+            $q->where('date', '<', $date);
+            if ($warehouseId) $q->where('warehouse_id', $warehouseId);
+        })->with('purchaseReturn');
+        $prGrouped = $prQuery->get()->groupBy('product_id');
+
+        $saQuery = \App\Models\StockAdjustmentItem::whereHas('stockAdjustment', function($q) use ($date, $warehouseId) {
+            $q->where('date', '<', $date);
+            if ($warehouseId) $q->where('warehouse_id', $warehouseId);
+        })->with('stockAdjustment');
+        $saGrouped = $saQuery->get()->groupBy('product_id');
+
         foreach ($products as $product) {
             $movements = collect();
 
-            // 1. Opening Stocks (landed cost — includes cargo, matching how avg_cost is meant to work)
-            $osQuery = \App\Models\OpeningStock::where('product_id', $product->id)->where('date', '<', $date);
-            if ($warehouseId) $osQuery->where('warehouse_id', $warehouseId);
-            foreach ($osQuery->get() as $os) {
-                $unitRate = $os->qty > 0 ? round($os->total / $os->qty, 4) : (float)$os->rate;
-                $movements->push([
-                    'date' => $os->date,
-                    'created_at' => $os->created_at,
-                    'type' => 'Opening Stock',
-                    'qty_in' => (float)$os->qty,
-                    'qty_out' => 0,
-                    'rate' => $unitRate,
-                ]);
+            // 1. Opening Stocks
+            if (isset($osGrouped[$product->id])) {
+                foreach ($osGrouped[$product->id] as $os) {
+                    $unitRate = $os->qty > 0 ? round($os->total / $os->qty, 4) : (float)$os->rate;
+                    $movements->push([
+                        'date' => $os->date,
+                        'created_at' => $os->created_at,
+                        'type' => 'Opening Stock',
+                        'qty_in' => (float)$os->qty,
+                        'qty_out' => 0,
+                        'rate' => $unitRate,
+                    ]);
+                }
             }
 
-            // 2. Purchases (landed cost — includes per-item cargo, matching Stock.avg_cost exactly.
-            // cargo_amount already holds the item's full cargo share — whether entered manually or
-            // auto-distributed from transport weight×rate by the purchase form — so adding
-            // purchase->cargoCharge->total_amount on top would double-count the same cargo charge.)
-            $purQuery = \App\Models\PurchaseItem::where('product_id', $product->id)
-                ->whereHas('purchase', function($q) use ($date, $warehouseId) {
-                    $q->where('date', '<', $date);
-                    if ($warehouseId) $q->where('warehouse_id', $warehouseId);
-                })->with(['purchase']);
-            foreach ($purQuery->get() as $pi) {
-                $purchase = $pi->purchase;
-                $unitRate = (float) $pi->price_pkr;
+            // 2. Purchases (landed cost)
+            if (isset($purGrouped[$product->id])) {
+                foreach ($purGrouped[$product->id] as $pi) {
+                    $unitRate = (float) $pi->price_pkr;
+                    if ($pi->qty > 0 && $pi->cargo_amount > 0) {
+                        $unitRate += $pi->cargo_amount / $pi->qty;
+                    }
 
-                if ($pi->qty > 0 && $pi->cargo_amount > 0) {
-                    $unitRate += $pi->cargo_amount / $pi->qty;
+                    $movements->push([
+                        'date' => $pi->purchase->date,
+                        'created_at' => $pi->created_at,
+                        'type' => 'Purchase',
+                        'qty_in' => (float)$pi->qty,
+                        'qty_out' => 0,
+                        'rate' => $unitRate,
+                    ]);
                 }
-
-                $movements->push([
-                    'date' => $purchase->date,
-                    'created_at' => $pi->created_at,
-                    'type' => 'Purchase',
-                    'qty_in' => (float)$pi->qty,
-                    'qty_out' => 0,
-                    'rate' => $unitRate,
-                ]);
             }
 
             // 3. Sales
-            $saleQuery = \App\Models\SaleItem::where('product_id', $product->id)
-                ->whereHas('sale', function($q) use ($date, $warehouseId) {
-                    $q->where('date', '<', $date);
-                    if ($warehouseId) $q->where('warehouse_id', $warehouseId);
-                })->with('sale');
-            foreach ($saleQuery->get() as $si) {
-                $movements->push([
-                    'date' => $si->sale->date,
-                    'created_at' => $si->created_at,
-                    'type' => 'Sale',
-                    'qty_in' => 0,
-                    'qty_out' => (float)$si->qty,
-                    'rate' => 0,
-                ]);
-            }
-
-            // 4. Sales Returns (Inward)
-            $srQuery = \App\Models\SalesReturnItem::where('product_id', $product->id)
-                ->whereHas('salesReturn', function($q) use ($date, $warehouseId) {
-                    $q->where('date', '<', $date);
-                    if ($warehouseId) $q->where('warehouse_id', $warehouseId);
-                })->with('salesReturn');
-            foreach ($srQuery->get() as $sri) {
-                $movements->push([
-                    'date' => $sri->salesReturn->date,
-                    'created_at' => $sri->created_at,
-                    'type' => 'Sales Return',
-                    'qty_in' => (float)$sri->qty,
-                    'qty_out' => 0,
-                    'rate' => 0, // Will use running avg cost
-                ]);
-            }
-
-            // 5. Purchase Returns (Outward)
-            $prQuery = \App\Models\PurchaseReturnItem::where('product_id', $product->id)
-                ->whereHas('purchaseReturn', function($q) use ($date, $warehouseId) {
-                    $q->where('date', '<', $date);
-                    if ($warehouseId) $q->where('warehouse_id', $warehouseId);
-                })->with('purchaseReturn');
-            foreach ($prQuery->get() as $pri) {
-                $movements->push([
-                    'date' => $pri->purchaseReturn->date,
-                    'created_at' => $pri->created_at,
-                    'type' => 'Purchase Return',
-                    'qty_in' => 0,
-                    'qty_out' => (float)$pri->qty,
-                    'rate' => (float)$pri->cost,
-                ]);
-            }
-
-            // 6. Stock Adjustments
-            $saQuery = \App\Models\StockAdjustmentItem::where('product_id', $product->id)
-                ->whereHas('stockAdjustment', function($q) use ($date, $warehouseId) {
-                    $q->where('date', '<', $date);
-                    if ($warehouseId) $q->where('warehouse_id', $warehouseId);
-                })->with('stockAdjustment');
-            foreach ($saQuery->get() as $sa) {
-                if ($sa->type === 'addition') {
+            if (isset($saleGrouped[$product->id])) {
+                foreach ($saleGrouped[$product->id] as $si) {
                     $movements->push([
-                        'date' => $sa->stockAdjustment->date,
-                        'created_at' => $sa->created_at,
-                        'type' => 'Stock Adjustment Add',
-                        'qty_in' => (float)$sa->qty,
-                        'qty_out' => 0,
-                        'rate' => 0, // Will use running avg cost
-                    ]);
-                } else {
-                    $movements->push([
-                        'date' => $sa->stockAdjustment->date,
-                        'created_at' => $sa->created_at,
-                        'type' => 'Stock Adjustment Sub',
+                        'date' => $si->sale->date,
+                        'created_at' => $si->created_at,
+                        'type' => 'Sale',
                         'qty_in' => 0,
-                        'qty_out' => (float)$sa->qty,
+                        'qty_out' => (float)$si->qty,
                         'rate' => 0,
                     ]);
                 }
             }
 
-            // Skip if no movements
+            // 4. Sales Returns (Inward)
+            if (isset($srGrouped[$product->id])) {
+                foreach ($srGrouped[$product->id] as $sri) {
+                    $movements->push([
+                        'date' => $sri->salesReturn->date,
+                        'created_at' => $sri->created_at,
+                        'type' => 'Sales Return',
+                        'qty_in' => (float)$sri->qty,
+                        'qty_out' => 0,
+                        'rate' => 0,
+                    ]);
+                }
+            }
+
+            // 5. Purchase Returns (Outward)
+            if (isset($prGrouped[$product->id])) {
+                foreach ($prGrouped[$product->id] as $pri) {
+                    $movements->push([
+                        'date' => $pri->purchaseReturn->date,
+                        'created_at' => $pri->created_at,
+                        'type' => 'Purchase Return',
+                        'qty_in' => 0,
+                        'qty_out' => (float)$pri->qty,
+                        'rate' => (float)$pri->cost,
+                    ]);
+                }
+            }
+
+            // 6. Stock Adjustments
+            if (isset($saGrouped[$product->id])) {
+                foreach ($saGrouped[$product->id] as $sa) {
+                    if ($sa->type === 'addition') {
+                        $movements->push([
+                            'date' => $sa->stockAdjustment->date,
+                            'created_at' => $sa->created_at,
+                            'type' => 'Stock Adjustment Add',
+                            'qty_in' => (float)$sa->qty,
+                            'qty_out' => 0,
+                            'rate' => 0,
+                        ]);
+                    } else {
+                        $movements->push([
+                            'date' => $sa->stockAdjustment->date,
+                            'created_at' => $sa->created_at,
+                            'type' => 'Stock Adjustment Sub',
+                            'qty_in' => 0,
+                            'qty_out' => (float)$sa->qty,
+                            'rate' => 0,
+                        ]);
+                    }
+                }
+            }
+
             if ($movements->isEmpty()) continue;
 
             // Sort chronologically
@@ -1242,27 +1279,21 @@ class ReportController extends Controller
 
             foreach ($movements as $m) {
                 if ($m['type'] === 'Opening Stock' || $m['type'] === 'Purchase') {
-                    // Inward at known cost — recalculate WAC
-                    $prevQty = $runningQty;
-                    $newQty = $runningQty + $m['qty_in'];
+                    $prevQty = max(0, $runningQty); // Prevent negative backorder qty from corrupting cost basis
+                    $newQty = $prevQty + $m['qty_in'];
                     if ($newQty > 0) {
                         $runningAvgCost = round((($prevQty * $runningAvgCost) + ($m['qty_in'] * $m['rate'])) / $newQty, 2);
                     } else {
                         $runningAvgCost = round($m['rate'], 2);
                     }
-                    $runningQty = $newQty;
+                    $runningQty += $m['qty_in'];
                 } elseif ($m['type'] === 'Sales Return' || $m['type'] === 'Stock Adjustment Add') {
-                    // Inward at current avg cost (WAC neutral)
                     $runningQty += $m['qty_in'];
                 } elseif ($m['type'] === 'Sale' || $m['type'] === 'Purchase Return' || $m['type'] === 'Stock Adjustment Sub') {
-                    // Outward — qty decreases, WAC stays same
                     $runningQty -= $m['qty_out'];
                 }
             }
 
-            // Include negative balances too (oversold/backorder stock) — clamping them to 0
-            // hides that cost from the period it happened in and dumps it all at once onto
-            // whichever later period brings the balance back to positive.
             $totalValue += round($runningQty * $runningAvgCost, 2);
         }
 

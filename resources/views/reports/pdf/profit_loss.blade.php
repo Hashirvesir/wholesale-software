@@ -16,7 +16,6 @@
             padding: 4px 0;
             vertical-align: bottom;
             font-family: 'Courier New', Courier, monospace;
-            /* For precise alignment like a ledger */
             font-size: 12px;
             font-weight: bold;
         }
@@ -59,22 +58,26 @@
 
     <div style="font-family: sans-serif; margin-bottom: 20px;">
         <div style="font-weight: bold; text-transform: uppercase; font-size: 14px;">
-            FROM: {{ \Carbon\Carbon::parse($startDate)->format('d/m/Y') }}
-            TO: {{ \Carbon\Carbon::parse($endDate)->format('d/m/Y') }}
+            PERIOD: {{ \Carbon\Carbon::parse($startDate)->format('d/m/Y') }} TO {{ \Carbon\Carbon::parse($endDate)->format('d/m/Y') }}
         </div>
+        @if ($warehouseId && $warehouses->find($warehouseId))
+            <div style="font-size: 11px; text-transform: uppercase; color: #555; margin-top: 4px;">
+                WAREHOUSE: {{ $warehouses->find($warehouseId)->name }}
+            </div>
+        @endif
     </div>
 
     <table class="pl-table">
         <tbody>
             {{-- REVENUE SECTION --}}
             <tr>
-                <td class="label">SALES</td>
+                <td class="label">SALES (GROSS)</td>
                 <td class="amount-sub"></td>
                 <td class="amount-total">{{ number_format($totalSales, 2) }}</td>
             </tr>
             @if ($totalSalesReturn > 0)
                 <tr>
-                    <td class="label">SALES RETURN</td>
+                    <td class="label">(less) SALES RETURN</td>
                     <td class="amount-sub"></td>
                     <td class="amount-total">-{{ number_format($totalSalesReturn, 2) }}</td>
                 </tr>
@@ -87,22 +90,36 @@
             </tr>
 
             <tr style="font-weight: bold;">
-                <td class="label">TOTAL REVENUE</td>
+                <td class="label">TOTAL REVENUE (NET)</td>
                 <td class="amount-sub"></td>
                 <td class="amount-total">{{ number_format($netSales, 2) }}</td>
             </tr>
 
             {{-- COGS SECTION --}}
             <tr>
-                <td class="label">OPENING STOCK</td>
-                <td class="amount-sub">{{ number_format($openingValuation, 2) }}</td>
+                <td class="label" style="padding-top: 15px;">OPENING STOCK</td>
+                <td class="amount-sub" style="padding-top: 15px;">{{ number_format($openingValuation, 2) }}</td>
                 <td class="amount-total"></td>
             </tr>
             <tr>
-                <td class="label">PURCHASES</td>
-                <td class="amount-sub">{{ number_format($totalPurchases, 2) }}</td>
+                <td class="label">PURCHASES (GOODS)</td>
+                <td class="amount-sub">{{ number_format($grossPurchases, 2) }}</td>
                 <td class="amount-total"></td>
             </tr>
+            @if ($totalPurchaseDiscount > 0)
+                <tr>
+                    <td class="label indent">(less) PURCHASE DISCOUNT</td>
+                    <td class="amount-sub">-{{ number_format($totalPurchaseDiscount, 2) }}</td>
+                    <td class="amount-total"></td>
+                </tr>
+            @endif
+            @if ($totalCargoCharges > 0)
+                <tr>
+                    <td class="label indent">CARGO & FREIGHT CHARGES</td>
+                    <td class="amount-sub">+{{ number_format($totalCargoCharges, 2) }}</td>
+                    <td class="amount-total"></td>
+                </tr>
+            @endif
             @if ($totalPurchaseReturn > 0)
                 <tr>
                     <td class="label indent">(less) PURCHASE RETURN</td>
@@ -118,13 +135,13 @@
             </tr>
 
             <tr>
-                <td class="label">TOTAL STOCK</td>
+                <td class="label">TOTAL STOCK AVAILABLE</td>
                 <td class="amount-sub">{{ number_format($totalStock, 2) }}</td>
                 <td class="amount-total"></td>
             </tr>
             <tr>
-                <td class="label">(less) AVAILABLE STOCK</td>
-                <td class="amount-sub">{{ number_format($closingValuation, 2) }}</td>
+                <td class="label">(less) CLOSING STOCK</td>
+                <td class="amount-sub">({{ number_format($closingValuation, 2) }})</td>
                 <td class="amount-total"></td>
             </tr>
             <tr>
@@ -140,7 +157,7 @@
             </tr>
 
             <tr style="font-weight: bold; font-size: 14px;">
-                <td class="label">GROSS INCOME</td>
+                <td class="label">GROSS INCOME (PROFIT)</td>
                 <td class="amount-sub"></td>
                 <td class="amount-total">{{ number_format($grossProfit, 2) }}</td>
             </tr>
@@ -148,7 +165,7 @@
             {{-- OTHER INCOME SECTION --}}
             @if (count($incomeData) > 0)
                 <tr>
-                    <td class="label" style="padding-top: 10px;">.OTHER INCOME</td>
+                    <td class="label" style="padding-top: 15px;">.OTHER INCOME</td>
                     <td class="amount-sub"></td>
                     <td class="amount-total"></td>
                 </tr>
@@ -163,7 +180,7 @@
 
             {{-- EXPENSES SECTION --}}
             <tr>
-                <td class="label" style="padding-top: 20px;">.EXPENSES</td>
+                <td class="label" style="padding-top: 20px;">.OPERATING EXPENSES</td>
                 <td class="amount-sub"></td>
                 <td class="amount-total"></td>
             </tr>
@@ -183,14 +200,14 @@
             </tr>
 
             <tr style="font-weight: bold;">
-                <td class="label">TOTAL EXPENSES</td>
+                <td class="label">TOTAL OPERATING EXPENSES</td>
                 <td class="amount-sub"></td>
                 <td class="amount-total">-{{ number_format($totalOtherExpenses, 2) }}</td>
             </tr>
 
             {{-- FINAL NET PROFIT --}}
             <tr>
-                <td colspan="3" style="padding-top: 40px;">
+                <td colspan="3" style="padding-top: 30px;">
                     <div class="line-full"></div>
                 </td>
             </tr>
