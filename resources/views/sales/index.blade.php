@@ -120,7 +120,8 @@
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto">
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
@@ -284,7 +285,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="9"
+                                        <td colspan="10"
                                             class="px-6 py-8 text-center text-gray-500 dark:text-gray-400 italic">
                                             No sales found. Create your first sale!
                                         </td>
@@ -292,6 +293,109 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Mobile Card View (Optimized for Phones & Touch) -->
+                    <div class="block md:hidden space-y-3">
+                        @forelse($sales as $sale)
+                            @php
+                                $due = $sale->total_amount - $sale->paid_amount;
+                                $rawPhone = preg_replace('/[^0-9]/', '', $sale->party->phone ?? '');
+                                $waPhone = null;
+                                if ($rawPhone) {
+                                    if (str_starts_with($rawPhone, '0')) {
+                                        $waPhone = '92' . substr($rawPhone, 1);
+                                    } elseif (str_starts_with($rawPhone, '92')) {
+                                        $waPhone = $rawPhone;
+                                    } else {
+                                        $waPhone = '92' . $rawPhone;
+                                    }
+                                }
+                                $waText = "Assalam-o-Alaikum {$sale->party->name}, Invoice #{$settings->invoice_prefix}{$sale->id} Total: {$settings->currency_symbol}" . number_format($sale->total_amount, 2) . ($due > 0 ? " Due: {$settings->currency_symbol}" . number_format($due, 2) : " (Paid)") . "\nShukriya!";
+                            @endphp
+                            <div class="bg-gray-50 dark:bg-gray-900/60 p-4 rounded-xl border border-gray-200 dark:border-gray-700/80 shadow-sm space-y-3">
+                                <!-- Header: ID, Date & Status Badge -->
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm font-black text-primary-600 dark:text-primary-400 font-mono tracking-tight">
+                                            {{ $settings->invoice_prefix }}{{ $sale->id }}
+                                        </span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">{{ $sale->date }}</span>
+                                    </div>
+                                    <div>
+                                        @if ($due <= 0)
+                                            <span class="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full bg-green-100 text-green-700 dark:bg-green-900/60 dark:text-green-300">Paid</span>
+                                        @elseif ($sale->paid_amount > 0)
+                                            <span class="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/60 dark:text-yellow-300">Partial</span>
+                                        @else
+                                            <span class="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full bg-red-100 text-red-700 dark:bg-red-900/60 dark:text-red-300">Unpaid</span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <!-- Customer & Warehouse Info -->
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="font-bold text-gray-900 dark:text-gray-100 truncate max-w-[210px]">
+                                        {{ $sale->party->name }}
+                                    </span>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400 bg-gray-200/60 dark:bg-gray-800 px-2 py-0.5 rounded">
+                                        {{ $sale->warehouse->name }}
+                                    </span>
+                                </div>
+
+                                <!-- Amount Breakdown -->
+                                <div class="grid grid-cols-3 gap-2 py-2 px-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 text-xs">
+                                    <div>
+                                        <span class="block text-[10px] uppercase font-bold text-gray-400 tracking-wider">Total</span>
+                                        <span class="font-extrabold text-gray-900 dark:text-gray-100">
+                                            {{ $settings->currency_symbol }}{{ number_format($sale->total_amount, 2) }}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="block text-[10px] uppercase font-bold text-gray-400 tracking-wider">Paid</span>
+                                        <span class="font-extrabold text-green-600 dark:text-green-400">
+                                            {{ $settings->currency_symbol }}{{ number_format($sale->paid_amount, 2) }}
+                                        </span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="block text-[10px] uppercase font-bold text-gray-400 tracking-wider">Balance</span>
+                                        <span class="font-extrabold {{ $due > 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-400' }}">
+                                            {{ $settings->currency_symbol }}{{ number_format($due, 2) }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Touch Action Buttons -->
+                                <div class="flex items-center gap-2 pt-1">
+                                    @can('view sales')
+                                        <a href="{{ route('sales.show', $sale) }}" 
+                                           class="flex-1 py-2 px-3 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 text-indigo-600 dark:text-indigo-400 font-bold text-xs rounded-xl text-center transition flex items-center justify-center gap-1">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                            View
+                                        </a>
+                                    @endcan
+
+                                    @if ($waPhone)
+                                        <a href="https://wa.me/{{ $waPhone }}?text={{ urlencode($waText) }}" target="_blank"
+                                           class="flex-1 py-2 px-3 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 text-emerald-600 dark:text-emerald-400 font-bold text-xs rounded-xl text-center transition flex items-center justify-center gap-1">
+                                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.174.086.275.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/></svg>
+                                            WhatsApp
+                                        </a>
+                                    @endif
+
+                                    @can('edit sales')
+                                        <a href="{{ route('sales.edit', $sale) }}" 
+                                           class="py-2 px-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 text-gray-700 dark:text-gray-300 font-bold text-xs rounded-xl transition">
+                                            Edit
+                                        </a>
+                                    @endcan
+                                </div>
+                            </div>
+                        @empty
+                            <div class="py-8 text-center text-gray-500 dark:text-gray-400 italic bg-gray-50 dark:bg-gray-900/40 rounded-xl">
+                                No sales found.
+                            </div>
+                        @endforelse
                     </div>
                     @if ($sales->hasPages())
                         <div class="mt-4">

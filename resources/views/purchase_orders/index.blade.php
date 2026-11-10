@@ -136,8 +136,8 @@
                         </form>
                     </div>
 
-                    <!-- Table -->
-                    <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-700">
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-700">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-900/60 text-[10px] uppercase font-black tracking-wider text-gray-500 dark:text-gray-400">
                                 <tr>
@@ -224,6 +224,48 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Mobile Purchase Orders Card View -->
+                    <div class="block md:hidden space-y-3">
+                        @forelse ($purchaseOrders as $po)
+                            <div class="bg-gray-50 dark:bg-gray-900/60 p-4 rounded-xl border border-gray-100 dark:border-gray-700/80 shadow-sm space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm font-black text-indigo-600 dark:text-indigo-400 font-mono">{{ $po->po_number }}</span>
+                                        <span class="text-xs text-gray-400">{{ $po->order_date->format('d M, Y') }}</span>
+                                    </div>
+                                    @if ($po->status === 'received')
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">Received</span>
+                                    @elseif ($po->status === 'partial')
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">Partial</span>
+                                    @elseif ($po->status === 'cancelled')
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300">Cancelled</span>
+                                    @else
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">Pending</span>
+                                    @endif
+                                </div>
+
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="font-bold text-gray-900 dark:text-gray-100">{{ $po->party->name ?? 'N/A' }}</span>
+                                    <span class="text-base font-black font-mono text-gray-900 dark:text-gray-100">
+                                        Rs. {{ number_format($po->total_amount, 2) }}
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center justify-between pt-1 border-t border-gray-200/60 dark:border-gray-700/60 text-xs">
+                                    <span class="text-gray-400">{{ $po->warehouse->name ?? 'Shop' }}</span>
+                                    <a href="{{ route('purchase-orders.show', $po) }}"
+                                       class="py-1 px-3 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 font-bold text-xs rounded-lg transition">
+                                        View / GRN
+                                    </a>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="py-8 text-center text-gray-500 dark:text-gray-400 italic bg-gray-50 dark:bg-gray-900/40 rounded-xl">
+                                No Purchase Orders found.
+                            </div>
+                        @endforelse
                     </div>
 
                     <div class="mt-4">

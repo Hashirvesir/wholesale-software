@@ -24,7 +24,8 @@
                         </div>
                     @endif
 
-                    <div class="overflow-x-auto">
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto">
                         <table class="w-full text-sm text-left">
                             <thead
                                 class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 font-black tracking-widest">
@@ -95,6 +96,44 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Mobile Transfer Cards View -->
+                    <div class="block md:hidden space-y-3">
+                        @forelse ($transfers as $transfer)
+                            <div class="bg-gray-50 dark:bg-gray-900/60 p-4 rounded-xl border border-gray-100 dark:border-gray-700/80 shadow-sm space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-gray-500 dark:text-gray-400">{{ $transfer->date }}</span>
+                                    <span class="text-base font-black text-indigo-600 dark:text-indigo-400 font-mono">
+                                        Rs. {{ number_format($transfer->amount, 2) }}
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center gap-2 text-xs py-2 px-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
+                                    <span class="font-bold text-red-600 dark:text-red-400 truncate">{{ $transfer->fromAccount->name }}</span>
+                                    <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                    <span class="font-bold text-green-600 dark:text-green-400 truncate">{{ $transfer->toAccount->name }}</span>
+                                </div>
+
+                                @if($transfer->note)
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 italic">
+                                        {{ $transfer->note }}
+                                    </p>
+                                @endif
+
+                                <div class="flex items-center justify-end pt-1 border-t border-gray-200/60 dark:border-gray-700/60">
+                                    <button type="button"
+                                        onclick="if(confirm('Delete this transfer?')) { document.getElementById('delete-transfer-{{ $transfer->id }}').submit(); }"
+                                        class="py-1 px-3 bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-300 font-bold text-xs rounded-lg transition">
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="py-8 text-center text-gray-500 dark:text-gray-400 italic bg-gray-50 dark:bg-gray-900/40 rounded-xl">
+                                No transfers recorded yet.
+                            </div>
+                        @endforelse
                     </div>
 
                     <div class="mt-6">

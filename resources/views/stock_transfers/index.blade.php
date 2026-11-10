@@ -80,7 +80,8 @@
             <div
                 class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="p-0 text-gray-900 dark:text-gray-100">
-                    <div class="overflow-x-auto">
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead>
                                 <tr>
@@ -175,6 +176,41 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Mobile Stock Transfers Card View -->
+                    <div class="block md:hidden p-3 space-y-3">
+                        @forelse ($transfers as $t)
+                            <div class="bg-gray-50 dark:bg-gray-900/60 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-gray-500 dark:text-gray-400">{{ $t->date }}</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-primary-100 text-primary-800 dark:bg-primary-900/40 dark:text-primary-300">
+                                        {{ $t->items->count() }} Item(s)
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center gap-2 text-xs py-2 px-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
+                                    <span class="font-bold text-gray-700 dark:text-gray-300 truncate">{{ $t->fromWarehouse->name }}</span>
+                                    <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                    <span class="font-bold text-primary-600 dark:text-primary-400 truncate">{{ $t->toWarehouse->name }}</span>
+                                </div>
+
+                                <div class="flex items-center justify-end gap-2 pt-1 border-t border-gray-200/60 dark:border-gray-700/60">
+                                    <a href="{{ route('stock-transfers.show', $t) }}"
+                                       class="py-1.5 px-3 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-bold text-xs rounded-lg transition">
+                                        View
+                                    </a>
+                                    <a href="{{ route('stock-transfers.edit', $t) }}"
+                                       class="py-1.5 px-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-bold text-xs rounded-lg transition">
+                                        Edit
+                                    </a>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="py-8 text-center text-gray-500 dark:text-gray-400 italic bg-gray-50 dark:bg-gray-900/40 rounded-xl">
+                                No transfers found.
+                            </div>
+                        @endforelse
                     </div>
                 </div>
             </div>

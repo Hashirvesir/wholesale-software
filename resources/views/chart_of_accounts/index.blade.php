@@ -59,7 +59,8 @@
             <div
                 class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="p-0 text-gray-900 dark:text-gray-100">
-                    <div class="overflow-x-auto">
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead>
                                 <tr>
@@ -209,13 +210,59 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5"
+                                        <td colspan="8"
                                             class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500 dark:text-gray-400 italic">
                                             No accounts found.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Mobile Accounts Card View -->
+                    <div class="block md:hidden p-3 space-y-3">
+                        @forelse ($accounts as $account)
+                            @php
+                                $typeBadgeClasses = [
+                                    'Asset' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+                                    'Liability' => 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300',
+                                    'Income' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
+                                    'Expense' => 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
+                                    'Equity' => 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300',
+                                ];
+                            @endphp
+                            <div class="bg-gray-50 dark:bg-gray-900/60 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm space-y-2.5">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div>
+                                        <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ $account->name }}</h4>
+                                        @if($account->parent)
+                                            <span class="text-xs text-gray-400">Under: {{ $account->parent->name }}</span>
+                                        @endif
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider {{ $typeBadgeClasses[$account->type] ?? 'bg-gray-100 text-gray-800' }}">
+                                        {{ $account->type }}
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center justify-between py-2 px-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 text-xs">
+                                    <span class="text-gray-400 font-bold uppercase tracking-wider">Balance:</span>
+                                    <span class="font-extrabold text-sm {{ $account->balance >= 0 ? 'text-primary-600 dark:text-primary-400' : 'text-red-500' }}">
+                                        Rs. {{ number_format($account->balance, 2) }}
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center justify-end gap-2 pt-1 border-t border-gray-200/60 dark:border-gray-700/60">
+                                    <a href="{{ route('chart-of-accounts.edit', $account) }}" 
+                                       class="py-1.5 px-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 text-gray-700 dark:text-gray-200 font-bold text-xs rounded-lg transition">
+                                        Edit
+                                    </a>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="py-8 text-center text-gray-500 dark:text-gray-400 italic bg-gray-50 dark:bg-gray-900/40 rounded-xl">
+                                No accounts found.
+                            </div>
+                        @endforelse
                     </div>
                     @if ($accounts->hasPages())
                         <div class="p-4 border-t border-gray-200 dark:border-gray-700">

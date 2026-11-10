@@ -136,6 +136,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/settings', [\App\Http\Controllers\SettingController::class, 'update'])->name('settings.update')->middleware('permission:manage settings');
     Route::post('/settings/clear-cache', [\App\Http\Controllers\SettingController::class, 'clearCache'])->name('settings.clear-cache')->middleware('permission:manage settings');
     Route::get('/settings/backup-download', [\App\Http\Controllers\SettingController::class, 'downloadBackup'])->name('settings.backup-download')->middleware('permission:manage settings');
+
+    // StockPOS AI Intelligence Endpoints
+    Route::prefix('ai')->name('ai.')->group(function () {
+        Route::post('/chat', [\App\Http\Controllers\AiController::class, 'chat'])->name('chat');
+        Route::post('/scan-bill', [\App\Http\Controllers\AiController::class, 'scanBill'])->name('scan-bill');
+        Route::post('/recovery-message', [\App\Http\Controllers\AiController::class, 'recoveryMessage'])->name('recovery-message');
+        Route::get('/daily-briefing', [\App\Http\Controllers\AiController::class, 'dailyBriefing'])->name('daily-briefing');
+    });
 });
 
 // Public, signed-URL invoice links: no login required, but the URL is cryptographically

@@ -1,6 +1,6 @@
 <x-app-layout>
-    <div class="py-12" x-data="purchaseForm()">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-4 sm:py-8 lg:py-12" x-data="purchaseForm()" @ai-bill-imported.window="handleAiBill($event.detail)">
+        <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
             <div
                 class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-2xl border border-gray-200 dark:border-gray-700">
                 <div class="p-6 md:p-8 text-gray-900 dark:text-gray-100">
@@ -14,10 +14,12 @@
                             </h3>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Record supplier purchases, manage PKR/RMB currencies and integrated cargo charges.</p>
                         </div>
-                        <div class="flex items-center gap-3">
-                            <div class="hidden sm:inline-block text-[11px] text-gray-400 font-bold uppercase tracking-wider">
-                                Keyboard: <span class="text-primary-600">Arrows</span> Navigate | <span class="text-primary-600">Enter</span> New Row
-                            </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" @click="$dispatch('open-bill-scanner')"
+                                class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white text-xs font-black uppercase tracking-wider transition shadow-md flex items-center gap-1.5 active:scale-95 cursor-pointer">
+                                <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <span>AI Bill Scanner</span>
+                            </button>
                             <a href="{{ route('purchases.index') }}"
                                 class="px-3.5 py-1.5 rounded-xl border border-gray-300 dark:border-gray-600 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
                                 Back to Purchases
@@ -652,6 +654,38 @@
                     }
                 },
 
+                handleAiBill(data) {
+                    if (!data) return;
+
+                    // 1. Auto-select Vendor if matched
+                    if (data.supplier && data.supplier.matched_id) {
+                        this.party_id = data.supplier.matched_id;
+                        this.vendorSearch = data.supplier.matched_name;
+                    }
+
+                    // 2. Populate items
+                    if (data.items && data.items.length > 0) {
+                        this.items = [];
+                        data.items.forEach(scanned => {
+                            this.items.push({
+                                product_id: scanned.matched_product_id || '',
+                                search: scanned.matched_product_name || scanned.raw_name,
+                                qty: parseFloat(scanned.qty) || 1,
+                                price_pkr: parseFloat(scanned.unit_price) || 0,
+                                price_rmb: 0,
+                                cargo_rate: 0,
+                                open: false,
+                                highlightedIndex: -1,
+                                error: !scanned.matched_product_id,
+                            });
+                        });
+                    }
+
+                    if (data.discount > 0) {
+                        this.discount_amount = parseFloat(data.discount);
+                    }
+                },
+
                 paidAmount() {
                     return this.payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
                 },
@@ -943,4 +977,7 @@
             }
         }
     </script>
+
+    <!-- AI Bill OCR Scanner Modal Component -->
+    <x-ai-bill-scanner />
 </x-app-layout>

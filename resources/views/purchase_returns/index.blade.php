@@ -83,8 +83,8 @@
                         </form>
                     </div>
 
-                    <!-- Table -->
-                    <div class="overflow-x-auto">
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-900">
                                 <tr>
@@ -185,6 +185,41 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Mobile Purchase Returns Card View -->
+                    <div class="block md:hidden space-y-3">
+                        @forelse ($purchaseReturns as $return)
+                            <div class="bg-gray-50 dark:bg-gray-900/60 p-4 rounded-xl border border-gray-100 dark:border-gray-700/80 shadow-sm space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm font-black text-orange-600 dark:text-orange-400 font-mono">
+                                            PR-{{ $return->id }}
+                                        </span>
+                                        <span class="text-xs text-gray-400">{{ $return->date }}</span>
+                                    </div>
+                                    <span class="text-base font-black font-mono text-orange-600 dark:text-orange-400">
+                                        Rs. {{ number_format($return->total_refund, 2) }}
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="font-bold text-gray-900 dark:text-gray-100">{{ $return->party->name }}</span>
+                                    <span class="text-gray-400">{{ $return->warehouse->name }}</span>
+                                </div>
+
+                                <div class="flex items-center justify-end pt-1 border-t border-gray-200/60 dark:border-gray-700/60">
+                                    <a href="{{ route('purchase-returns.show', $return) }}"
+                                       class="py-1.5 px-3 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 font-bold text-xs rounded-lg transition">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="py-8 text-center text-gray-500 dark:text-gray-400 italic bg-gray-50 dark:bg-gray-900/40 rounded-xl">
+                                No purchase returns found.
+                            </div>
+                        @endforelse
                     </div>
 
                     <!-- Pagination -->

@@ -74,7 +74,8 @@
             <div
                 class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="p-0 text-gray-900 dark:text-gray-100">
-                    <div class="overflow-x-auto">
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead>
                                 <tr>
@@ -251,6 +252,74 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Mobile Parties Card View -->
+                    <div class="block md:hidden p-3 space-y-3">
+                        @forelse ($parties as $party)
+                            @php
+                                $balance = $party->current_balance;
+                                $rawPhone = preg_replace('/[^0-9]/', '', $party->phone ?? '');
+                                $waPhone = null;
+                                if ($rawPhone) {
+                                    if (str_starts_with($rawPhone, '0')) {
+                                        $waPhone = '92' . substr($rawPhone, 1);
+                                    } elseif (str_starts_with($rawPhone, '92')) {
+                                        $waPhone = $rawPhone;
+                                    } else {
+                                        $waPhone = '92' . $rawPhone;
+                                    }
+                                }
+                                $waText = "Assalam-o-Alaikum {$party->name}, aapka baqaya balance Rs. " . number_format(abs($balance), 2) . " hai.\nShukriya!";
+                            @endphp
+                            <div class="bg-gray-50 dark:bg-gray-900/60 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm space-y-3">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div>
+                                        <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ $party->name }}</h4>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">{{ $party->phone ?? 'No Phone' }}</span>
+                                    </div>
+                                    <div class="flex flex-col items-end gap-1">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider {{ $party->type == 'customer' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : ($party->type == 'vendor' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200') }}">
+                                            {{ $party->type }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between py-2 px-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 text-xs">
+                                    <span class="text-gray-500 font-medium">Current Balance:</span>
+                                    <span class="font-extrabold text-sm {{ $balance > 0 ? 'text-red-600 dark:text-red-400' : ($balance < 0 ? 'text-green-600 dark:text-green-400' : 'text-gray-500') }}">
+                                        Rs. {{ number_format(abs($balance), 2) }}
+                                        <span class="text-[10px] uppercase font-bold">{{ $balance > 0 ? '(Dr)' : ($balance < 0 ? '(Cr)' : '') }}</span>
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center gap-2 pt-1">
+                                    <a href="{{ route('reports.party-ledger', ['party_id' => $party->id]) }}" 
+                                       class="flex-1 py-2 px-3 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-bold text-xs rounded-xl text-center hover:bg-indigo-100 transition">
+                                        Ledger
+                                    </a>
+
+                                    @if ($waPhone)
+                                        <a href="https://wa.me/{{ $waPhone }}?text={{ urlencode($waText) }}" target="_blank"
+                                           class="flex items-center justify-center gap-1 py-2 px-3 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-bold text-xs rounded-xl hover:bg-emerald-100 transition">
+                                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.174.086.275.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/></svg>
+                                            WhatsApp
+                                        </a>
+                                    @endif
+
+                                    @can('edit parties')
+                                        <a href="{{ route('parties.edit', $party) }}" 
+                                           class="py-2 px-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold text-xs rounded-xl hover:bg-gray-200 transition">
+                                            Edit
+                                        </a>
+                                    @endcan
+                                </div>
+                            </div>
+                        @empty
+                            <div class="py-8 text-center text-gray-500 dark:text-gray-400 italic bg-gray-50 dark:bg-gray-900/40 rounded-xl">
+                                No parties found.
+                            </div>
+                        @endforelse
                     </div>
                     @if ($parties->hasPages())
                         <div class="p-4 border-t border-gray-200 dark:border-gray-700">

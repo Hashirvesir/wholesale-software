@@ -69,7 +69,9 @@
 
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead>
                             <tr>
                                 <th
@@ -128,6 +130,59 @@
                             @endforelse
                         </tbody>
                     </table>
+                    </div>
+
+                    <!-- Mobile Expense Cards View -->
+                    <div class="block md:hidden space-y-3">
+                        @forelse($expenses as $expense)
+                            <div class="bg-gray-50 dark:bg-gray-900/60 p-4 rounded-xl border border-gray-200 dark:border-gray-700/80 shadow-sm space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-gray-500 dark:text-gray-400">{{ $expense->date }}</span>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300">
+                                        {{ $expense->category->name ?? 'General' }}
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">Paid From:</span>
+                                        <span class="text-sm font-bold text-gray-900 dark:text-gray-100 ml-1">{{ $expense->account->name ?? 'Cash' }}</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-base font-black text-rose-600 dark:text-rose-400 font-mono">
+                                            Rs. {{ number_format($expense->amount, 2) }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                @if($expense->note)
+                                    <p class="text-xs text-gray-600 dark:text-gray-300 italic bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-100 dark:border-gray-700/60">
+                                        {{ $expense->note }}
+                                    </p>
+                                @endif
+
+                                <div class="flex items-center justify-end gap-2 pt-1 border-t border-gray-200/60 dark:border-gray-700/60">
+                                    <a href="{{ route('expenses.edit', $expense) }}"
+                                       class="py-1 px-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-bold text-xs rounded-lg transition">
+                                        Edit
+                                    </a>
+                                    <form action="{{ route('expenses.destroy', $expense) }}" method="POST"
+                                        onsubmit="return confirm('Are you sure you want to delete this expense?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                            class="py-1 px-3 bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-300 font-bold text-xs rounded-lg transition">
+                                            Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="py-8 text-center text-gray-500 dark:text-gray-400 italic bg-gray-50 dark:bg-gray-900/40 rounded-xl">
+                                No expenses found.
+                            </div>
+                        @endforelse
+                    </div>
                     <div class="mt-4">
                         {{ $expenses->links() }}
                     </div>

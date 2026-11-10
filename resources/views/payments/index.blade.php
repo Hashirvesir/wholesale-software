@@ -125,7 +125,8 @@
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto">
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto">
                         <table class="w-full text-sm text-left">
                             <thead
                                 class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 font-black tracking-widest">
@@ -243,6 +244,62 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Mobile Payment Cards View -->
+                    <div class="block md:hidden space-y-3">
+                        @forelse ($payments as $payment)
+                            <div class="bg-gray-50 dark:bg-gray-900/60 p-4 rounded-2xl border border-gray-100 dark:border-gray-700/80 shadow-sm space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-mono font-black text-gray-400">#{{ $payment->id }}</span>
+                                        <span class="text-xs font-bold text-gray-500 dark:text-gray-400">{{ $payment->date }}</span>
+                                    </div>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider {{ $payment->payment_type === 'received' ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' }}">
+                                        {{ $payment->payment_type }}
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100">
+                                            {{ $payment->party->name }}
+                                        </h4>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">Via: {{ $payment->account->name }}</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-base font-black font-mono {{ $payment->payment_type === 'received' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
+                                            Rs. {{ number_format($payment->amount, 2) }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                @if($payment->note)
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 italic bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-100 dark:border-gray-700/60">
+                                        {{ $payment->note }}
+                                    </p>
+                                @endif
+
+                                <div class="flex items-center gap-2 pt-1 border-t border-gray-200/60 dark:border-gray-700/60">
+                                    <a href="{{ route('payments.show', $payment) }}" 
+                                       class="flex-1 py-2 px-3 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-bold text-xs rounded-xl text-center transition">
+                                        View
+                                    </a>
+                                    <a href="{{ route('payments.thermal', $payment) }}" target="_blank"
+                                       class="py-2 px-3 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-bold text-xs rounded-xl transition">
+                                        Thermal
+                                    </a>
+                                    <a href="{{ route('payments.pdf', $payment) }}" target="_blank"
+                                       class="py-2 px-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold text-xs rounded-xl transition">
+                                        PDF
+                                    </a>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="py-8 text-center text-gray-500 dark:text-gray-400 italic bg-gray-50 dark:bg-gray-900/40 rounded-xl">
+                                No payments recorded yet.
+                            </div>
+                        @endforelse
                     </div>
 
                     <div class="mt-6">

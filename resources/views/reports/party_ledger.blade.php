@@ -231,6 +231,14 @@
                                         </svg>
                                         <span class="text-xs font-black uppercase tracking-widest">Send on WhatsApp</span>
                                     </a>
+
+                                    @if ($finalBalance > 0)
+                                        <button type="button" @click="$dispatch('open-ai-recovery', { partyId: {{ $selectedPartyId }} })"
+                                            class="p-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white transition-all flex items-center shadow-md active:scale-95 cursor-pointer">
+                                            <svg class="w-5 h-5 mr-1.5 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                            <span class="text-xs font-black uppercase tracking-widest">AI Recovery</span>
+                                        </button>
+                                    @endif
                                 @else
                                     <span class="p-3 rounded-xl bg-gray-100 dark:bg-gray-900 text-gray-400 flex items-center shadow-inner cursor-not-allowed"
                                         title="Party's phone number is not set">
@@ -244,7 +252,8 @@
                             </div>
                         </div>
 
-                        <div class="overflow-x-auto">
+                        <!-- Desktop Table View -->
+                        <div class="hidden md:block overflow-x-auto">
                             <table class="w-full text-sm text-left border-collapse">
                                 <thead>
                                     <tr
@@ -381,6 +390,68 @@
                                     </tr>
                                 </tfoot>
                             </table>
+                        </div>
+
+                        <!-- Mobile Ledger Cards View -->
+                        <div class="block md:hidden p-3 space-y-3">
+                            <!-- Opening Balance Card -->
+                            <div class="bg-indigo-50/50 dark:bg-indigo-950/30 p-3 rounded-xl border border-indigo-100 dark:border-indigo-900/50 flex items-center justify-between text-xs">
+                                <div>
+                                    <span class="block text-[10px] font-bold text-gray-400">{{ $startDate }}</span>
+                                    <span class="font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-tight">Opening Balance</span>
+                                </div>
+                                <span class="font-black font-mono text-indigo-700 dark:text-indigo-300">
+                                    {{ number_format(abs($openingBalance), 2) }} {{ $openingBalance >= 0 ? 'Dr' : 'Cr' }}
+                                </span>
+                            </div>
+
+                            @php $mobileBalance = $openingBalance; @endphp
+                            @foreach ($entries as $entry)
+                                @php $mobileBalance += ($entry->debit - $entry->credit); @endphp
+                                <div class="bg-gray-50 dark:bg-gray-900/60 p-3.5 rounded-xl border border-gray-100 dark:border-gray-700/80 shadow-sm space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-[11px] font-bold text-gray-400">{{ date('d M, Y', strtotime($entry->date)) }}</span>
+                                        @if($entry->debit > 0)
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">
+                                                Debit: Rs. {{ number_format($entry->debit, 2) }}
+                                            </span>
+                                        @elseif($entry->credit > 0)
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
+                                                Credit: Rs. {{ number_format($entry->credit, 2) }}
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <div class="text-xs font-bold text-gray-800 dark:text-gray-200">
+                                        {{ $entry->note }}
+                                    </div>
+
+                                    <div class="flex items-center justify-between pt-1.5 border-t border-gray-200/60 dark:border-gray-700/60 text-xs">
+                                        <span class="text-gray-400 text-[10px] uppercase font-bold">Balance</span>
+                                        <span class="font-black font-mono {{ $mobileBalance >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-orange-600' }}">
+                                            Rs. {{ number_format(abs($mobileBalance), 2) }} {{ $mobileBalance >= 0 ? 'Dr' : 'Cr' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @endforeach
+
+                            <!-- Total Summary Card on Mobile -->
+                            <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border-2 border-indigo-200 dark:border-indigo-800 space-y-2 text-xs">
+                                <div class="flex items-center justify-between text-gray-500">
+                                    <span>Total Debit:</span>
+                                    <span class="font-bold text-red-600">Rs. {{ number_format($totalDebit, 2) }}</span>
+                                </div>
+                                <div class="flex items-center justify-between text-gray-500">
+                                    <span>Total Credit:</span>
+                                    <span class="font-bold text-green-600">Rs. {{ number_format($totalCredit, 2) }}</span>
+                                </div>
+                                <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700 text-sm font-black">
+                                    <span>Closing Balance:</span>
+                                    <span class="{{ $currentBalance >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-orange-600' }}">
+                                        Rs. {{ number_format(abs($currentBalance), 2) }} {{ $currentBalance >= 0 ? 'Dr' : 'Cr' }}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

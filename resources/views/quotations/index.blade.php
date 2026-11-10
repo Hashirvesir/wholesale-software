@@ -99,8 +99,8 @@
                         </form>
                     </div>
 
-                    <!-- Quotations Table -->
-                    <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-left">
                             <thead class="bg-gray-50 dark:bg-gray-900/50 text-[10px] font-black uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                 <tr>
@@ -214,6 +214,66 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Mobile Quotation Cards View -->
+                    <div class="block md:hidden space-y-3">
+                        @forelse ($quotations as $quotation)
+                            <div class="bg-gray-50 dark:bg-gray-900/60 p-4 rounded-xl border border-gray-100 dark:border-gray-700/80 shadow-sm space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm font-black text-primary-600 dark:text-primary-400 font-mono">
+                                            #{{ $quotation->id }}
+                                        </span>
+                                        <span class="text-xs text-gray-400">{{ $quotation->date->format('d M, Y') }}</span>
+                                    </div>
+                                    @if ($quotation->status === 'converted')
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300">Converted</span>
+                                    @elseif ($quotation->status === 'accepted')
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-300">Accepted</span>
+                                    @elseif ($quotation->status === 'sent')
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300">Sent</span>
+                                    @elseif ($quotation->status === 'cancelled')
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300 border border-red-300">Cancelled</span>
+                                    @else
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 border border-gray-300">Draft</span>
+                                    @endif
+                                </div>
+
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="font-bold text-gray-900 dark:text-gray-100 truncate max-w-[200px]">
+                                        {{ $quotation->party->name }}
+                                    </span>
+                                    <span class="text-base font-black font-mono text-gray-900 dark:text-gray-100">
+                                        {{ $settings->currency_symbol ?? 'Rs' }} {{ number_format($quotation->total_amount, 2) }}
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center justify-between pt-1 border-t border-gray-200/60 dark:border-gray-700/60 text-xs">
+                                    <span class="text-gray-400">{{ $quotation->warehouse->name }}</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <a href="{{ route('quotations.show', $quotation) }}" 
+                                           class="py-1 px-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 text-gray-700 dark:text-gray-200 font-bold text-xs rounded-lg transition">
+                                            View
+                                        </a>
+                                        @if (!$quotation->isConverted())
+                                            <a href="{{ route('quotations.convert', $quotation) }}" 
+                                               class="py-1 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition">
+                                                To Sale
+                                            </a>
+                                        @endif
+                                        <a href="{{ route('quotations.pdf', $quotation) }}" target="_blank"
+                                           class="py-1 px-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-bold text-xs rounded-lg transition">
+                                            PDF
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="py-8 text-center text-gray-500 dark:text-gray-400 italic bg-gray-50 dark:bg-gray-900/40 rounded-xl">
+                                No quotations found.
+                            </div>
+                        @endforelse
                     </div>
 
                     <!-- Pagination -->

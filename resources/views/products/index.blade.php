@@ -114,7 +114,8 @@
 
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="p-0 text-gray-900 dark:text-gray-100">
-                    <div class="overflow-x-auto pb-48">
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto pb-48">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead>
                                 <tr>
@@ -265,13 +266,68 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7"
+                                        <td colspan="8"
                                             class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500 dark:text-gray-400 italic">
                                             No products found.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Mobile Product Cards View -->
+                    <div class="block md:hidden p-3 space-y-3">
+                        @forelse ($products as $product)
+                            @php
+                                $stock = $product->getCurrentStock();
+                                $isLowStock = $stock <= $product->alert_quantity;
+                            @endphp
+                            <div class="bg-gray-50 dark:bg-gray-900/60 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm space-y-2.5">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div>
+                                        <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ $product->name }}</h4>
+                                        <div class="flex items-center gap-2 mt-0.5">
+                                            <span class="text-[11px] font-mono text-gray-400">{{ $product->sku }}</span>
+                                            <span class="text-[10px] font-black uppercase tracking-wider text-primary-600 dark:text-primary-400">{{ $product->category->name }}</span>
+                                            @if($product->brand)
+                                                <span class="text-[10px] text-gray-400">({{ $product->brand->name }})</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="text-right shrink-0">
+                                        <span class="text-sm font-black text-gray-900 dark:text-gray-100">
+                                            {{ $settings->currency_symbol }}{{ number_format($product->sale_price, 2) }}
+                                        </span>
+                                        <span class="block text-[10px] text-gray-400">/ {{ $product->unit->short_name }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between pt-2 border-t border-gray-200/60 dark:border-gray-700/60 text-xs">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-gray-400">Stock:</span>
+                                        <span class="px-2 py-0.5 rounded text-xs font-bold {{ $isLowStock ? 'bg-red-100 text-red-700 dark:bg-red-900/60 dark:text-red-300' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300' }}">
+                                            {{ number_format($stock, 2) }} {{ $product->unit->short_name }}
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        @can('edit products')
+                                            <a href="{{ route('products.edit', $product) }}" 
+                                               class="py-1 px-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 text-gray-700 dark:text-gray-200 font-bold text-xs rounded-lg transition">
+                                                Edit
+                                            </a>
+                                        @endcan
+                                        <a href="{{ route('products.print_barcodes') }}?product_id={{ $product->id }}" 
+                                           class="py-1 px-2.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 text-xs rounded-lg font-bold transition">
+                                            Barcode
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="py-8 text-center text-gray-500 dark:text-gray-400 italic bg-gray-50 dark:bg-gray-900/40 rounded-xl">
+                                No products found.
+                            </div>
+                        @endforelse
                     </div>
                     @if ($products->hasPages())
                         <div class="p-4 border-t border-gray-200 dark:border-gray-700">

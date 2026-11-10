@@ -118,6 +118,62 @@
                 </div>
             </div>
 
+            <!-- StockPOS AI Morning Briefing & Strategic Insight Banner -->
+            <div x-data="{
+                briefing: '',
+                loading: false,
+                dismissed: false,
+                async loadBriefing(refresh = false) {
+                    this.loading = true;
+                    try {
+                        const url = refresh ? '{{ route('ai.daily-briefing') }}?refresh=1' : '{{ route('ai.daily-briefing') }}';
+                        const res = await fetch(url);
+                        const data = await res.json();
+                        if (data.success) {
+                            this.briefing = data.briefing;
+                        }
+                    } catch (e) {
+                        this.briefing = 'Unable to fetch AI briefing.';
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }" x-init="loadBriefing()" x-show="!dismissed" x-cloak
+                class="rounded-3xl p-5 bg-gradient-to-r from-violet-900/40 via-indigo-900/30 to-purple-900/40 border border-violet-500/30 backdrop-blur-md shadow-xl text-white relative overflow-hidden transition-all">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-violet-600 text-amber-300 flex items-center justify-center shadow-inner font-bold">
+                            ✨
+                        </div>
+                        <div>
+                            <h4 class="font-black text-xs sm:text-sm tracking-wide uppercase flex items-center gap-2">
+                                <span>StockPOS AI Morning Executive Briefing</span>
+                                <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[9px] font-black uppercase tracking-wider border border-emerald-400/30">Auto Generated</span>
+                            </h4>
+                            <p class="text-[10px] text-gray-300">Live operational & cash flow intelligence for today</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" @click="loadBriefing(true)" :disabled="loading"
+                            class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
+                            <svg class="w-3.5 h-3.5" :class="loading ? 'animate-spin' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            <span x-text="loading ? 'Analyzing...' : 'Refresh AI'"></span>
+                        </button>
+                        <button type="button" @click="dismissed = true" class="text-gray-400 hover:text-white text-lg font-bold p-1 leading-none cursor-pointer">&times;</button>
+                    </div>
+                </div>
+
+                <div class="pt-3 text-xs sm:text-sm text-gray-200 leading-relaxed">
+                    <template x-if="loading && !briefing">
+                        <div class="flex items-center gap-2 py-3 text-violet-300 animate-pulse text-xs font-semibold">
+                            <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                            <span>Analyzing live database figures, pending receivables & stock burn rates...</span>
+                        </div>
+                    </template>
+                    <div class="whitespace-pre-wrap font-medium" x-text="briefing"></div>
+                </div>
+            </div>
+
             <!-- Filter Bar -->
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-4">
                 <div class="flex flex-wrap items-end gap-3">

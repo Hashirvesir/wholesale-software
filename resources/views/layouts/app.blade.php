@@ -71,6 +71,12 @@
     <!-- Mobile Bottom Navigation Bar (Visible on mobile/tablet) -->
     @include('layouts.mobile-bottom-nav')
 
+    <!-- StockPOS AI Copilot Widget & Drawer -->
+    <x-ai-copilot />
+
+    <!-- AI WhatsApp Payment Recovery Modal -->
+    <x-ai-recovery-modal />
+
     <!-- Command Palette & Shortcuts -->
     <x-command-palette />
     <x-shortcut-help />

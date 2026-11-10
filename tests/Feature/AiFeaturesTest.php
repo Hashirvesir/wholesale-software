@@ -1,0 +1,134 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Party;
+use App\Models\Product;
+use App\Models\Sale;
+use App\Models\User;
+use App\Services\AiContextProvider;
+use App\Services\OpenAiService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
+use Tests\TestCase;
+
+class AiFeaturesTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected User $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->user = User::factory()->create();
+    }
+
+    public function test_ai_context_provider_generates_valid_text(): void
+    {
+        $party = Party::create([
+            'name' => 'Test Customer',
+            'type' => 'customer',
+            'opening_balance' => 5000,
+            'balance_type' => 'debit',
+            'status' => true,
+        ]);
+
+        $provider = app(AiContextProvider::class);
+        $context = $provider->getLiveContext();
+
+        $this->assertIsString($context);
+        $this->assertStringContainsString('TODAY\'S ACTIVITY', $context);
+        $this->assertStringContainsString('RECEIVABLES & OVERDUE', $context);
+        $this->assertStringContainsString('Test Customer', $context);
+    }
+
+    public function test_ai_chat_endpoint_responds_successfully(): void
+    {
+        Http::fake([
+            'https://api.openai.com/v1/chat/completions' => Http::response([
+                'choices' => [
+                    [
+                        'message' => [
+                            'role' => 'assistant',
+                            'content' => 'Aaj ki collection bohot achi hai. Total sales 50,000 hui hain.',
+                        ]
+                    ]
+                ]
+            ], 200)
+        ]);
+
+        $response = $this->actingAs($this->user)->postJson(route('ai.chat'), [
+            'prompt' => 'Aaj ki sales ka kya scene hai?',
+        ]);
+
+        $response->assertOk();
+        $response->assertJson([
+            'success' => true,
+            'reply' => 'Aaj ki collection bohot achi hai. Total sales 50,000 hui hain.',
+        ]);
+    }
+
+    public function test_ai_recovery_message_endpoint(): void
+    {
+        Http::fake([
+            'https://api.openai.com/v1/chat/completions' => Http::response([
+                'choices' => [
+                    [
+                        'message' => [
+                            'role' => 'assistant',
+                            'content' => 'Mohtaram Ali Traders, aapka Rs. 15,000 ka hisaab baaqi hai. Barah-e-karam jald ada karein. Shukriya!',
+                        ]
+                    ]
+                ]
+            ], 200)
+        ]);
+
+        $party = Party::create([
+            'name' => 'Ali Traders',
+            'type' => 'customer',
+            'phone' => '03001234567',
+            'opening_balance' => 15000,
+            'balance_type' => 'debit',
+            'status' => true,
+        ]);
+
+        $response = $this->actingAs($this->user)->postJson(route('ai.recovery-message'), [
+            'party_id' => $party->id,
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonStructure([
+            'success',
+            'customer_name',
+            'balance',
+            'message',
+            'whatsapp_url',
+        ]);
+        $this->assertStringContainsString('923001234567', $response->json('whatsapp_url'));
+    }
+
+    public function test_ai_daily_briefing_endpoint(): void
+    {
+        Http::fake([
+            'https://api.openai.com/v1/chat/completions' => Http::response([
+                'choices' => [
+                    [
+                        'message' => [
+                            'role' => 'assistant',
+                            'content' => '1. Aaj ki sales stable hain.\n2. 3 customers overdue hain.\n3. Stock order karein.',
+                        ]
+                    ]
+                ]
+            ], 200)
+        ]);
+
+        $response = $this->actingAs($this->user)->getJson(route('ai.daily-briefing'));
+
+        $response->assertOk();
+        $response->assertJson([
+            'success' => true,
+        ]);
+        $this->assertStringContainsString('Aaj ki sales stable hain', $response->json('briefing'));
+    }
+}

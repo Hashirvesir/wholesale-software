@@ -64,7 +64,8 @@
             <div
                 class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="p-0 text-gray-900 dark:text-gray-100">
-                    <div class="overflow-x-auto">
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead>
                                 <tr>
@@ -151,6 +152,42 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Mobile Stock Adjustments Card View -->
+                    <div class="block md:hidden p-3 space-y-3">
+                        @forelse ($adjustments as $adj)
+                            <div class="bg-gray-50 dark:bg-gray-900/60 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-gray-500 dark:text-gray-400">{{ $adj->date }}</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300">
+                                        {{ $adj->items->count() }} Item(s)
+                                    </span>
+                                </div>
+
+                                <div class="text-xs">
+                                    <span class="text-gray-400 font-bold">Warehouse:</span>
+                                    <span class="font-bold text-gray-900 dark:text-gray-100 ml-1">{{ $adj->warehouse->name }}</span>
+                                </div>
+
+                                @if($adj->note)
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 italic">
+                                        {{ $adj->note }}
+                                    </p>
+                                @endif
+
+                                <div class="flex items-center justify-end gap-2 pt-1 border-t border-gray-200/60 dark:border-gray-700/60">
+                                    <a href="{{ route('stock-adjustments.show', $adj) }}"
+                                       class="py-1.5 px-3 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-bold text-xs rounded-lg transition">
+                                        View
+                                    </a>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="py-8 text-center text-gray-500 dark:text-gray-400 italic bg-gray-50 dark:bg-gray-900/40 rounded-xl">
+                                No adjustments found.
+                            </div>
+                        @endforelse
                     </div>
                 </div>
             </div>
