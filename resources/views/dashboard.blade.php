@@ -147,7 +147,7 @@
                         </div>
                         <div>
                             <h4 class="font-black text-xs sm:text-sm tracking-wide uppercase flex items-center gap-2">
-                                <span>StockPOS AI Morning Executive Briefing</span>
+                                <span>Invenco AI Morning Executive Briefing</span>
                                 <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[9px] font-black uppercase tracking-wider border border-emerald-400/30">Auto Generated</span>
                             </h4>
                             <p class="text-[10px] text-gray-300">Live operational & cash flow intelligence for today</p>

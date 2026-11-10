@@ -7,7 +7,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="StockPOS AI">
+    <meta name="apple-mobile-web-app-title" content="Invenco">
     <meta name="format-detection" content="telephone=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -71,7 +71,7 @@
     <!-- Mobile Bottom Navigation Bar (Visible on mobile/tablet) -->
     @include('layouts.mobile-bottom-nav')
 
-    <!-- StockPOS AI Copilot Widget & Drawer -->
+    <!-- Invenco AI Copilot Widget & Drawer -->
     <x-ai-copilot />
 
     <!-- AI WhatsApp Payment Recovery Modal -->

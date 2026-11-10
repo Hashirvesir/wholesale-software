@@ -50,7 +50,7 @@
                     <!-- AI Copilot Button -->
                     <button type="button" @click="$dispatch('toggle-ai-copilot')"
                         class="ml-2 group flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/50 border border-violet-200 dark:border-violet-800 rounded-lg hover:bg-violet-100 dark:hover:bg-violet-900/60 transition-all duration-150 shrink-0 cursor-pointer shadow-2xs"
-                        title="StockPOS AI Copilot (Alt + A)">
+                        title="Invenco AI Copilot (Alt + A)">
                         <svg class="w-3.5 h-3.5 text-amber-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                         </svg>

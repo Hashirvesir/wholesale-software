@@ -1,4 +1,4 @@
-<!-- StockPOS AI Copilot Widget & Drawer -->
+<!-- Invenco AI Copilot Widget & Drawer -->
 <div x-data="aiCopilot()"
      @toggle-ai-copilot.window="open = !open"
      @keydown.window.alt.a="open = !open"
@@ -7,7 +7,7 @@
     <!-- Floating AI Bubble Button (Desktop & Tablet) -->
     <button type="button" @click="open = true"
         class="fixed bottom-20 xl:bottom-6 right-4 sm:right-6 z-40 p-3 sm:px-4 sm:py-3 rounded-full sm:rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-purple-500 text-white shadow-2xl shadow-indigo-500/40 hover:shadow-indigo-500/60 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2.5 border-2 border-white/20 group cursor-pointer"
-        title="Open StockPOS AI Copilot (Alt + A)">
+        title="Open Invenco AI Copilot (Alt + A)">
         <span class="relative flex h-3 w-3">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-400"></span>
@@ -15,7 +15,7 @@
         <svg class="w-5 h-5 sm:w-6 sm:h-6 text-amber-300 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
         </svg>
-        <span class="hidden sm:inline font-black text-xs uppercase tracking-wider">Ask StockPOS AI</span>
+        <span class="hidden sm:inline font-black text-xs uppercase tracking-wider">Ask Invenco AI</span>
     </button>
 
     <!-- Backdrop -->
@@ -49,10 +49,10 @@
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h3 class="font-black text-sm tracking-wide uppercase">StockPOS AI Copilot</h3>
-                        <span class="px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 text-[10px] font-black uppercase tracking-wider border border-emerald-400/30">Live Data</span>
+                        <h3 class="font-black text-sm tracking-wide uppercase">Invenco AI Copilot</h3>
+                        <span class="px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 text-[10px] font-black uppercase tracking-wider border border-emerald-400/30">Live Database</span>
                     </div>
-                    <p class="text-[11px] text-indigo-100 font-medium">Business insights & task automation</p>
+                    <p class="text-[11px] text-indigo-100 font-medium">Profit & Loss, Expenses, Ledgers & Insights</p>
                 </div>
             </div>
 
@@ -68,21 +68,25 @@
 
         <!-- Quick Prompts Horizontal Pills -->
         <div class="px-3 py-2 bg-indigo-50/70 dark:bg-gray-800/60 border-b border-indigo-100 dark:border-gray-800 flex items-center gap-1.5 overflow-x-auto scrollbar-none shrink-0">
-            <button type="button" @click="sendQuickPrompt('Aaj ki sales, collection aur kharche ka summary batao.')"
+            <button type="button" @click="sendQuickPrompt('Is saal 2026 ka Profit & Loss aur net munafa batao.')"
+                class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-gray-600 hover:bg-emerald-50 dark:hover:bg-gray-600 transition whitespace-nowrap shadow-2xs">
+                📈 Is Saal Ka P&L
+            </button>
+            <button type="button" @click="sendQuickPrompt('Dukaan ke total kharchay (expenses) kitnay hain aur sab se baray kharchay kon se hain?')"
                 class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-gray-600 hover:bg-indigo-50 dark:hover:bg-gray-600 transition whitespace-nowrap shadow-2xs">
-                📊 Aaj ki Summary
+                💸 Kharchay (Expenses)
             </button>
             <button type="button" @click="sendQuickPrompt('Top 5 overdue customers aur unke pending balances batao.')"
                 class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-gray-600 hover:bg-rose-50 dark:hover:bg-gray-600 transition whitespace-nowrap shadow-2xs">
                 ⚠️ Top Overdue
             </button>
-            <button type="button" @click="sendQuickPrompt('Kon se products low stock ya alert par hain aur kitne order karne chahiye?')"
+            <button type="button" @click="sendQuickPrompt('Cash aur Bank accounts ke balances kitnay hain?')"
                 class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-gray-600 hover:bg-amber-50 dark:hover:bg-gray-600 transition whitespace-nowrap shadow-2xs">
-                📦 Low Stock Alert
+                🏦 Cash & Bank
             </button>
-            <button type="button" @click="sendQuickPrompt('Cheques aur vendor payables ka kya hisaab hai?')"
-                class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-gray-600 hover:bg-emerald-50 dark:hover:bg-gray-600 transition whitespace-nowrap shadow-2xs">
-                🧾 Cheques Status
+            <button type="button" @click="sendQuickPrompt('Kon se products low stock ya alert par hain?')"
+                class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-gray-600 hover:bg-purple-50 dark:hover:bg-gray-600 transition whitespace-nowrap shadow-2xs">
+                📦 Low Stock Alert
             </button>
         </div>
 
@@ -90,12 +94,12 @@
         <div class="flex-1 p-4 overflow-y-auto space-y-3.5 select-text" x-ref="messagesContainer">
             <!-- Welcome Bot Message -->
             <div class="flex items-start gap-2.5">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-600 text-white flex items-center justify-center shrink-0 text-xs font-bold shadow">
-                    AI
+                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-600 text-white flex items-center justify-center shrink-0 text-xs font-black shadow">
+                    INV
                 </div>
                 <div class="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-2xl rounded-tl-none p-3.5 text-xs sm:text-[13px] leading-relaxed shadow-xs max-w-[88%] border border-gray-200/60 dark:border-gray-700">
-                    <p class="font-bold text-indigo-600 dark:text-indigo-400 mb-1">Salam! Main StockPOS AI Copilot hoon. 🤝</p>
-                    <p>Aap mujh se dukaan ki live sales, customers ka udhaar/balance, cheques, dead-stock ya inventory ke baray mein Roman Urdu ya English mein pooch saktay hain. Neechay quick buttons bhi use kar saktay hain ya bol kar pooch saktay hain!</p>
+                    <p class="font-bold text-indigo-600 dark:text-indigo-400 mb-1">Salam! Main Invenco AI Copilot hoon. 🤝</p>
+                    <p>Mujhe Invenco ke poore database ka pata hai: <strong>is saal ka Profit & Loss</strong>, <strong>kharchon (rent, salary, bills) ka hisaab</strong>, <strong>customer udhaar/balances</strong>, <strong>cash & bank accounts</strong> aur <strong>inventory</strong>. Aap Roman Urdu ya English mein pooch saktay hain ya bol kar sawal kar saktay hain!</p>
                 </div>
             </div>
 
@@ -103,8 +107,8 @@
             <template x-for="(msg, mIdx) in messages" :key="mIdx">
                 <div class="flex items-start gap-2.5" :class="msg.role === 'user' ? 'justify-end' : 'justify-start'">
                     <template x-if="msg.role === 'assistant'">
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-600 text-white flex items-center justify-center shrink-0 text-xs font-bold shadow">
-                            AI
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-600 text-white flex items-center justify-center shrink-0 text-xs font-black shadow">
+                            INV
                         </div>
                     </template>
 
@@ -129,8 +133,17 @@
             <!-- Typing Loading Indicator -->
             <div x-show="loading" x-cloak class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 italic py-1">
                 <span class="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></span>
-                <span>StockPOS AI soch raha hai...</span>
+                <span>Invenco AI database analyze kar raha hai...</span>
             </div>
+        </div>
+
+        <!-- Voice Listening Banner -->
+        <div x-show="listening" x-cloak class="px-4 py-2 bg-red-500 text-white flex items-center justify-between text-xs font-bold animate-pulse">
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
+                <span x-text="voiceStatus || '🔴 Microphone Active: Boliye (Say your question)...'"></span>
+            </div>
+            <button type="button" @click="stopVoice()" class="px-2 py-0.5 bg-white text-red-600 rounded text-[11px] font-black uppercase">Stop ⏹</button>
         </div>
 
         <!-- Chat Input Form -->
@@ -138,29 +151,37 @@
             <form @submit.prevent="sendMessage()" class="flex items-center gap-2">
                 <!-- Voice Input Mic Button -->
                 <button type="button" @click="toggleVoice()"
-                    class="p-2.5 rounded-xl border transition-all duration-150 flex items-center justify-center cursor-pointer"
+                    class="p-2.5 rounded-xl border transition-all duration-150 flex items-center justify-center cursor-pointer shrink-0"
                     :class="listening
-                        ? 'bg-red-500 text-white border-red-600 animate-pulse'
+                        ? 'bg-red-500 text-white border-red-600 ring-2 ring-red-400'
                         : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700'"
-                    :title="listening ? 'Listening... click to stop' : 'Bol kar poochein (Voice Input)'">
+                    :title="listening ? 'Stop Recording' : 'Bol kar poochein (Click to Speak)'">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
                     </svg>
                 </button>
 
+                <!-- Voice Language Selector Toggle -->
+                <button type="button" @click="toggleVoiceLang()"
+                    class="px-2 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 shrink-0"
+                    :title="'Voice language: ' + (voiceLang === 'ur-PK' ? 'Urdu (اردو)' : 'English / Roman')">
+                    <span x-text="voiceLang === 'ur-PK' ? 'اردو' : 'EN/ROM'"></span>
+                </button>
+
                 <input type="text" x-model="userInput" x-ref="chatInput"
-                    placeholder="Sawaal poochein (e.g. Aaj ki collection kitni hui?)..."
+                    placeholder="Sawal poochein (e.g. Is saal ka profit kitna hai?)..."
                     :disabled="loading"
                     class="flex-1 text-xs sm:text-sm font-semibold rounded-xl border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500 shadow-inner py-2.5" />
 
                 <button type="submit" :disabled="loading || !userInput.trim()"
-                    class="px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white rounded-xl font-bold text-xs shadow-md transition disabled:opacity-50 active:scale-95 flex items-center gap-1.5 cursor-pointer">
+                    class="px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white rounded-xl font-bold text-xs shadow-md transition disabled:opacity-50 active:scale-95 flex items-center gap-1.5 cursor-pointer shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     <span class="hidden sm:inline">Send</span>
                 </button>
             </form>
-            <div class="mt-1.5 text-center text-[10px] text-gray-400 dark:text-gray-500">
-                AI powered by GPT-4o-mini & Live MySQL Business Context
+            <div class="mt-1.5 flex items-center justify-between text-[10px] text-gray-400 dark:text-gray-500 px-1">
+                <span>AI powered by GPT-4o-mini & Invenco Live Database</span>
+                <span x-show="!isSecure" class="text-amber-500 font-bold">⚠️ Mic requires HTTPS or localhost</span>
             </div>
         </div>
 
@@ -176,54 +197,104 @@
             messages: [],
             listening: false,
             recognition: null,
+            voiceStatus: '',
+            voiceLang: 'en-US', // en-US works reliably for English & Roman Urdu phonetics without missing language packs
+            isSecure: window.isSecureContext || location.hostname === 'localhost' || location.hostname === '127.0.0.1',
 
             init() {
-                // Initialize Web Speech API for voice in Urdu/English
-                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-                    this.recognition = new SpeechRec();
-                    this.recognition.continuous = false;
-                    this.recognition.interimResults = false;
-                    this.recognition.lang = 'ur-PK'; // Urdu / Roman Urdu support
-
-                    this.recognition.onresult = (event) => {
-                        const transcript = event.results[0][0].transcript;
-                        this.userInput = transcript;
-                        this.listening = false;
-                        this.sendMessage();
-                    };
-
-                    this.recognition.onerror = () => {
-                        this.listening = false;
-                    };
-
-                    this.recognition.onend = () => {
-                        this.listening = false;
-                    };
-                }
-
-                // Restore previous chat session from localStorage
+                // Restore chat session from localStorage
                 try {
-                    const saved = localStorage.getItem('stockpos_ai_chat_history');
+                    const saved = localStorage.getItem('invenco_ai_chat_history');
                     if (saved) {
                         this.messages = JSON.parse(saved);
                     }
                 } catch(e) {}
             },
 
+            toggleVoiceLang() {
+                this.voiceLang = this.voiceLang === 'en-US' ? 'ur-PK' : 'en-US';
+            },
+
             toggleVoice() {
-                if (!this.recognition) {
-                    alert('Aapka browser voice recognition support nahi karta. Chrome ya modern mobile browser use karein.');
+                const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SpeechRec) {
+                    alert('Aapka browser Speech Recognition support nahi karta. Google Chrome ya Microsoft Edge use karein.');
+                    return;
+                }
+
+                if (!this.isSecure) {
+                    alert('Browser security restriction: Microphone/Voice input sirf HTTPS ya localhost par allow hota hai. HTTP par browser mic block kar deta hai.');
                     return;
                 }
 
                 if (this.listening) {
-                    this.recognition.stop();
-                    this.listening = false;
-                } else {
-                    this.listening = true;
-                    this.recognition.start();
+                    this.stopVoice();
+                    return;
                 }
+
+                try {
+                    this.recognition = new SpeechRec();
+                    this.recognition.continuous = false;
+                    this.recognition.interimResults = false;
+                    this.recognition.lang = this.voiceLang || 'en-US';
+
+                    this.recognition.onstart = () => {
+                        this.listening = true;
+                        this.voiceStatus = '🔴 Sun raha hoon... boliye (Speak into mic)';
+                    };
+
+                    this.recognition.onresult = (event) => {
+                        const transcript = event.results[0][0].transcript;
+                        if (transcript) {
+                            this.userInput = transcript;
+                            this.listening = false;
+                            this.voiceStatus = '';
+                            this.sendMessage();
+                        }
+                    };
+
+                    this.recognition.onerror = (event) => {
+                        console.error('Speech recognition error:', event.error);
+                        this.listening = false;
+                        this.voiceStatus = '';
+
+                        if (event.error === 'not-allowed') {
+                            alert('Microphone permission blocked hai! Browser ke URL bar mein lock icon par click kar ke microphone permission allow karein.');
+                        } else if (event.error === 'network') {
+                            // If ur-PK failed on network, fallback to en-US
+                            if (this.voiceLang === 'ur-PK') {
+                                this.voiceLang = 'en-US';
+                                alert('Urdu voice pack connect nahi ho saka. Switching to English/Roman speech recognition. Dobara mic dabayein.');
+                            } else {
+                                alert('Voice speech recognition network error. Please check your internet connection.');
+                            }
+                        } else if (event.error === 'no-speech') {
+                            // User did not speak, quiet timeout
+                        } else {
+                            alert('Voice error: ' + event.error);
+                        }
+                    };
+
+                    this.recognition.onend = () => {
+                        this.listening = false;
+                        this.voiceStatus = '';
+                    };
+
+                    this.recognition.start();
+                } catch(err) {
+                    console.error('Recognition error:', err);
+                    this.listening = false;
+                    this.voiceStatus = '';
+                    alert('Microphone start nahi ho saka: ' + err.message);
+                }
+            },
+
+            stopVoice() {
+                if (this.recognition) {
+                    try { this.recognition.stop(); } catch(e) {}
+                }
+                this.listening = false;
+                this.voiceStatus = '';
             },
 
             sendQuickPrompt(text) {
@@ -271,7 +342,7 @@
 
                     // Save history
                     try {
-                        localStorage.setItem('stockpos_ai_chat_history', JSON.stringify(this.messages.slice(-20)));
+                        localStorage.setItem('invenco_ai_chat_history', JSON.stringify(this.messages.slice(-20)));
                     } catch(e) {}
 
                 } catch (err) {
@@ -288,7 +359,7 @@
 
             clearChat() {
                 this.messages = [];
-                localStorage.removeItem('stockpos_ai_chat_history');
+                localStorage.removeItem('invenco_ai_chat_history');
             },
 
             copyText(text) {

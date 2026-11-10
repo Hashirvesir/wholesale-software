@@ -38,8 +38,9 @@ class AiFeaturesTest extends TestCase
         $context = $provider->getLiveContext();
 
         $this->assertIsString($context);
-        $this->assertStringContainsString('TODAY\'S ACTIVITY', $context);
-        $this->assertStringContainsString('RECEIVABLES & OVERDUE', $context);
+        $this->assertStringContainsString('TODAY\'S REAL-TIME ACTIVITY', $context);
+        $this->assertStringContainsString('MARKET RECEIVABLES', $context);
+        $this->assertStringContainsString('FINANCIAL PROFIT & LOSS', $context);
         $this->assertStringContainsString('Test Customer', $context);
     }
 

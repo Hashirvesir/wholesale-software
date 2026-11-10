@@ -1,4 +1,4 @@
-<!-- StockPOS AI Bill / Invoice OCR Scanner Modal -->
+<!-- Invenco AI Bill / Invoice OCR Scanner Modal -->
 <div x-data="aiBillScanner()"
      @open-bill-scanner.window="openModal()"
      class="select-none">

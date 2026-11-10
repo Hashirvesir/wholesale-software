@@ -36,7 +36,7 @@
                 <!-- Loading State -->
                 <div x-show="loading" class="py-8 text-center space-y-3">
                     <div class="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                    <p class="text-xs font-bold text-gray-600 dark:text-gray-300">StockPOS AI is crafting customized recovery message...</p>
+                    <p class="text-xs font-bold text-gray-600 dark:text-gray-300">Invenco AI is crafting customized recovery message...</p>
                 </div>
 
                 <!-- Content State -->

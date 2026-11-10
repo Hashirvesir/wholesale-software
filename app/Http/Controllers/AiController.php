@@ -43,7 +43,7 @@ class AiController extends Controller
         $prompt = $request->input('prompt');
         $history = $request->input('history', []);
 
-        $businessContext = $this->contextProvider->getLiveContext();
+        $businessContext = $this->contextProvider->getLiveContext($prompt);
         $reply = $this->aiService->chat($prompt, $history, $businessContext);
 
         return response()->json([
