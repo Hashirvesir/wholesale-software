@@ -176,4 +176,84 @@ class AiFeaturesTest extends TestCase
         $this->assertStringContainsString('GENERAL LEDGER AUDIT: ACCOUNTS RECEIVABLE', $context);
         $this->assertStringContainsString('MATHEMATICAL RECONCILIATION', strtoupper($context));
     }
+
+    public function test_ai_create_scanned_products_endpoint(): void
+    {
+        $category = \App\Models\Category::create(['name' => 'Mobile Cases']);
+        $brand = \App\Models\Brand::create(['name' => 'Generic']);
+        $unit = \App\Models\Unit::create(['name' => 'Piece']);
+
+        $response = $this->actingAs($this->user)->postJson(route('ai.create-scanned-products'), [
+            'products' => [
+                [
+                    'name' => 'Titanium Lens Protector',
+                    'unit_price' => 120,
+                    'sale_price' => 180,
+                    'category_id' => $category->id,
+                    'unit_id' => $unit->id,
+                ],
+                [
+                    'name' => 'Silicone Case Matte',
+                    'unit_price' => 250,
+                    'sale_price' => 350,
+                    'category_id' => $category->id,
+                    'unit_id' => $unit->id,
+                ]
+            ]
+        ]);
+
+        $response->assertOk();
+        $response->assertJson(['success' => true]);
+        $this->assertDatabaseHas('products', ['name' => 'Titanium Lens Protector', 'sale_price' => 180]);
+        $this->assertDatabaseHas('products', ['name' => 'Silicone Case Matte', 'sale_price' => 350]);
+    }
+
+    public function test_ai_scan_bill_marks_unmatched_products_as_new(): void
+    {
+        Http::fake([
+            'https://api.openai.com/v1/chat/completions' => Http::response([
+                'choices' => [
+                    [
+                        'message' => [
+                            'role' => 'assistant',
+                            'content' => json_encode([
+                                'supplier_name' => 'China Wholesale Co',
+                                'invoice_number' => 'INV-999',
+                                'date' => '2026-11-10',
+                                'items' => [
+                                    [
+                                        'name' => 'Brand New Camera Glass 16',
+                                        'qty' => 50,
+                                        'unit_price' => 45,
+                                        'subtotal' => 2250,
+                                    ]
+                                ],
+                                'subtotal' => 2250,
+                                'discount' => 0,
+                                'grand_total' => 2250,
+                            ])
+                        ]
+                    ]
+                ]
+            ], 200)
+        ]);
+
+        $fakeImage = \Illuminate\Http\UploadedFile::fake()->image('bill.jpg', 600, 800);
+
+        $response = $this->actingAs($this->user)->post(route('ai.scan-bill'), [
+            'bill_image' => $fakeImage,
+        ]);
+
+        $response->assertOk();
+        $response->assertJson([
+            'success' => true,
+            'items' => [
+                [
+                    'raw_name' => 'Brand New Camera Glass 16',
+                    'is_new' => true,
+                    'auto_create' => true,
+                ]
+            ]
+        ]);
+    }
 }

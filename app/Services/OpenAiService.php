@@ -209,6 +209,99 @@ Rules:
     }
 
     /**
+     * Parses plain text extracted from a digital PDF invoice into structured JSON.
+     */
+    public function parseInvoiceText(string $invoiceText): array
+    {
+        if (!$this->isConfigured()) {
+            return [
+                'success' => false,
+                'message' => 'OpenAI API key is missing.',
+            ];
+        }
+
+        $prompt = 'You are an expert Invoice Parser AI.
+Carefully examine this vendor purchase bill / invoice text.
+Extract the following information in pure JSON format:
+{
+  "supplier_name": "Supplier or Vendor business name (if visible, else empty)",
+  "invoice_number": "Bill or Invoice number (if visible, else empty)",
+  "date": "YYYY-MM-DD (format if readable, else empty)",
+  "items": [
+    {
+      "name": "Product or item description",
+      "qty": 1.0,
+      "unit_price": 0.0,
+      "subtotal": 0.0
+    }
+  ],
+  "subtotal": 0.0,
+  "discount": 0.0,
+  "tax": 0.0,
+  "grand_total": 0.0,
+  "notes": "Any other relevant remarks or handwritten notes"
+}
+
+Rules:
+1. Return ONLY the JSON object. Do not wrap in markdown ```json or other text.
+2. Ensure numbers are numeric floats or ints (e.g. 10, not "10").
+3. If an item price is missing but total is given, calculate it (subtotal / qty).
+4. If quantity is not stated, assume 1.
+
+INVOICE TEXT:
+' . mb_substr($invoiceText, 0, 8000);
+
+        try {
+            $response = Http::withoutVerifying()
+                ->withToken($this->apiKey)
+                ->timeout(35)
+                ->post($this->apiUrl, [
+                    'model' => $this->model,
+                    'messages' => [
+                        [
+                            'role' => 'user',
+                            'content' => $prompt
+                        ]
+                    ],
+                    'max_tokens' => 2000,
+                    'temperature' => 0.1,
+                ]);
+
+            if (!$response->successful()) {
+                Log::error('OpenAI Invoice Text Parse Error: ' . $response->body());
+                return [
+                    'success' => false,
+                    'message' => 'AI Parse failed: ' . $response->json('error.message', 'API Error'),
+                ];
+            }
+
+            $rawContent = trim($response->json('choices.0.message.content', ''));
+            $cleanedJson = preg_replace('/^```(?:json)?\s*|\s*```$/i', '', $rawContent);
+            $parsed = json_decode($cleanedJson, true);
+
+            if (!is_array($parsed)) {
+                Log::error('OpenAI Text Parse JSON Error. Raw: ' . $rawContent);
+                return [
+                    'success' => false,
+                    'message' => 'Could not parse JSON from invoice text.',
+                    'raw' => $rawContent,
+                ];
+            }
+
+            return [
+                'success' => true,
+                'data' => $parsed,
+            ];
+        } catch (\Throwable $e) {
+            Log::error('OpenAI Text Parse Exception: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Text Parse Exception: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
      * Generates a polite, firm, and context-aware WhatsApp payment recovery reminder.
      */
     public function generateRecoveryMessage(array $customerData): string

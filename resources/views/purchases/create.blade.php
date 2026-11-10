@@ -657,13 +657,29 @@
                 handleAiBill(data) {
                     if (!data) return;
 
-                    // 1. Auto-select Vendor if matched
+                    // 1. If newly auto-created products were returned, register them into local products autocomplete list
+                    if (data.created_products && data.created_products.length > 0) {
+                        data.created_products.forEach(newP => {
+                            if (!this.products.find(p => p.id === newP.id)) {
+                                this.products.push({
+                                    id: newP.id,
+                                    name: newP.name,
+                                    sku: newP.sku,
+                                    sale_price: newP.sale_price || 0,
+                                    purchase_price: newP.cost_price || 0,
+                                    stocks: []
+                                });
+                            }
+                        });
+                    }
+
+                    // 2. Auto-select Vendor if matched
                     if (data.supplier && data.supplier.matched_id) {
                         this.party_id = data.supplier.matched_id;
                         this.vendorSearch = data.supplier.matched_name;
                     }
 
-                    // 2. Populate items
+                    // 3. Populate items
                     if (data.items && data.items.length > 0) {
                         this.items = [];
                         data.items.forEach(scanned => {
@@ -683,6 +699,12 @@
 
                     if (data.discount > 0) {
                         this.discount_amount = parseFloat(data.discount);
+                    }
+                    if (data.invoice_number && !this.invoice_no) {
+                        this.invoice_no = data.invoice_number;
+                    }
+                    if (data.date) {
+                        this.date = data.date;
                     }
                 },
 

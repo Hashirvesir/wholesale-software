@@ -2,15 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Brand;
+use App\Models\Category;
 use App\Models\Party;
 use App\Models\Product;
 use App\Models\Setting;
+use App\Models\Unit;
 use App\Services\AiContextProvider;
 use App\Services\OpenAiService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Smalot\PdfParser\Parser as PdfParser;
 
 class AiController extends Controller
 {
@@ -53,12 +58,12 @@ class AiController extends Controller
     }
 
     /**
-     * Multimodal OCR: Scan vendor bill image and map to local products and suppliers.
+     * Multimodal OCR: Scan vendor bill image or parse PDF invoice and map to local products and suppliers.
      */
     public function scanBill(Request $request): JsonResponse
     {
         $request->validate([
-            'bill_image' => 'required|file|mimes:jpeg,png,jpg,webp,pdf|max:12288',
+            'bill_image' => 'required|file|mimes:jpeg,png,jpg,webp,pdf|max:15360',
         ]);
 
         if (!$this->aiService->isConfigured()) {
@@ -70,9 +75,35 @@ class AiController extends Controller
 
         $file = $request->file('bill_image');
         $mime = $file->getMimeType();
-        $base64 = base64_encode(file_get_contents($file->getRealPath()));
+        $ext = strtolower($file->getClientOriginalExtension());
 
-        $result = $this->aiService->scanBill($base64, $mime);
+        // Handle PDF files
+        if ($mime === 'application/pdf' || $ext === 'pdf') {
+            try {
+                $parser = new PdfParser();
+                $pdf = $parser->parseFile($file->getRealPath());
+                $text = trim($pdf->getText());
+
+                if (empty($text)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Is PDF mein direct text nahi mila (scanned raster PDF hai). Barah-e-karam is bill ki clear photo (JPG/PNG) upload karein.',
+                    ], 422);
+                }
+
+                $result = $this->aiService->parseInvoiceText($text);
+            } catch (\Throwable $e) {
+                Log::error('PDF Parse Error: ' . $e->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'PDF parse karne mein masla hua: ' . $e->getMessage(),
+                ], 422);
+            }
+        } else {
+            // Image OCR via GPT-4o Vision
+            $base64 = base64_encode(file_get_contents($file->getRealPath()));
+            $result = $this->aiService->scanBill($base64, $mime);
+        }
 
         if (!$result['success']) {
             return response()->json([
@@ -87,7 +118,7 @@ class AiController extends Controller
         $matchedSupplier = null;
         if (!empty($data['supplier_name'])) {
             $sName = trim($data['supplier_name']);
-            $matchedSupplier = Party::whereIn('type', ['supplier', 'both'])
+            $matchedSupplier = Party::whereIn('type', ['supplier', 'vendor', 'both'])
                 ->where(function ($q) use ($sName) {
                     $q->where('name', 'like', "%{$sName}%")
                       ->orWhere('phone', 'like', "%{$sName}%");
@@ -96,6 +127,12 @@ class AiController extends Controller
 
         // 2. Smart Product Matching for each extracted line item
         $existingProducts = Product::with(['unit', 'stocks'])->where('status', true)->get();
+        $categories = Category::all(['id', 'name']);
+        $units = Unit::all(['id', 'name']);
+
+        $defaultCatId = $categories->first()->id ?? 1;
+        $defaultUnitId = $units->first()->id ?? 1;
+
         $matchedItems = [];
 
         foreach ($data['items'] ?? [] as $item) {
@@ -121,16 +158,27 @@ class AiController extends Controller
                 }
             }
 
+            $costPrice = (float) ($item['unit_price'] ?? 0);
+            $qty = (float) ($item['qty'] ?? 1);
+            $subtotal = (float) ($item['subtotal'] ?? ($qty * $costPrice));
+            $isNew = ($bestMatch === null);
+            $suggestedSale = $costPrice > 0 ? round($costPrice * 1.25, 2) : 100.0;
+
             $matchedItems[] = [
                 'raw_name' => $rawName,
-                'qty' => (float) ($item['qty'] ?? 1),
-                'unit_price' => (float) ($item['unit_price'] ?? 0),
-                'subtotal' => (float) ($item['subtotal'] ?? 0),
+                'qty' => $qty,
+                'unit_price' => $costPrice,
+                'subtotal' => $subtotal,
                 'matched_product_id' => $bestMatch ? $bestMatch->id : null,
                 'matched_product_name' => $bestMatch ? $bestMatch->name : null,
                 'matched_product_sku' => $bestMatch ? $bestMatch->sku : null,
-                'current_stock' => $bestMatch ? $bestMatch->stocks->sum('qty') : 0,
+                'current_stock' => $bestMatch ? (float) $bestMatch->stocks->sum('qty') : 0,
                 'confidence' => $bestScore,
+                'is_new' => $isNew,
+                'auto_create' => $isNew,
+                'sale_price' => $isNew ? $suggestedSale : (float) ($bestMatch->sale_price ?? 0),
+                'category_id' => $isNew ? $defaultCatId : ($bestMatch->category_id ?? $defaultCatId),
+                'unit_id' => $isNew ? $defaultUnitId : ($bestMatch->unit_id ?? $defaultUnitId),
             ];
         }
 
@@ -148,7 +196,106 @@ class AiController extends Controller
             'grand_total' => (float) ($data['grand_total'] ?? 0),
             'notes' => $data['notes'] ?? '',
             'items' => $matchedItems,
+            'categories' => $categories,
+            'units' => $units,
         ]);
+    }
+
+    /**
+     * Bulk create newly detected products from scanned bill.
+     */
+    public function createScannedProducts(Request $request): JsonResponse
+    {
+        $request->validate([
+            'products' => 'required|array|min:1',
+            'products.*.name' => 'required|string|max:255',
+            'products.*.unit_price' => 'nullable|numeric|min:0',
+            'products.*.sale_price' => 'nullable|numeric|min:0',
+            'products.*.category_id' => 'nullable|integer',
+            'products.*.unit_id' => 'nullable|integer',
+        ]);
+
+        $defaultCategory = Category::first();
+        $defaultBrand = Brand::first();
+        $defaultUnit = Unit::first();
+
+        $created = [];
+
+        DB::beginTransaction();
+        try {
+            foreach ($request->input('products') as $item) {
+                $rawName = trim($item['name']);
+
+                // If existing product with same name exists, reuse it
+                $existing = Product::where('name', $rawName)->first();
+                if ($existing) {
+                    $created[] = [
+                        'id' => $existing->id,
+                        'name' => $existing->name,
+                        'sku' => $existing->sku,
+                        'sale_price' => (float) $existing->sale_price,
+                        'cost_price' => (float) ($item['unit_price'] ?? 0),
+                        'already_existed' => true,
+                    ];
+                    continue;
+                }
+
+                $cost = (float) ($item['unit_price'] ?? 0);
+                $sale = !empty($item['sale_price']) && $item['sale_price'] > 0
+                    ? (float) $item['sale_price']
+                    : ($cost > 0 ? round($cost * 1.25, 2) : 100);
+
+                // Auto-generate clean unique SKU
+                $prefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $rawName), 0, 4));
+                if (strlen($prefix) < 3) $prefix = 'PRD';
+                $sku = $prefix . '-' . rand(1000, 9999);
+                while (Product::where('sku', $sku)->exists()) {
+                    $sku = $prefix . '-' . rand(10000, 99999);
+                }
+
+                $catId = !empty($item['category_id']) ? $item['category_id'] : ($defaultCategory->id ?? 1);
+                $brandId = $defaultBrand->id ?? 1;
+                $unitId = !empty($item['unit_id']) ? $item['unit_id'] : ($defaultUnit->id ?? 1);
+
+                $product = Product::create([
+                    'name' => $rawName,
+                    'sku' => $sku,
+                    'category_id' => $catId,
+                    'brand_id' => $brandId,
+                    'unit_id' => $unitId,
+                    'sale_price' => $sale,
+                    'wholesale_price' => $cost,
+                    'retail_price' => $sale,
+                    'dealer_price' => $sale,
+                    'alert_quantity' => 5,
+                    'status' => true,
+                ]);
+
+                $created[] = [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'sku' => $product->sku,
+                    'sale_price' => (float) $product->sale_price,
+                    'cost_price' => $cost,
+                    'already_existed' => false,
+                ];
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => count($created) . ' products processed successfully.',
+                'products' => $created,
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Create Scanned Products Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Products create karne mein masla hua: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**

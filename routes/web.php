@@ -141,6 +141,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('ai')->name('ai.')->group(function () {
         Route::post('/chat', [\App\Http\Controllers\AiController::class, 'chat'])->name('chat');
         Route::post('/scan-bill', [\App\Http\Controllers\AiController::class, 'scanBill'])->name('scan-bill');
+        Route::post('/create-scanned-products', [\App\Http\Controllers\AiController::class, 'createScannedProducts'])->name('create-scanned-products');
         Route::post('/recovery-message', [\App\Http\Controllers\AiController::class, 'recoveryMessage'])->name('recovery-message');
         Route::get('/daily-briefing', [\App\Http\Controllers\AiController::class, 'dailyBriefing'])->name('daily-briefing');
     });
