@@ -80,10 +80,33 @@
                 <button type="button" @click="errorMessage = ''" class="text-red-500 hover:text-red-700 text-lg font-black">&times;</button>
             </div>
 
+            <!-- Mobile View Switcher (Tabs for < lg screens) -->
+            <div class="lg:hidden flex items-center p-1 bg-gray-200 dark:bg-gray-800 rounded-xl mb-3 shadow-inner">
+                <button type="button" @click="mobileTab = 'cart'"
+                    class="flex-1 py-2 text-xs font-black rounded-lg transition-all flex items-center justify-center gap-1.5"
+                    :class="mobileTab === 'cart' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-600 dark:text-gray-400'">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                    <span>Items & Cart</span>
+                    <template x-if="items.length > 0">
+                        <span class="px-1.5 py-0.2 bg-emerald-500 text-white rounded-full text-[10px] font-bold" x-text="items.length"></span>
+                    </template>
+                </button>
+                <button type="button" @click="mobileTab = 'checkout'"
+                    class="flex-1 py-2 text-xs font-black rounded-lg transition-all flex items-center justify-center gap-1.5"
+                    :class="mobileTab === 'checkout' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-600 dark:text-gray-400'">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    <span>Checkout & Pay</span>
+                    <template x-if="items.length > 0">
+                        <span class="text-emerald-600 dark:text-emerald-400 font-mono text-[11px] font-bold" x-text="currency + ' ' + formatNumber(grandTotal())"></span>
+                    </template>
+                </button>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
                 <!-- LEFT SIDE (7 Cols on desktop): Customer, Warehouse, Barcode/Search, Cart Table -->
-                <div class="lg:col-span-7 xl:col-span-8 flex flex-col gap-3">
+                <div class="lg:col-span-7 xl:col-span-8 flex flex-col gap-3"
+                    :class="mobileTab === 'checkout' ? 'hidden lg:flex' : 'flex'">
 
                     <!-- Top Bar: Customer Selector & Warehouse Source -->
                     <div class="bg-white dark:bg-gray-800 rounded-xl p-3.5 shadow-sm border border-gray-200 dark:border-gray-700">
@@ -428,7 +451,18 @@
                 </div>
 
                 <!-- RIGHT SIDE (5 Cols on desktop): Checkout Panel & Financials -->
-                <div class="lg:col-span-5 xl:col-span-4 flex flex-col gap-3">
+                <div class="lg:col-span-5 xl:col-span-4 flex flex-col gap-3"
+                    :class="mobileTab === 'cart' ? 'hidden lg:flex' : 'flex'">
+
+                    <!-- Mobile Back to Products & Cart Button -->
+                    <div class="lg:hidden flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <button type="button" @click="mobileTab = 'cart'"
+                            class="text-xs font-bold text-gray-700 dark:text-gray-200 flex items-center gap-1.5 hover:text-emerald-600 transition active:scale-95">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                            <span>Back to Products</span>
+                        </button>
+                        <span class="text-xs font-black text-emerald-600 dark:text-emerald-400" x-text="items.length + ' item(s)'"></span>
+                    </div>
 
                     <!-- Invoice Summary & Payment Card -->
                     <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col justify-between">
@@ -615,6 +649,26 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Mobile Sticky Proceed to Pay Bar (Visible only on mobile/tablet when cart has items) -->
+        <div x-show="items.length > 0 && mobileTab === 'cart'" x-cloak
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 translate-y-4"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            class="lg:hidden fixed bottom-18 inset-x-0 z-30 px-3 pb-2 pointer-events-none">
+            <button type="button" @click="mobileTab = 'checkout'; $nextTick(() => { if ($refs.cashTenderInput) $refs.cashTenderInput.focus(); });"
+                class="pointer-events-auto w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 text-white font-black text-xs uppercase tracking-wider rounded-2xl shadow-2xl shadow-emerald-600/40 flex items-center justify-between active:scale-98 transition-all border border-emerald-400/40">
+                <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center font-bold text-xs" x-text="items.length"></span>
+                    <span>Proceed to Pay</span>
+                </div>
+                <div class="flex items-center gap-1.5 font-mono text-sm font-black">
+                    <span x-text="currency"></span>
+                    <span x-text="formatNumber(grandTotal())"></span>
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                </div>
+            </button>
         </div>
 
         <!-- POST-SALE SUCCESS & PRINT MODAL -->
@@ -838,6 +892,7 @@
         function posApp() {
             return {
                 currency: '{{ $settings->currency_symbol ?? "Rs" }}',
+                mobileTab: 'cart', // 'cart' | 'checkout' (for mobile app experience)
                 showCosts: localStorage.getItem('hide-sale-costs') === 'true' ? false : true,
                 toggleCosts() {
                     this.showCosts = !this.showCosts;

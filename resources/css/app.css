@@ -5,3 +5,40 @@
 [x-cloak] {
     display: none !important;
 }
+
+/* Mobile App & WebView Experience Optimizations */
+html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior-y: none;
+}
+
+body {
+    overscroll-behavior-y: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prevent unwanted automatic iOS zoom on form inputs in mobile browsers/WebViews */
+@media (max-width: 768px) {
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* Smooth touch scrolling & momentum */
+.touch-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+
+/* Safe area padding utilities for notched devices (iPhone X+, modern Android) */
+.pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+.pt-safe {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+}
+

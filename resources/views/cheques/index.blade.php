@@ -30,9 +30,9 @@
             this.bounceModalOpen = true;
         }
     }">
-        <div class="max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-2xl border border-gray-100 dark:border-gray-700">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
+        <div class="max-w-[1750px] mx-auto px-2 sm:px-6 lg:px-8">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700">
+                <div class="p-3.5 sm:p-6 text-gray-900 dark:text-gray-100">
                     
                     <!-- Header -->
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">

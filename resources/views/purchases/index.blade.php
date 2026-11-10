@@ -1,6 +1,6 @@
 <x-app-layout>
-    <div class="py-12">
-        <div class="max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="py-4 sm:py-8 lg:py-12">
+        <div class="max-w-[1750px] mx-auto px-2 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 italic">Purchase Invoices</h3>
                 <a href="{{ route('purchases.create') }}"

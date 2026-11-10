@@ -10,7 +10,7 @@
             document.documentElement.classList.remove('dark');
         }
     }
-}" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 sticky top-0 z-40">
+}" @toggle-mobile-menu.window="open = !open" @close-mobile-menu.window="open = false" @open-mobile-menu.window="open = true" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 sticky top-0 z-40">
     <!-- Primary Navigation Menu -->
     <div class="max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">

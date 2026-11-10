@@ -1,9 +1,9 @@
 <x-app-layout>
-    <div class="py-12">
-        <div class="max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="py-4 sm:py-8 lg:py-12">
+        <div class="max-w-[1750px] mx-auto px-2 sm:px-6 lg:px-8">
             <div
-                class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg border border-gray-200 dark:border-gray-700">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
+                class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl rounded-2xl sm:rounded-lg border border-gray-200 dark:border-gray-700">
+                <div class="p-3.5 sm:p-6 text-gray-900 dark:text-gray-100">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200">{{ __('Sales Invoices') }}</h3>
                         <a href="{{ route('sales.create') }}"

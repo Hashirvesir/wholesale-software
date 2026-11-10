@@ -82,10 +82,10 @@
             <!-- Welcome Header -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-3xl font-black text-gray-800 dark:text-white tracking-tighter uppercase italic">
+                    <h2 class="text-2xl sm:text-3xl font-black text-gray-800 dark:text-white tracking-tighter uppercase italic">
                         {{ __('Business Console') }}
                     </h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest">
+                    <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest">
                         Real-time tracking & Performance Analytics
                     </p>
                 </div>
@@ -162,87 +162,86 @@
             </div>
 
             <!-- Stats Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <!-- Total Sales -->
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl border-b-4 border-emerald-500 shadow-xl">
+                <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-b-4 border-emerald-500 shadow-lg sm:shadow-xl">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs font-black uppercase text-emerald-600 tracking-widest">Total Revenue</span>
-                        <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <span class="text-[10px] sm:text-xs font-black uppercase text-emerald-600 tracking-wider sm:tracking-widest">Revenue</span>
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
-                    <div class="text-2xl font-black text-gray-900 dark:text-white italic">
+                    <div class="text-lg sm:text-2xl font-black text-gray-900 dark:text-white italic truncate">
                         <span x-show="showNumbers">{{ $settings->currency_symbol }} <span x-text="formatNum(stats.sales)"></span></span>
                         <span x-show="!showNumbers" x-cloak>******</span>
                     </div>
-                    <div class="mt-2 text-xs text-gray-500 uppercase font-bold italic">
+                    <div class="mt-1 sm:mt-2 text-[10px] sm:text-xs text-gray-500 uppercase font-bold italic truncate">
                         <span x-show="showNumbers" x-text="stats.salesCount !== null ? stats.salesCount + ' invoices' : stats.label"></span>
                         <span x-show="!showNumbers" x-cloak>{{ $settings->currency_symbol }} ****</span>
                     </div>
                 </div>
 
                 <!-- Total Purchases -->
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl border-b-4 border-amber-500 shadow-xl">
+                <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-b-4 border-amber-500 shadow-lg sm:shadow-xl">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs font-black uppercase text-amber-600 tracking-widest">Procurement</span>
-                        <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <span class="text-[10px] sm:text-xs font-black uppercase text-amber-600 tracking-wider sm:tracking-widest">Procure</span>
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                     </div>
-                    <div class="text-2xl font-black text-gray-900 dark:text-white italic">
+                    <div class="text-lg sm:text-2xl font-black text-gray-900 dark:text-white italic truncate">
                         <span x-show="showNumbers">{{ $settings->currency_symbol }} <span x-text="formatNum(stats.purchases)"></span></span>
                         <span x-show="!showNumbers" x-cloak>******</span>
                     </div>
-                    <div class="mt-2 text-xs text-gray-500 uppercase font-bold italic">
+                    <div class="mt-1 sm:mt-2 text-[10px] sm:text-xs text-gray-500 uppercase font-bold italic truncate">
                         <span x-show="showNumbers" x-text="stats.label"></span>
                         <span x-show="!showNumbers" x-cloak>{{ $settings->currency_symbol }} ****</span>
                     </div>
                 </div>
 
                 <!-- Receipts/Payments -->
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl border-b-4 border-indigo-500 shadow-xl">
+                <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-b-4 border-indigo-500 shadow-lg sm:shadow-xl">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs font-black uppercase text-indigo-600 tracking-widest">Cash Flow</span>
-                        <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <span class="text-[10px] sm:text-xs font-black uppercase text-indigo-600 tracking-wider sm:tracking-widest">Cash Flow</span>
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>
                     </div>
-                    <div class="space-y-1">
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs font-bold text-gray-400">IN</span>
-                            <span class="font-black text-gray-900 dark:text-white">
+                    <div class="space-y-0.5 sm:space-y-1">
+                        <div class="flex justify-between items-center text-xs sm:text-sm">
+                            <span class="text-[10px] sm:text-xs font-bold text-gray-400">IN</span>
+                            <span class="font-black text-gray-900 dark:text-white text-xs sm:text-sm truncate">
                                 <span x-show="showNumbers">{{ $settings->currency_symbol }} <span x-text="formatNum(stats.received)"></span></span>
                                 <span x-show="!showNumbers" x-cloak>****</span>
                             </span>
                         </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs font-bold text-gray-400">OUT</span>
-                            <span class="font-black text-rose-500">
+                        <div class="flex justify-between items-center text-xs sm:text-sm">
+                            <span class="text-[10px] sm:text-xs font-bold text-gray-400">OUT</span>
+                            <span class="font-black text-rose-500 text-xs sm:text-sm truncate">
                                 <span x-show="showNumbers">{{ $settings->currency_symbol }} <span x-text="formatNum(stats.paid)"></span></span>
                                 <span x-show="!showNumbers" x-cloak>****</span>
                             </span>
                         </div>
-                        <div class="mt-2 text-[10px] text-gray-400 uppercase font-bold italic" x-text="stats.label"></div>
+                        <div class="mt-1 text-[9px] text-gray-400 uppercase font-bold italic truncate" x-text="stats.label"></div>
                     </div>
                 </div>
 
                 <!-- Inventory -->
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl border-b-4 border-rose-500 shadow-xl">
+                <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-b-4 border-rose-500 shadow-lg sm:shadow-xl">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs font-black uppercase text-rose-600 tracking-widest">Warehouse</span>
-                        <svg class="w-6 h-6 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <span class="text-[10px] sm:text-xs font-black uppercase text-rose-600 tracking-wider sm:tracking-widest">Stock</span>
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m-8-4V7m8 4v10M4 7l8 4" />
                         </svg>
                     </div>
-                    <div class="text-2xl font-black text-gray-900 dark:text-white italic">
-                        {{ $stats['total_products'] }} <span
-                            class="text-sm font-bold text-gray-400 uppercase tracking-tighter">Items</span>
+                    <div class="text-lg sm:text-2xl font-black text-gray-900 dark:text-white italic">
+                        {{ $stats['total_products'] }} <span class="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-tighter">Items</span>
                     </div>
-                    <div class="mt-2 text-xs text-rose-500 uppercase font-black italic">
+                    <div class="mt-1 sm:mt-2 text-[10px] sm:text-xs text-rose-500 uppercase font-black italic">
                         {{ $lowStockProducts->count() }} ALERTS ACTIVE
                     </div>
                 </div>

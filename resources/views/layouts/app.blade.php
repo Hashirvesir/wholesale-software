@@ -3,7 +3,12 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="StockPOS AI">
+    <meta name="format-detection" content="telephone=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ config('app.name', 'Laravel') }}</title>
@@ -58,10 +63,13 @@
         @endisset
 
         <!-- Page Content -->
-        <main>
+        <main class="pb-24 xl:pb-6">
             {{ $slot }}
         </main>
     </div>
+
+    <!-- Mobile Bottom Navigation Bar (Visible on mobile/tablet) -->
+    @include('layouts.mobile-bottom-nav')
 
     <!-- Command Palette & Shortcuts -->
     <x-command-palette />
