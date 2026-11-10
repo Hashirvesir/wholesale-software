@@ -89,6 +89,37 @@
                         </div>
                     </div>
 
+                    <!-- POS Screen Shortcuts -->
+                    <div>
+                        <h4 class="text-xs font-black text-emerald-600 uppercase tracking-widest mb-3">POS Counter Shortcuts</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded-lg">
+                                <span class="text-sm font-bold dark:text-gray-300">Scan / Search</span>
+                                <kbd class="px-2 py-1 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-xs font-mono">F1</kbd>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded-lg">
+                                <span class="text-sm font-bold dark:text-gray-300">Customer Select</span>
+                                <kbd class="px-2 py-1 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-xs font-mono">F2</kbd>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded-lg">
+                                <span class="text-sm font-bold dark:text-gray-300">Pay & Thermal Print</span>
+                                <kbd class="px-2 py-1 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-xs font-mono">F4</kbd>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded-lg">
+                                <span class="text-sm font-bold dark:text-gray-300">Hold Sale</span>
+                                <kbd class="px-2 py-1 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-xs font-mono">F7</kbd>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded-lg">
+                                <span class="text-sm font-bold dark:text-gray-300">Discount Field</span>
+                                <kbd class="px-2 py-1 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-xs font-mono">F8</kbd>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded-lg">
+                                <span class="text-sm font-bold dark:text-gray-300">Tender Cash</span>
+                                <kbd class="px-2 py-1 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-xs font-mono">F9</kbd>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Forms -->
                     <div>
                         <h4 class="text-xs font-black text-orange-600 uppercase tracking-widest mb-3">Form Control</h4>

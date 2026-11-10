@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 italic uppercase tracking-tighter">Cargo
                     Charges Management</h3>
@@ -59,8 +59,11 @@
                                         </td>
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                                            <a href="{{ route('purchases.show', $charge->purchase_id) }}"
-                                                class="text-primary-600 hover:underline">PUR-#{{ $charge->purchase_id }}</a>
+                                            @if ($charge->purchase_id)
+                                                <a href="{{ route('purchases.show', $charge->purchase_id) }}" class="text-primary-600 hover:underline">PUR-#{{ $charge->purchase_id }}</a>
+                                            @else
+                                                <span class="text-xs text-gray-400 italic font-semibold">Direct</span>
+                                            @endif
                                         </td>
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 uppercase font-bold">

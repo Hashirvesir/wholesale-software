@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8">
             <div
                 class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 italic">Manage Parties
@@ -92,6 +92,9 @@
                                         Current Balance</th>
                                     <th
                                         class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Credit Terms</th>
+                                    <th
+                                        class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         Status</th>
                                     <th
                                         class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -135,6 +138,37 @@
                                                 <span
                                                     class="text-xs uppercase">{{ $currentBal >= 0 ? 'Dr' : 'Cr' }}</span>
                                             </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            @if ($party->type === 'customer')
+                                                @if ($party->credit_limit > 0)
+                                                    <div class="flex flex-col gap-0.5">
+                                                        <div class="flex items-center gap-1.5">
+                                                            <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">Rs. {{ number_format($party->credit_limit, 0) }}</span>
+                                                            @if ($party->isCreditLimitExceeded())
+                                                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300">Exceeded</span>
+                                                            @else
+                                                                <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">Left: {{ number_format($party->getRemainingCredit(), 0) }}</span>
+                                                            @endif
+                                                        </div>
+                                                        <div class="text-[11px] text-gray-500 dark:text-gray-400">
+                                                            Due: {{ $party->credit_days > 0 ? $party->credit_days . 'd' : 'Immediate' }}
+                                                            @if ($party->hasOverdueInvoices())
+                                                                <span class="ml-1 px-1.5 py-0.5 rounded text-[10px] font-black bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200">Overdue</span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <span class="text-xs text-gray-400 italic">No limit</span>
+                                                    @if ($party->credit_days > 0 && $party->hasOverdueInvoices())
+                                                        <div class="mt-0.5">
+                                                            <span class="px-1.5 py-0.5 rounded text-[10px] font-black bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200">Overdue</span>
+                                                        </div>
+                                                    @endif
+                                                @endif
+                                            @else
+                                                <span class="text-xs text-gray-400 italic">—</span>
+                                            @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                                             @if ($party->status)
@@ -199,7 +233,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5"
+                                        <td colspan="7"
                                             class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500 dark:text-gray-400 italic">
                                             No parties found.</td>
                                     </tr>

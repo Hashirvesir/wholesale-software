@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 italic">Inventory Adjustments</h3>
                 <a href="{{ route('stock-adjustments.create') }}"

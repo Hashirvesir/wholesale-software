@@ -11,6 +11,8 @@ use App\Http\Controllers\PartyController;
 use App\Http\Controllers\ChartOfAccountController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SaleController;
+use App\Http\Controllers\PosController;
+use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\CargoChargeController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\AccountTransferController;
@@ -29,6 +31,12 @@ Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'ind
 Route::get('/dashboard/quick-stats', [\App\Http\Controllers\DashboardController::class, 'quickStats'])->middleware(['auth', 'verified'])->name('dashboard.quick-stats');
 
 Route::middleware('auth')->group(function () {
+    // Offline Mode & Background Sync Routes
+    Route::get('/api/offline/ping', [\App\Http\Controllers\OfflineSyncController::class, 'ping'])->name('offline.ping');
+    Route::get('/api/offline/master-data', [\App\Http\Controllers\OfflineSyncController::class, 'masterData'])->name('offline.master-data');
+    Route::post('/api/offline/sync', [\App\Http\Controllers\OfflineSyncController::class, 'sync'])->name('offline.sync');
+    Route::view('/offline', 'offline')->name('offline');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -50,7 +58,15 @@ Route::middleware('auth')->group(function () {
     Route::resource('parties', PartyController::class)->middleware('permission:view parties');
     Route::resource('chart-of-accounts', ChartOfAccountController::class)->middleware('permission:view chart of accounts');
     Route::resource('purchases', PurchaseController::class)->middleware('permission:view purchases');
+    Route::get('/sales/customer-last-price', [SaleController::class, 'customerLastPrice'])->name('sales.customer-last-price');
     Route::resource('sales', SaleController::class)->middleware('permission:view sales');
+    Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
+    Route::post('/pos', [PosController::class, 'store'])->name('pos.store');
+    Route::post('/pos/quick-add-customer', [PosController::class, 'quickAddCustomer'])->name('pos.quick-add-customer');
+    Route::get('/quotations/{quotation}/convert', [QuotationController::class, 'convertToSale'])->name('quotations.convert');
+    Route::post('/quotations/{quotation}/status', [QuotationController::class, 'updateStatus'])->name('quotations.status');
+    Route::get('/quotations/{quotation}/pdf', [QuotationController::class, 'downloadPdf'])->name('quotations.pdf');
+    Route::resource('quotations', QuotationController::class);
     Route::resource('cargo-charges', CargoChargeController::class)->middleware('permission:view cargo charges');
     Route::resource('payments', PaymentController::class)->middleware('permission:view payments');
     Route::resource('account-transfers', AccountTransferController::class)->middleware('permission:view account transfers');
@@ -120,6 +136,7 @@ Route::middleware('auth')->group(function () {
 // Meant to be shared with customers/vendors directly (e.g. via WhatsApp).
 Route::get('/public/sales/{sale}/pdf', [SaleController::class, 'publicPdf'])->name('sales.public-pdf')->middleware('signed');
 Route::get('/public/purchases/{purchase}/pdf', [PurchaseController::class, 'publicPdf'])->name('purchases.public-pdf')->middleware('signed');
+Route::get('/public/quotations/{quotation}/pdf', [QuotationController::class, 'publicPdf'])->name('quotations.public-pdf')->middleware('signed');
 Route::get('/public/party-ledger/pdf', [ReportController::class, 'publicPartyLedgerPdf'])->name('reports.party-ledger.public-pdf')->middleware('signed');
 
 require __DIR__.'/auth.php';

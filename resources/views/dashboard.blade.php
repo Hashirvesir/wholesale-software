@@ -34,19 +34,30 @@
                 start_date:   this.startDate,
                 end_date:     this.endDate,
             });
-            const res  = await fetch('{{ route('dashboard.quick-stats') }}?' + params);
-            const data = await res.json();
-            const lbl  = this.startDate === this.endDate
-                ? this.startDate
-                : this.startDate + ' – ' + this.endDate;
-            this.stats = {
-                sales:      data.sales,
-                purchases:  data.purchases,
-                received:   data.total_received,
-                paid:       data.total_paid,
-                salesCount: data.sales_count,
-                label:      lbl
-            };
+            try {
+                const res  = await fetch('{{ route('dashboard.quick-stats') }}?' + params);
+                const data = await res.json();
+                const lbl  = this.startDate === this.endDate
+                    ? this.startDate
+                    : this.startDate + ' – ' + this.endDate;
+                this.stats = {
+                    sales:      data.sales,
+                    purchases:  data.purchases,
+                    received:   data.total_received,
+                    paid:       data.total_paid,
+                    salesCount: data.sales_count,
+                    label:      lbl
+                };
+                try { localStorage.setItem('invenco_dashboard_cached_filter_' + params.toString(), JSON.stringify(this.stats)); } catch(e){}
+            } catch(e) {
+                try {
+                    const cached = localStorage.getItem('invenco_dashboard_cached_filter_' + params.toString());
+                    if (cached) {
+                        this.stats = JSON.parse(cached);
+                        this.stats.label += ' (Offline)';
+                    }
+                } catch(err){}
+            }
             this.filterApplied = true;
             this.loading = false;
         },

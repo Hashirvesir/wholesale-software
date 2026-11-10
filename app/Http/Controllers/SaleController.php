@@ -11,6 +11,7 @@ use App\Models\Stock;
 use App\Models\ChartOfAccount;
 use App\Models\LedgerEntry;
 use App\Models\PaymentSplit;
+use App\Models\Setting;
 use App\Traits\TracksActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +26,7 @@ class SaleController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:view sales', only: ['index', 'show']),
+            new Middleware('permission:view sales', only: ['index', 'show', 'customerLastPrice']),
             new Middleware('permission:create sales', only: ['create', 'store', 'quickAdd']),
             new Middleware('permission:edit sales', only: ['edit', 'update']),
             new Middleware('permission:delete sales', only: ['destroy']),
@@ -67,10 +68,13 @@ class SaleController extends Controller implements HasMiddleware
         return view('sales.index', compact('sales', 'warehouses'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $customers = Party::where('type', 'customer')->get()->map(function($customer) {
-            $customer->current_balance = $customer->getCurrentBalance();
+            $customer->current_balance = (float)$customer->getCurrentBalance();
+            $customer->credit_limit = (float)($customer->credit_limit ?? 0);
+            $customer->credit_days = (int)($customer->credit_days ?? 0);
+            $customer->has_overdue = $customer->hasOverdueInvoices();
             return $customer;
         });
         $warehouses = Warehouse::all();
@@ -88,7 +92,12 @@ class SaleController extends Controller implements HasMiddleware
 
         $settings = \App\Models\Setting::first();
 
-        return view('sales.create', compact('customers', 'warehouses', 'products', 'paymentAccounts', 'settings'));
+        $quotation = null;
+        if ($request->filled('from_quotation')) {
+            $quotation = \App\Models\Quotation::with('items.product')->find($request->from_quotation);
+        }
+
+        return view('sales.create', compact('customers', 'warehouses', 'products', 'paymentAccounts', 'settings', 'quotation'));
     }
 
     public function store(Request $request)
@@ -322,6 +331,14 @@ class SaleController extends Controller implements HasMiddleware
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Sale creation failed: ' . $e->getMessage(), ['exception' => $e]);
             return back()->withInput()->withErrors(['error' => 'Something went wrong while saving the sale. No changes were made — please try again.']);
+        }
+
+        $quotationId = $request->quotation_id ?? $request->from_quotation_id;
+        if (!empty($quotationId)) {
+            \App\Models\Quotation::where('id', $quotationId)->update([
+                'status' => 'converted',
+                'converted_sale_id' => $sale->id,
+            ]);
         }
 
         $this->logActivity('Created Sale', 'Sales', $sale->id, null, $sale->toArray());
@@ -650,6 +667,48 @@ class SaleController extends Controller implements HasMiddleware
         $this->logActivity('Deleted Sale', 'Sales', $sale->id, $sale->toArray(), null);
 
         return redirect()->route('sales.index')->with('success', 'Sale deleted successfully!');
+    }
+
+    public function customerLastPrice(Request $request)
+    {
+        $partyId = $request->party_id;
+        $productId = $request->product_id;
+
+        if (!$partyId || !$productId) {
+            return response()->json(['found' => false]);
+        }
+
+        $settings = Setting::first();
+        if ($settings && $settings->walk_in_customer_id && $partyId == $settings->walk_in_customer_id) {
+            return response()->json(['found' => false]);
+        }
+
+        $lastItem = SaleItem::query()
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->where('sales.party_id', $partyId)
+            ->where('sale_items.product_id', $productId)
+            ->select(
+                'sale_items.price',
+                'sale_items.qty',
+                'sales.id as sale_id',
+                'sales.date as sale_date'
+            )
+            ->orderBy('sales.date', 'desc')
+            ->orderBy('sales.id', 'desc')
+            ->first();
+
+        if (!$lastItem) {
+            return response()->json(['found' => false]);
+        }
+
+        return response()->json([
+            'found' => true,
+            'price' => (float) $lastItem->price,
+            'qty' => (float) $lastItem->qty,
+            'sale_id' => $lastItem->sale_id,
+            'date' => \Carbon\Carbon::parse($lastItem->sale_date)->format('d M, Y'),
+            'invoice_formatted' => ($settings->invoice_prefix ?? '') . $lastItem->sale_id,
+        ]);
     }
     public function downloadPdf(Sale $sale)
     {

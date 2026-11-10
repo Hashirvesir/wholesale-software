@@ -143,10 +143,24 @@
             allPages: [
                 // Quick Actions
                 {
+                    name: 'POS Counter (Fast Sale)',
+                    url: '{{ route('pos.index') }}',
+                    description: 'Fast barcode counter sale',
+                    icon: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>',
+                    category: 'Quick Actions'
+                },
+                {
                     name: 'Create New Sale Invoice',
                     url: '{{ route('sales.create') }}',
                     description: 'keyboard: Alt+S',
                     icon: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>',
+                    category: 'Quick Actions'
+                },
+                {
+                    name: 'New Quotation / Estimate',
+                    url: '{{ route('quotations.create') }}',
+                    description: 'Draft estimate (Kacha Bill)',
+                    icon: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>',
                     category: 'Quick Actions'
                 },
                 {
@@ -243,6 +257,13 @@
                     url: '{{ route('sales.index') }}',
                     description: 'Sales invoices',
                     icon: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 8h6m-5 0a3 3 0 110 6H9l3 3m-3-6h6m6 1a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+                    category: 'Trading'
+                },
+                {
+                    name: 'Quotations / Estimates',
+                    url: '{{ route('quotations.index') }}',
+                    description: 'Price quotations and kacha bills',
+                    icon: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>',
                     category: 'Trading'
                 },
                 {

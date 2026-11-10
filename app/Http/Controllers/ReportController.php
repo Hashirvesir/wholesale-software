@@ -1683,7 +1683,7 @@ class ReportController extends Controller
             $query->where('cargo_party_id', $cargoPartyId);
         }
 
-        $cargoCharges = $query->get()->sortBy(fn($c) => $c->purchase->date ?? null)->values();
+        $cargoCharges = $query->get()->sortBy(fn($c) => $c->purchase->date ?? $c->created_at->toDateString())->values();
 
         $totalCargo = $cargoCharges->sum('total_amount');
 

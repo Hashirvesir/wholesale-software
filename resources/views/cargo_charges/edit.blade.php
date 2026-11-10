@@ -40,15 +40,21 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                             <!-- Purchase Search -->
                             <div class="relative" @click.away="purchaseSearchOpen = false">
-                                <x-input-label for="purchase_search" :value="__('Search Purchase Invoice')"
-                                    class="text-xs font-black uppercase tracking-widest mb-1" />
+                                <div class="flex justify-between items-center mb-1">
+                                    <x-input-label for="purchase_search" :value="__('Search Purchase Invoice (Optional)')"
+                                        class="text-xs font-black uppercase tracking-widest" />
+                                    <button type="button" x-show="purchase_id" @click="clearPurchase()"
+                                        class="text-[10px] text-rose-500 hover:text-rose-700 font-bold uppercase tracking-wider">
+                                        Clear Selection
+                                    </button>
+                                </div>
                                 <div class="relative">
                                     <input type="text" x-model="purchaseSearch" @focus="purchaseSearchOpen = true"
                                         @input="purchaseSearchOpen = true; purchase_id = ''; highlightedPurchaseIndex = -1"
                                         @keydown="handlePurchaseSearchKey($event)"
                                         class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-xl shadow-sm transition pl-10 text-xs"
-                                        :class="{ 'border-red-500 ring-1 ring-red-500': errors.purchase_id }"
-                                        placeholder="Search by ID or Vendor..." autocomplete="off">
+                                        
+                                        placeholder="Optional: Search by ID or Vendor..." autocomplete="off">
                                     <div
                                         class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -204,7 +210,7 @@
                 highlightedPurchaseIndex: -1,
                 highlightedPartyIndex: -1,
                 errors: {
-                    purchase_id: false,
+
                     cargo_party_id: false,
                     weight: false,
                     rate: false
@@ -280,7 +286,13 @@
                     this.purchase_id = p.id;
                     this.purchaseSearch = p.search;
                     this.purchaseSearchOpen = false;
-                    this.errors.purchase_id = false;
+                    this.highlightedPurchaseIndex = -1;
+                },
+
+                clearPurchase() {
+                    this.purchase_id = "";
+                    this.purchaseSearch = "";
+                    this.purchaseSearchOpen = false;
                     this.highlightedPurchaseIndex = -1;
                 },
 
@@ -299,7 +311,7 @@
                 submitForm(e) {
                     // Reset errors
                     this.errors = {
-                        purchase_id: !this.purchase_id,
+
                         cargo_party_id: !this.cargo_party_id,
                         weight: this.weight <= 0,
                         rate: this.rate <= 0

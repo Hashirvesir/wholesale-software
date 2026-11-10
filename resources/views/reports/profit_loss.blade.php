@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
+        <div class="max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
             <!-- Filter Header Card -->
             <div class="bg-white dark:bg-gray-800 shadow-xl rounded-3xl border border-gray-100 dark:border-gray-700 p-6 md:p-8">

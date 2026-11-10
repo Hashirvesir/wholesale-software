@@ -12,8 +12,13 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
+    <!-- PWA & Offline Support -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#059669">
+
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="/js/offline-sync.js"></script>
     <style>
         .keyboard-nav:focus {
             outline: 2px solid #2563eb !important;

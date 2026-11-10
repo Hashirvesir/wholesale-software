@@ -50,6 +50,8 @@ class PartyController extends Controller implements HasMiddleware
             'address' => 'nullable|string',
             'opening_balance' => 'required|numeric',
             'balance_type' => 'required|in:debit,credit',
+            'credit_limit' => 'nullable|numeric|min:0',
+            'credit_days' => 'nullable|integer|min:0',
             'status' => 'required|boolean',
         ]);
 
@@ -74,6 +76,8 @@ class PartyController extends Controller implements HasMiddleware
             'address' => 'nullable|string',
             'opening_balance' => 'required|numeric',
             'balance_type' => 'required|in:debit,credit',
+            'credit_limit' => 'nullable|numeric|min:0',
+            'credit_days' => 'nullable|integer|min:0',
             'status' => 'required|boolean',
         ]);
 

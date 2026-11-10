@@ -1,8 +1,8 @@
 <nav x-data="{ open: false }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
     <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-4 lg:px-6">
+    <div class="max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
-            <div class="flex">
+            <div class="flex items-center">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}">
@@ -14,26 +14,40 @@
                 <div class="hidden sm:flex sm:items-center sm:ml-4">
                     <button @click="$dispatch('toggle-command-palette')"
                         onclick="document.querySelector('[x-data*=commandPalette]').__x.$data.toggle()"
-                        class="group flex items-center gap-2 px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 transition-all duration-150">
+                        class="group flex items-center gap-2 px-2.5 py-1.5 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 transition-all duration-150 shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        <span class="hidden xl:inline font-medium">Quick Search</span>
+                        <span class="hidden 2xl:inline font-medium">Quick Search</span>
                         <kbd
-                            class="hidden xl:inline-flex items-center gap-1 rounded bg-white dark:bg-gray-800 px-2 py-0.5 text-xs font-semibold text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-600 shadow-sm">
-                            <span class="text-[10px]">⌘</span>K
+                            class="hidden 2xl:inline-flex items-center gap-1 rounded bg-white dark:bg-gray-800 px-1.5 py-0.5 text-[10px] font-semibold text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-600 shadow-sm">
+                            <span class="text-[9px]">⌘</span>K
                         </kbd>
                     </button>
 
                     <button @click="$dispatch('toggle-shortcut-help')"
-                        class="ml-2 group p-1.5 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 transition-all duration-150"
+                        class="ml-2 group p-1.5 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 transition-all duration-150 shrink-0"
                         title="Keyboard Shortcuts (Ctrl+/)">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </button>
+
+                    <!-- POS Counter Button -->
+                    @can('view sales')
+                        <a href="{{ route('pos.index') }}"
+                            class="ml-2 group flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-black uppercase tracking-wider text-white bg-gradient-to-r from-emerald-500 to-teal-600 rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all duration-150 shadow-md shadow-emerald-500/20 transform hover:scale-105 shrink-0"
+                            title="POS Counter Screen (F1)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                            <span class="hidden 2xl:inline">POS Counter</span>
+                            <span class="hidden xl:inline 2xl:hidden">POS</span>
+                        </a>
+                    @endcan
 
                     <!-- Quick View Button -->
                     <div x-data="{
@@ -49,6 +63,17 @@
                                 .then(response => response.json())
                                 .then(data => {
                                     this.stats = data;
+                                    this.loading = false;
+                                    try { localStorage.setItem('invenco_cached_quick_stats', JSON.stringify(data)); } catch(e){}
+                                })
+                                .catch(() => {
+                                    try {
+                                        const cached = localStorage.getItem('invenco_cached_quick_stats');
+                                        if (cached) {
+                                            this.stats = JSON.parse(cached);
+                                            this.stats.is_offline_cached = true;
+                                        }
+                                    } catch(e){}
                                     this.loading = false;
                                 });
                         }
@@ -142,6 +167,14 @@
                                         </div>
 
                                         <div x-show="!loading && stats" style="display: none;">
+                                            <!-- Offline Cached Notice -->
+                                            <template x-if="stats && stats.is_offline_cached">
+                                                <div class="mb-4 p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs font-bold flex items-center justify-between">
+                                                    <span>⚡ Offline Mode: Showing locally cached statistics</span>
+                                                    <span class="text-[10px] bg-amber-200 dark:bg-amber-900/60 px-2 py-0.5 rounded">Cached</span>
+                                                </div>
+                                            </template>
+
                                             <!-- Top KPIs -->
                                             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                                                 <!-- Total Sales Today -->
@@ -325,7 +358,7 @@
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-4 xl:space-x-6 sm:-my-px sm:ms-2 sm:flex">
+                <div class="hidden space-x-3 xl:space-x-5 sm:-my-px sm:ms-4 sm:flex items-center shrink-0">
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
@@ -357,7 +390,12 @@
                                 </x-slot>
                                 <x-slot name="content">
                                     @can('view sales')
+                                        <x-dropdown-link :href="route('pos.index')" class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                                            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                            {{ __('POS Counter') }}
+                                        </x-dropdown-link>
                                         <x-dropdown-link :href="route('sales.index')">{{ __('Sales') }}</x-dropdown-link>
+                                        <x-dropdown-link :href="route('quotations.index')">{{ __('Quotations / Estimates') }}</x-dropdown-link>
                                     @endcan
                                     @can('view purchases')
                                         <x-dropdown-link :href="route('purchases.index')">{{ __('Purchases') }}</x-dropdown-link>
@@ -589,8 +627,112 @@
                 </div>
             </div>
 
-            <!-- Settings -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6 space-x-4">
+            <!-- Settings & Sync -->
+            <div class="hidden sm:flex sm:items-center sm:ms-6 space-x-3">
+                <!-- Offline / Online Sync Indicator -->
+                <div x-data="{
+                    open: false,
+                    isOnline: navigator.onLine,
+                    isSyncing: false,
+                    pendingCount: 0,
+                    salesCount: 0,
+                    paymentsCount: 0,
+                    lastSync: null,
+                    init() {
+                        if (window.OfflineSync) {
+                            this.isOnline = window.OfflineSync.isOnline;
+                            this.isSyncing = window.OfflineSync.isSyncing;
+                            this.pendingCount = window.OfflineSync.getPendingCount();
+                            this.salesCount = window.OfflineSync.salesQueue.length;
+                            this.paymentsCount = window.OfflineSync.paymentsQueue.length;
+                            this.lastSync = window.OfflineSync.lastSyncTime;
+                        }
+                        window.addEventListener('offline-status-changed', (e) => {
+                            this.isOnline = e.detail.isOnline;
+                            this.isSyncing = e.detail.isSyncing;
+                            this.pendingCount = e.detail.pendingCount;
+                            this.salesCount = e.detail.salesCount;
+                            this.paymentsCount = e.detail.paymentsCount;
+                            this.lastSync = e.detail.lastSyncTime;
+                        });
+                    },
+                    syncNow() {
+                        if (window.OfflineSync) {
+                            window.OfflineSync.syncAll();
+                        }
+                    },
+                    downloadCache() {
+                        if (window.OfflineSync) {
+                            window.OfflineSync.fetchMasterData().then(() => {
+                                alert('Master data successfully cached for offline use!');
+                            });
+                        }
+                    }
+                }" class="relative">
+                    <button @click="open = !open" type="button"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider transition-all duration-200 border shadow-xs"
+                        :class="isSyncing ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800' :
+                                (isOnline ?
+                                    (pendingCount > 0 ? 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700' : 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700') :
+                                    'bg-red-50 text-red-700 border-red-300 dark:bg-red-950/60 dark:text-red-300 dark:border-red-700 animate-pulse')">
+
+                        <span class="w-2 h-2 rounded-full shrink-0"
+                            :class="isSyncing ? 'bg-blue-500 animate-ping' :
+                                    (isOnline ? (pendingCount > 0 ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500') : 'bg-red-500')"></span>
+
+                        <span x-show="isSyncing">Syncing...</span>
+                        <span x-show="!isSyncing && isOnline && pendingCount === 0">Online</span>
+                        <span x-show="!isSyncing && isOnline && pendingCount > 0" x-text="'Sync (' + pendingCount + ')'"></span>
+                        <span x-show="!isSyncing && !isOnline" x-text="'Offline' + (pendingCount > 0 ? ' (' + pendingCount + ')' : '')"></span>
+                    </button>
+
+                    <!-- Sync Manager Dropdown -->
+                    <div x-show="open" @click.away="open = false" x-cloak
+                        x-transition:enter="transition ease-out duration-150"
+                        x-transition:enter-start="opacity-0 translate-y-1"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 z-50 text-xs">
+                        
+                        <div class="flex items-center justify-between pb-3 border-b dark:border-gray-700 mb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full" :class="isOnline ? 'bg-emerald-500' : 'bg-red-500'"></span>
+                                <span class="font-black text-gray-900 dark:text-white uppercase tracking-wider" x-text="isOnline ? 'System Online' : 'System Offline'"></span>
+                            </div>
+                            <span class="text-[10px] text-gray-400" x-show="lastSync" x-text="'Synced: ' + lastSync"></span>
+                        </div>
+
+                        <div class="space-y-2 mb-4">
+                            <div class="flex justify-between items-center p-2 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+                                <span class="text-gray-600 dark:text-gray-400 font-semibold">Offline Sales in Queue:</span>
+                                <span class="font-black font-mono px-2 py-0.5 rounded text-xs"
+                                    :class="salesCount > 0 ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200' : 'text-gray-500'"
+                                    x-text="salesCount"></span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+                                <span class="text-gray-600 dark:text-gray-400 font-semibold">Offline Payments in Queue:</span>
+                                <span class="font-black font-mono px-2 py-0.5 rounded text-xs"
+                                    :class="paymentsCount > 0 ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200' : 'text-gray-500'"
+                                    x-text="paymentsCount"></span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <button type="button" @click="syncNow()" :disabled="!isOnline || isSyncing || pendingCount === 0"
+                                class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white rounded-xl font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition shadow-sm">
+                                <svg class="w-4 h-4" :class="isSyncing ? 'animate-spin' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                <span x-text="isSyncing ? 'Synchronizing...' : 'Sync Now'"></span>
+                            </button>
+
+                            <button type="button" @click="downloadCache()" :disabled="!isOnline || isSyncing"
+                                class="w-full py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-40 text-gray-700 dark:text-gray-300 rounded-xl font-semibold transition text-[11px]">
+                                Update Offline Master Cache
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button
@@ -731,7 +873,11 @@
                 <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Trading') }}
                 </div>
                 @can('view sales')
+                    <x-responsive-nav-link :href="route('pos.index')" :active="request()->routeIs('pos.*')" class="font-bold text-emerald-600 dark:text-emerald-400">
+                        ⚡ {{ __('POS Counter') }}
+                    </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('sales.index')" :active="request()->routeIs('sales.*')">{{ __('Sales') }}</x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('quotations.index')" :active="request()->routeIs('quotations.*')">{{ __('Quotations / Estimates') }}</x-responsive-nav-link>
                 @endcan
                 @can('view purchases')
                     <x-responsive-nav-link :href="route('purchases.index')" :active="request()->routeIs('purchases.*')">{{ __('Purchases') }}</x-responsive-nav-link>

@@ -2,15 +2,26 @@
     <div class="py-12" x-data="purchaseForm()">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div
-                class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg border border-gray-200 dark:border-gray-700">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
+                class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-2xl border border-gray-200 dark:border-gray-700">
+                <div class="p-6 md:p-8 text-gray-900 dark:text-gray-100">
                     <div class="flex justify-between items-center mb-6 border-b dark:border-gray-700 pb-4">
-                        <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200">
-                            {{ __('Create Purchase Invoice') }}
-                        </h3>
-                        <div class="text-xs text-gray-500 font-bold uppercase tracking-widest italic">
-                            Keyboard Shortcuts: <span class="text-primary-600">Arrows</span> to Navigate | <span
-                                class="text-primary-600">Enter</span> on last field for New Row
+                        <div>
+                            <h3 class="text-xl font-black text-gray-800 dark:text-gray-100 tracking-wide uppercase flex items-center gap-2">
+                                <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                <span>{{ __('Create Purchase Invoice') }}</span>
+                            </h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Record supplier purchases, manage PKR/RMB currencies and integrated cargo charges.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="hidden sm:inline-block text-[11px] text-gray-400 font-bold uppercase tracking-wider">
+                                Keyboard: <span class="text-primary-600">Arrows</span> Navigate | <span class="text-primary-600">Enter</span> New Row
+                            </div>
+                            <a href="{{ route('purchases.index') }}"
+                                class="px-3.5 py-1.5 rounded-xl border border-gray-300 dark:border-gray-600 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                                Back to Purchases
+                            </a>
                         </div>
                     </div>
 
@@ -37,31 +48,32 @@
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                             <!-- Vendor -->
                             <div class="md:col-span-1">
-                                <x-input-label for="party_id" :value="__('Vendor')" />
+                                <label class="block text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
+                                    Vendor *
+                                </label>
                                 <div class="relative" @click.away="vendorOpen = false">
                                     <input type="text" x-model="vendorSearch" @focus="vendorOpen = true"
                                         @input="vendorOpen = true" @keydown="handleVendorKey($event)"
-                                        class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-sm transition"
+                                        class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500 rounded-xl shadow-sm text-xs font-bold transition"
                                         placeholder="Search vendor..." autocomplete="off">
 
                                     <input type="hidden" name="party_id" :value="party_id">
 
-                                    <div x-show="vendorOpen && getFilteredVendors().length > 0"
-                                        class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg max-h-60 rounded-md py-1 text-xs ring-1 ring-black ring-opacity-5 overflow-auto border dark:border-gray-700">
+                                    <div x-show="vendorOpen && getFilteredVendors().length > 0" x-cloak
+                                        class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-2xl max-h-60 rounded-xl py-1 text-xs border border-gray-200 dark:border-gray-700 overflow-auto divide-y dark:divide-gray-700">
                                         <template x-for="(vendor, vIdx) in getFilteredVendors()" :key="vendor.id">
                                             <div @click="selectVendor(vendor)"
-                                                class="cursor-pointer select-none relative py-2 pl-3 pr-9 border-b last:border-0 dark:border-gray-700 hover:bg-primary-50 dark:hover:bg-primary-900 transition"
-                                                :class="vendorHighlightedIndex === vIdx ? 'bg-primary-100 dark:bg-primary-900' :
-                                                    ''">
+                                                class="cursor-pointer select-none relative py-2.5 px-3 hover:bg-primary-50 dark:hover:bg-primary-950/40 transition"
+                                                :class="vendorHighlightedIndex === vIdx ? 'bg-primary-50 dark:bg-primary-950/40' : ''">
                                                 <div class="flex items-center justify-between">
                                                     <div>
-                                                        <span class="block truncate uppercase font-bold"
+                                                        <span class="block truncate uppercase font-bold text-gray-900 dark:text-gray-100"
                                                             x-text="vendor.name"></span>
-                                                        <span class="text-gray-500 dark:text-[10px]"
+                                                        <span class="text-gray-500 text-[10px]"
                                                             x-text="vendor.phone || 'No Phone'"></span>
                                                     </div>
-                                                    <span class="font-bold whitespace-nowrap ml-2"
-                                                        :class="vendor.current_balance >= 0 ? 'text-red-500' : 'text-green-500'">
+                                                    <span class="font-black whitespace-nowrap ml-2 text-xs"
+                                                        :class="vendor.current_balance >= 0 ? 'text-red-500' : 'text-emerald-500'">
                                                         <span x-text="currencySymbol"></span> <span
                                                             x-text="formatNumber(Math.abs(vendor.current_balance))"></span>
                                                     </span>
@@ -71,12 +83,11 @@
                                     </div>
 
                                     <template x-if="party_id">
-                                        <div class="mt-1 text-xs font-bold"
-                                            :class="getVendorBalance() >= 0 ? 'text-red-500' : 'text-green-500'">
+                                        <div class="mt-1 text-[11px] font-bold"
+                                            :class="getVendorBalance() >= 0 ? 'text-red-500' : 'text-emerald-500'">
                                             Prev. Balance: <span x-text="currencySymbol"></span> <span
                                                 x-text="formatNumber(Math.abs(getVendorBalance()))"></span>
-                                            <span
-                                                x-text="getVendorBalance() >= 0 ? '(Receivable)' : '(Payable)'"></span>
+                                            <span x-text="getVendorBalance() >= 0 ? '(Receivable)' : '(Payable)'"></span>
                                         </div>
                                     </template>
                                 </div>
@@ -84,9 +95,11 @@
 
                             <!-- Warehouse -->
                             <div class="md:col-span-1">
-                                <x-input-label for="warehouse_id" :value="__('Warehouse (Stock Target)')" />
+                                <label class="block text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
+                                    Warehouse (Stock Target) *
+                                </label>
                                 <select id="warehouse_id" name="warehouse_id" x-model="warehouse_id"
-                                    class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-sm transition"
+                                    class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500 rounded-xl shadow-sm text-xs font-bold transition"
                                     required>
                                     <option value="">-- Select Warehouse --</option>
                                     @foreach ($warehouses as $warehouse)
@@ -97,33 +110,34 @@
 
                             <!-- Date -->
                             <div class="md:col-span-1">
-                                <x-input-label for="date" :value="__('Date')" />
-                                <x-text-input id="date" class="block mt-1 w-full" type="date" name="date"
-                                    :value="old('date', date('Y-m-d'))" required />
+                                <label class="block text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
+                                    Invoice Date *
+                                </label>
+                                <input id="date" class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500 rounded-xl shadow-sm text-xs font-bold transition" type="date" name="date"
+                                    value="{{ old('date', date('Y-m-d')) }}" required />
                             </div>
 
                             <!-- Currency & Exchange Rate -->
-                            <div
-                                class="md:col-span-1 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
-                                <div class="flex items-center justify-between mb-2">
-                                    <x-input-label :value="__('Currency')" class="!mb-0" />
-                                    <div class="flex items-center space-x-4">
-                                        <label class="inline-flex items-center">
+                            <div class="md:col-span-1 bg-gray-50 dark:bg-gray-900/40 p-3 rounded-xl border border-gray-200 dark:border-gray-700">
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400">Currency</label>
+                                    <div class="flex items-center space-x-3">
+                                        <label class="inline-flex items-center cursor-pointer">
                                             <input type="radio" x-model="currency" name="currency" value="PKR"
                                                 class="text-primary-600 focus:ring-primary-500">
-                                            <span class="ml-2 text-sm">PKR</span>
+                                            <span class="ml-1.5 text-xs font-bold">PKR</span>
                                         </label>
-                                        <label class="inline-flex items-center">
+                                        <label class="inline-flex items-center cursor-pointer">
                                             <input type="radio" x-model="currency" name="currency" value="RMB"
                                                 class="text-primary-600 focus:ring-primary-500">
-                                            <span class="ml-2 text-sm">RMB</span>
+                                            <span class="ml-1.5 text-xs font-bold">RMB</span>
                                         </label>
                                     </div>
                                 </div>
-                                <div x-show="currency === 'RMB'" x-transition>
-                                    <x-input-label for="exchange_rate" :value="__('Exchange Rate (1 RMB = ? PKR)')" class="text-[10px]" />
-                                    <x-text-input id="exchange_rate" x-model.number="exchange_rate"
-                                        class="block w-full text-sm" type="number" step="0.01" min="0.01"
+                                <div x-show="currency === 'RMB'" x-transition class="mt-2">
+                                    <label for="exchange_rate" class="block text-[10px] font-bold uppercase text-gray-500 mb-1">Exchange Rate (1 RMB = ? PKR)</label>
+                                    <input id="exchange_rate" x-model.number="exchange_rate"
+                                        class="block w-full text-xs font-bold rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100" type="number" step="0.01" min="0.01"
                                         name="exchange_rate" />
                                 </div>
                                 <input type="hidden" name="exchange_rate"

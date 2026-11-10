@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Filter Section -->
             <div
                 class="bg-white dark:bg-gray-800 overflow-visible shadow-xl sm:rounded-3xl border border-gray-100 dark:border-gray-700 mb-8 mt-10">

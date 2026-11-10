@@ -55,7 +55,7 @@ class CargoChargeController extends Controller implements HasMiddleware
     public function store(Request $request)
     {
         $request->validate([
-            'purchase_id' => 'required|exists:purchases,id|unique:cargo_charges,purchase_id',
+            'purchase_id' => 'nullable|exists:purchases,id|unique:cargo_charges,purchase_id',
             'cargo_party_id' => 'required|exists:parties,id',
             'total_weight' => 'required|numeric|min:0',
             'rate_per_kg' => 'required|numeric|min:0',
@@ -66,10 +66,19 @@ class CargoChargeController extends Controller implements HasMiddleware
         ]);
 
         $cargoCharge = DB::transaction(function () use ($request) {
-            $cargoCharge = CargoCharge::create($request->all());
+            $data = $request->all();
+            if (empty($data['purchase_id'])) {
+                $data['purchase_id'] = null;
+            }
+            $cargoCharge = CargoCharge::create($data);
 
             $cargoExpenseAcc = ChartOfAccount::where('name', 'Cargo Expense')->first();
             $payableAcc = ChartOfAccount::where('name', 'Accounts Payable')->first();
+
+            $entryDate = $cargoCharge->purchase->date ?? now()->toDateString();
+            $note = $cargoCharge->purchase_id 
+                ? "Cargo Charges for Purchase #{$cargoCharge->purchase_id}" 
+                : "Direct Cargo Charges for {$cargoCharge->cargoParty->name}";
 
             // Debit Cargo Expense
             LedgerEntry::create([
@@ -77,10 +86,10 @@ class CargoChargeController extends Controller implements HasMiddleware
                 'party_id' => null, // Internal expense account, no party association for ledger balance
                 'debit' => $cargoCharge->total_amount,
                 'credit' => 0,
-                'date' => $cargoCharge->purchase->date ?? now()->toDateString(),
+                'date' => $entryDate,
                 'reference_type' => 'cargo',
                 'reference_id' => $cargoCharge->id,
-                'note' => "Cargo Charges for Purchase #{$cargoCharge->purchase_id}",
+                'note' => $note,
             ]);
 
             // Credit Cargo Party (we owe them - liability)
@@ -89,15 +98,18 @@ class CargoChargeController extends Controller implements HasMiddleware
                 'party_id' => $cargoCharge->cargo_party_id,
                 'debit' => 0,
                 'credit' => $cargoCharge->total_amount,
-                'date' => $cargoCharge->purchase->date ?? now()->toDateString(),
+                'date' => $entryDate,
                 'reference_type' => 'cargo',
                 'reference_id' => $cargoCharge->id,
-                'note' => "Cargo Charges for Purchase #{$cargoCharge->purchase_id}",
+                'note' => $note,
             ]);
 
             // 3. Payment Entry (if paid immediately)
             if ($request->boolean('is_paid')) {
                 $cashAcc = ChartOfAccount::where('name', 'Cash')->first();
+                $payNote = $cargoCharge->purchase_id 
+                    ? "Payment for Cargo - Purchase #{$cargoCharge->purchase_id}" 
+                    : "Payment for Cargo - {$cargoCharge->cargoParty->name}";
                 
                 // Debit Cargo Party (clearing the liability we owe)
                 LedgerEntry::create([
@@ -105,10 +117,10 @@ class CargoChargeController extends Controller implements HasMiddleware
                     'party_id' => $cargoCharge->cargo_party_id,
                     'debit' => $cargoCharge->total_amount,
                     'credit' => 0,
-                    'date' => $cargoCharge->purchase->date ?? now()->toDateString(),
+                    'date' => $entryDate,
                     'reference_type' => 'cargo',
                     'reference_id' => $cargoCharge->id,
-                    'note' => "Payment for Cargo - Purchase #{$cargoCharge->purchase_id}",
+                    'note' => $payNote,
                 ]);
 
                 // Credit Cash
@@ -117,10 +129,10 @@ class CargoChargeController extends Controller implements HasMiddleware
                     'party_id' => null,
                     'debit' => 0,
                     'credit' => $cargoCharge->total_amount,
-                    'date' => $cargoCharge->purchase->date ?? now()->toDateString(),
+                    'date' => $entryDate,
                     'reference_type' => 'cargo',
                     'reference_id' => $cargoCharge->id,
-                    'note' => "Payment for Cargo - Purchase #{$cargoCharge->purchase_id}",
+                    'note' => $payNote,
                 ]);
             }
             return $cargoCharge;
@@ -155,7 +167,7 @@ class CargoChargeController extends Controller implements HasMiddleware
     public function update(Request $request, CargoCharge $cargoCharge)
     {
         $request->validate([
-            'purchase_id' => 'required|exists:purchases,id|unique:cargo_charges,purchase_id,' . $cargoCharge->id,
+            'purchase_id' => 'nullable|exists:purchases,id|unique:cargo_charges,purchase_id,' . $cargoCharge->id,
             'cargo_party_id' => 'required|exists:parties,id',
             'total_weight' => 'required|numeric|min:0',
             'rate_per_kg' => 'required|numeric|min:0',
@@ -166,7 +178,11 @@ class CargoChargeController extends Controller implements HasMiddleware
         ]);
 
         DB::transaction(function () use ($request, $cargoCharge) {
-            $cargoCharge->update($request->all());
+            $data = $request->all();
+            if (empty($data['purchase_id'])) {
+                $data['purchase_id'] = null;
+            }
+            $cargoCharge->update($data);
 
             // Delete old ledger entries
             LedgerEntry::where('reference_type', 'cargo')->where('reference_id', $cargoCharge->id)->delete();
@@ -174,16 +190,21 @@ class CargoChargeController extends Controller implements HasMiddleware
             $cargoExpenseAcc = ChartOfAccount::where('name', 'Cargo Expense')->first();
             $payableAcc = ChartOfAccount::where('name', 'Accounts Payable')->first();
 
+            $entryDate = $cargoCharge->purchase->date ?? now()->toDateString();
+            $note = $cargoCharge->purchase_id 
+                ? "Updated Cargo Charges for Purchase #{$cargoCharge->purchase_id}" 
+                : "Updated Cargo Charges for {$cargoCharge->cargoParty->name}";
+
             // Re-create Debit Cargo Expense
             LedgerEntry::create([
                 'account_id' => $cargoExpenseAcc->id,
                 'party_id' => null, // Internal expense account, no party association for ledger balance
                 'debit' => $cargoCharge->total_amount,
                 'credit' => 0,
-                'date' => $cargoCharge->purchase->date ?? now()->toDateString(),
+                'date' => $entryDate,
                 'reference_type' => 'cargo',
                 'reference_id' => $cargoCharge->id,
-                'note' => "Updated Cargo Charges for Purchase #{$cargoCharge->purchase_id}",
+                'note' => $note,
             ]);
 
             // Re-create Credit Cargo Party (we owe them - liability)
@@ -192,15 +213,18 @@ class CargoChargeController extends Controller implements HasMiddleware
                 'party_id' => $cargoCharge->cargo_party_id,
                 'debit' => 0,
                 'credit' => $cargoCharge->total_amount,
-                'date' => $cargoCharge->purchase->date ?? now()->toDateString(),
+                'date' => $entryDate,
                 'reference_type' => 'cargo',
                 'reference_id' => $cargoCharge->id,
-                'note' => "Updated Cargo Charges for Purchase #{$cargoCharge->purchase_id}",
+                'note' => $note,
             ]);
 
             // 3. Re-create Payment entries if paid
             if ($request->boolean('is_paid')) {
                 $cashAcc = ChartOfAccount::where('name', 'Cash')->first();
+                $payNote = $cargoCharge->purchase_id 
+                    ? "Payment for Cargo - Purchase #{$cargoCharge->purchase_id}" 
+                    : "Payment for Cargo - {$cargoCharge->cargoParty->name}";
                 
                 // Debit Cargo Party (clearing the liability we owe)
                 LedgerEntry::create([
@@ -208,10 +232,10 @@ class CargoChargeController extends Controller implements HasMiddleware
                     'party_id' => $cargoCharge->cargo_party_id,
                     'debit' => $cargoCharge->total_amount,
                     'credit' => 0,
-                    'date' => $cargoCharge->purchase->date ?? now()->toDateString(),
+                    'date' => $entryDate,
                     'reference_type' => 'cargo',
                     'reference_id' => $cargoCharge->id,
-                    'note' => "Payment for Cargo - Purchase #{$cargoCharge->purchase_id}",
+                    'note' => $payNote,
                 ]);
 
                 // Credit Cash
@@ -220,10 +244,10 @@ class CargoChargeController extends Controller implements HasMiddleware
                     'party_id' => null,
                     'debit' => 0,
                     'credit' => $cargoCharge->total_amount,
-                    'date' => $cargoCharge->purchase->date ?? now()->toDateString(),
+                    'date' => $entryDate,
                     'reference_type' => 'cargo',
                     'reference_id' => $cargoCharge->id,
-                    'note' => "Payment for Cargo - Purchase #{$cargoCharge->purchase_id}",
+                    'note' => $payNote,
                 ]);
             }
         });

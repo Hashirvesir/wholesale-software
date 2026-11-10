@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
                     <div class="flex items-center justify-between mb-6">
@@ -75,6 +75,39 @@
                                 </a>
                             </div>
                         </form>
+                    </div>
+
+                    <!-- Offline Pending Payments Banner -->
+                    <div x-data="{
+                        pendingPayments: [],
+                        init() {
+                            const update = () => {
+                                const q = localStorage.getItem('invenco_offline_payments_queue');
+                                this.pendingPayments = q ? JSON.parse(q) : [];
+                            };
+                            update();
+                            window.addEventListener('offline-status-changed', update);
+                            window.addEventListener('offline-sync-completed', update);
+                        }
+                    }" x-show="pendingPayments.length > 0" x-cloak
+                        class="mb-6 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 shadow-sm">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <span class="w-3 h-3 rounded-full bg-amber-500 animate-ping"></span>
+                                <div>
+                                    <div class="text-xs font-black uppercase tracking-wider">
+                                        <span x-text="pendingPayments.length"></span> Offline Payment(s) In Local Queue
+                                    </div>
+                                    <div class="text-[11px] text-amber-700 dark:text-amber-400">
+                                        Recorded offline. Will automatically upload once online connection is detected.
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" @click="window.OfflineSync && window.OfflineSync.syncAll()"
+                                class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition shadow-sm">
+                                Sync Now
+                            </button>
+                        </div>
                     </div>
 
                     <div class="overflow-x-auto">

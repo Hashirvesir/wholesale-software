@@ -42,6 +42,16 @@
 
                     <form action="{{ route('sales.store') }}" method="POST" @submit.prevent="submitForm">
                         @csrf
+                        @if (isset($quotation) && $quotation)
+                            <input type="hidden" name="quotation_id" value="{{ $quotation->id }}">
+                            <div class="mb-4 p-4 bg-emerald-50 dark:bg-emerald-950/40 border-l-4 border-emerald-500 text-emerald-800 dark:text-emerald-200 flex justify-between items-center rounded-r-lg">
+                                <div>
+                                    <span class="font-bold text-sm">Converting Quotation #{{ $quotation->id }} to Sale Invoice</span>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400 block">Items and prices have been pre-filled from the quotation.</span>
+                                </div>
+                                <span class="px-2.5 py-1 text-xs font-black uppercase rounded bg-emerald-200 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-100">Quotation #{{ $quotation->id }}</span>
+                            </div>
+                        @endif
 
                         <!-- Error Display -->
                         @if ($errors->any())
@@ -99,12 +109,45 @@
                                     </div>
 
                                     <template x-if="party_id">
-                                        <div class="mt-1 text-xs font-bold"
-                                            :class="getCustomerBalance() >= 0 ? 'text-red-500' : 'text-green-500'">
-                                            Prev. Balance: <span x-text="currency"></span> <span
-                                                x-text="formatNumber(Math.abs(getCustomerBalance()))"></span>
-                                            <span
-                                                x-text="getCustomerBalance() >= 0 ? '(Receivable)' : '(Payable)'"></span>
+                                        <div class="mt-1.5 space-y-1">
+                                            <div class="flex flex-wrap items-center gap-2 text-xs">
+                                                <span class="font-bold" :class="getCustomerBalance() >= 0 ? 'text-red-500' : 'text-green-500'">
+                                                    Prev. Balance: <span x-text="currency"></span> <span
+                                                        x-text="formatNumber(Math.abs(getCustomerBalance()))"></span>
+                                                    <span
+                                                        x-text="getCustomerBalance() >= 0 ? '(Receivable)' : '(Payable)'"></span>
+                                                </span>
+                                                <template x-if="!isWalkIn() && getCustomerCreditLimit() > 0">
+                                                    <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                                                        Limit: <span x-text="currency"></span> <span x-text="formatNumber(getCustomerCreditLimit())"></span>
+                                                    </span>
+                                                </template>
+                                                <template x-if="!isWalkIn() && getCustomerCreditDays() > 0">
+                                                    <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                                                        Terms: <span x-text="getCustomerCreditDays() + ' Days'"></span>
+                                                    </span>
+                                                </template>
+                                            </div>
+
+                                            <!-- Overdue Notice Banner -->
+                                            <template x-if="!isWalkIn() && isCustomerOverdue()">
+                                                <div class="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs flex items-center gap-2">
+                                                    <svg class="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                                    </svg>
+                                                    <span><strong>Overdue Notice:</strong> Customer has unpaid invoices past the <span x-text="getCustomerCreditDays()"></span>-day due period!</span>
+                                                </div>
+                                            </template>
+
+                                            <!-- Credit Limit Exceeded Alert -->
+                                            <template x-if="!isWalkIn() && isCreditLimitExceeded()">
+                                                <div class="p-2 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-300 dark:border-red-800 text-red-800 dark:text-red-200 text-xs flex items-center gap-2">
+                                                    <svg class="w-4 h-4 shrink-0 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                    </svg>
+                                                    <span><strong>Credit Limit Alert:</strong> This invoice exceeds customer's credit limit of <span x-text="currency + ' ' + formatNumber(getCustomerCreditLimit())"></span> by <span class="font-bold underline" x-text="currency + ' ' + formatNumber(getCreditOverflow())"></span>!</span>
+                                                </div>
+                                            </template>
                                         </div>
                                     </template>
                                 </div>
@@ -240,6 +283,16 @@
                                                     class="block w-full text-xs border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 keyboard-nav"
                                                     required step="0.01" min="0"
                                                     @input="validateNumber(item, 'price')">
+                                                <template x-if="item.lastPrice && item.lastPrice.found">
+                                                    <div class="mt-1 flex items-center">
+                                                        <button type="button" @click="applyLastPrice(index)"
+                                                            class="inline-flex items-center gap-1 text-[10px] font-black text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/60 hover:bg-primary-100 dark:hover:bg-primary-900/60 px-1.5 py-0.5 rounded transition shadow-xs"
+                                                            :title="'Last sold: ' + currency + ' ' + formatNumber(item.lastPrice.price) + ' on ' + item.lastPrice.date + ' (Inv #' + item.lastPrice.invoice_formatted + ')'">
+                                                            <span>Last: <span x-text="currency + ' ' + formatNumber(item.lastPrice.price)"></span></span>
+                                                            <span class="underline">Use</span>
+                                                        </button>
+                                                    </div>
+                                                </template>
                                             </td>
                                             <td
                                                 class="px-4 py-3 text-xs font-bold text-gray-700 dark:text-gray-300 whitespace-nowrap">
@@ -393,6 +446,12 @@
                                     <span
                                         x-text="currency + ' ' + formatNumber(calculateGrandTotal() - paidAmount())"></span>
                                 </div>
+                                <template x-if="!isWalkIn() && isCreditLimitExceeded()">
+                                    <div class="mt-3 p-2.5 rounded-xl bg-red-100 dark:bg-red-950/60 border border-red-300 dark:border-red-800 text-red-800 dark:text-red-200 text-xs font-bold flex items-center justify-between">
+                                        <span>Credit Limit Exceeded:</span>
+                                        <span x-text="'+ ' + currency + ' ' + formatNumber(getCreditOverflow())"></span>
+                                    </div>
+                                </template>
                                 <div
                                     class="mt-4 pt-2 border-t border-primary-100 dark:border-primary-800/50 text-center">
                                     <span
@@ -419,6 +478,26 @@
     </div>
     </div>
 
+    @php
+        $initialItems = [
+            ['product_id' => '', 'search' => '', 'open' => false, 'qty' => 1, 'price' => 0, 'error' => false, 'highlightedIndex' => -1, 'lastPrice' => null]
+        ];
+        if (isset($quotation) && $quotation && $quotation->items->count() > 0) {
+            $initialItems = $quotation->items->map(function ($it) {
+                return [
+                    'product_id' => $it->product_id,
+                    'search' => ($it->product->name ?? '') . ' (' . ($it->product->sku ?? '') . ')',
+                    'open' => false,
+                    'qty' => (float) $it->qty,
+                    'price' => (float) $it->price,
+                    'error' => false,
+                    'highlightedIndex' => -1,
+                    'lastPrice' => null,
+                ];
+            })->values()->all();
+        }
+    @endphp
+
     <script>
         function saleForm() {
             return {
@@ -430,11 +509,11 @@
                 },
                 isSubmitting: false,
                 formError: '',
-                party_id: '{{ $settings->walk_in_customer_id ?? '' }}',
-                customerSearch: '{{ $settings->walkInCustomer->name ?? '' }}',
+                party_id: '{{ isset($quotation) && $quotation ? $quotation->party_id : ($settings->walk_in_customer_id ?? '') }}',
+                customerSearch: '{{ isset($quotation) && $quotation ? ($quotation->party->name ?? '') : ($settings->walkInCustomer->name ?? '') }}',
                 customerOpen: false,
                 customerHighlightedIndex: -1,
-                warehouse_id: '{{ $settings->shop_warehouse_id ?? '' }}',
+                warehouse_id: '{{ isset($quotation) && $quotation ? $quotation->warehouse_id : ($settings->shop_warehouse_id ?? '') }}',
                 walkInCustomerId: {{ $settings->walk_in_customer_id ?? 'null' }},
                 shopWarehouseId: {{ $settings->shop_warehouse_id ?? 'null' }},
                 isWalkIn() {
@@ -444,16 +523,8 @@
                     account_id: '',
                     amount: 0
                 }],
-                discount_amount: 0,
-                items: [{
-                    product_id: '',
-                    search: '',
-                    open: false,
-                    qty: 1,
-                    price: 0,
-                    error: false,
-                    highlightedIndex: -1
-                }],
+                discount_amount: {{ isset($quotation) && $quotation ? (float)$quotation->discount_amount : 0 }},
+                items: @json($initialItems),
                 products: @json($products),
                 customers: @json($customers),
 
@@ -465,7 +536,8 @@
                         qty: 1,
                         price: 0,
                         error: false,
-                        highlightedIndex: -1
+                        highlightedIndex: -1,
+                        lastPrice: null
                     });
                     this.$nextTick(() => {
                         const nextRowIdx = this.items.length - 1;
@@ -524,6 +596,8 @@
                     this.items[index].open = false;
                     this.items[index].error = false;
                     this.items[index].highlightedIndex = -1;
+
+                    this.fetchLastSoldPrice(index);
 
                     this.$nextTick(() => {
                         document.getElementById('row-' + index + '-col-1').focus();
@@ -619,6 +693,46 @@
                     return customer ? parseFloat(customer.current_balance) : 0;
                 },
 
+                getSelectedCustomer() {
+                    if (!this.party_id) return null;
+                    return this.customers.find(c => c.id == this.party_id) || null;
+                },
+
+                getCustomerCreditLimit() {
+                    const c = this.getSelectedCustomer();
+                    return c && c.credit_limit ? parseFloat(c.credit_limit) : 0;
+                },
+
+                getCustomerCreditDays() {
+                    const c = this.getSelectedCustomer();
+                    return c && c.credit_days ? parseInt(c.credit_days) : 0;
+                },
+
+                isCustomerOverdue() {
+                    if (this.isWalkIn()) return false;
+                    const c = this.getSelectedCustomer();
+                    return !!(c && c.has_overdue);
+                },
+
+                getProjectedBalance() {
+                    const currentBal = Math.max(0, this.getCustomerBalance());
+                    const invoiceDue = Math.max(0, this.calculateGrandTotal() - this.paidAmount());
+                    return currentBal + invoiceDue;
+                },
+
+                isCreditLimitExceeded() {
+                    if (this.isWalkIn()) return false;
+                    const limit = this.getCustomerCreditLimit();
+                    if (limit <= 0) return false;
+                    return this.getProjectedBalance() > limit;
+                },
+
+                getCreditOverflow() {
+                    const limit = this.getCustomerCreditLimit();
+                    if (limit <= 0) return 0;
+                    return Math.max(0, this.getProjectedBalance() - limit);
+                },
+
                 formatNumber(num) {
                     const parsed = parseFloat(num);
                     if (isNaN(parsed)) return '0.00';
@@ -672,6 +786,45 @@
 
                     if (this.isWalkIn() && this.shopWarehouseId) {
                         this.warehouse_id = this.shopWarehouseId;
+                    }
+
+                    // Check last prices for any items currently in rows
+                    this.items.forEach((item, idx) => {
+                        if (item.product_id) {
+                            this.fetchLastSoldPrice(idx);
+                        }
+                    });
+                },
+
+                fetchLastSoldPrice(index) {
+                    const item = this.items[index];
+                    if (!item || !item.product_id || !this.party_id) {
+                        if (item) item.lastPrice = null;
+                        return;
+                    }
+                    if (this.isWalkIn()) {
+                        item.lastPrice = null;
+                        return;
+                    }
+
+                    fetch(`{{ route('sales.customer-last-price') }}?party_id=${this.party_id}&product_id=${item.product_id}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data && data.found) {
+                                item.lastPrice = data;
+                            } else {
+                                item.lastPrice = null;
+                            }
+                        })
+                        .catch(() => {
+                            item.lastPrice = null;
+                        });
+                },
+
+                applyLastPrice(index) {
+                    const item = this.items[index];
+                    if (item && item.lastPrice && item.lastPrice.found) {
+                        item.price = item.lastPrice.price;
                     }
                 },
 
@@ -771,6 +924,34 @@
                         const proceed = confirm('Not enough stock for: ' + names +
                             '. This will be sold as a backorder (negative stock). Continue?');
                         if (!proceed) return;
+                    }
+
+                    // Check if offline: Save in local offline queue
+                    if (!navigator.onLine || (window.OfflineSync && !window.OfflineSync.isOnline)) {
+                        const offlinePayload = {
+                            party_id: this.party_id,
+                            warehouse_id: this.warehouse_id,
+                            date: document.querySelector('input[name="date"]')?.value || new Date().toISOString().split('T')[0],
+                            items: this.items.filter(i => i.product_id).map(i => ({
+                                product_id: i.product_id,
+                                qty: parseFloat(i.qty) || 0,
+                                price: parseFloat(i.price) || 0
+                            })),
+                            payments: this.payments.filter(p => (parseFloat(p.amount) || 0) > 0).map(p => ({
+                                account_id: p.account_id,
+                                amount: parseFloat(p.amount) || 0
+                            })),
+                            discount_amount: parseFloat(this.discount_amount) || 0,
+                            note: document.querySelector('textarea[name="note"]')?.value || ''
+                        };
+
+                        if (window.OfflineSync) {
+                            window.OfflineSync.saveOfflineSale(offlinePayload);
+                        }
+
+                        alert('Offline Mode: Sale saved to local queue! It will automatically sync to the server when connection is restored.');
+                        window.location.href = '{{ route("sales.index") }}';
+                        return;
                     }
 
                     this.formError = '';
