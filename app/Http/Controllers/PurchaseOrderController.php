@@ -192,6 +192,16 @@ class PurchaseOrderController extends Controller implements HasMiddleware
 
     public function receiveGoods(Request $request, PurchaseOrder $purchaseOrder)
     {
+        if ($purchaseOrder->status === 'completed') {
+            return redirect()->route('purchase-orders.show', $purchaseOrder)
+                ->with('warning', 'This Purchase Order is already fully received (Completed).');
+        }
+
+        if ($purchaseOrder->status === 'cancelled') {
+            return redirect()->route('purchase-orders.show', $purchaseOrder)
+                ->with('error', 'Cannot receive goods for a cancelled purchase order.');
+        }
+
         $request->validate([
             'receiving_date' => 'required|date',
             'warehouse_id' => 'required|exists:warehouses,id',
@@ -207,162 +217,177 @@ class PurchaseOrderController extends Controller implements HasMiddleware
             return redirect()->back()->with('error', 'Please enter receiving quantity for at least one item.');
         }
 
-        DB::transaction(function () use ($purchaseOrder, $receivingItems, $request) {
-            $totalReceivedAmount = 0;
-            $purchaseItemsData = [];
+        try {
+            DB::transaction(function () use ($purchaseOrder, $receivingItems, $request) {
+                $totalReceivedAmount = 0;
+                $purchaseItemsData = [];
 
-            foreach ($receivingItems as $itemInput) {
-                $poItem = PurchaseOrderItem::where('id', $itemInput['po_item_id'])
-                    ->where('purchase_order_id', $purchaseOrder->id)
-                    ->lockForUpdate()
-                    ->firstOrFail();
+                foreach ($receivingItems as $itemInput) {
+                    $poItem = PurchaseOrderItem::where('id', $itemInput['po_item_id'])
+                        ->where('purchase_order_id', $purchaseOrder->id)
+                        ->lockForUpdate()
+                        ->firstOrFail();
 
-                $receiveQty = (float) $itemInput['receive_qty'];
-                $remainingQty = $poItem->getRemainingQty();
+                    $receiveQty = (float) $itemInput['receive_qty'];
+                    $remainingQty = (float) $poItem->getRemainingQty();
 
-                if ($receiveQty > $remainingQty + 0.001) {
-                    throw new \Exception("Receiving qty ({$receiveQty}) cannot exceed remaining ordered qty ({$remainingQty}) for " . ($poItem->product->name ?? 'item') . ".");
+                    if ($remainingQty <= 0) {
+                        continue;
+                    }
+
+                    if ($receiveQty > $remainingQty + 0.001) {
+                        throw new \Exception("Receiving qty ({$receiveQty}) cannot exceed remaining ordered qty ({$remainingQty}) for " . ($poItem->product->name ?? 'item') . ".");
+                    }
+
+                    $lineTotal = round($receiveQty * $poItem->unit_price, 2);
+                    $totalReceivedAmount += $lineTotal;
+
+                    $purchaseItemsData[] = [
+                        'po_item' => $poItem,
+                        'product_id' => $poItem->product_id,
+                        'qty' => $receiveQty,
+                        'unit_price' => $poItem->unit_price,
+                        'line_total' => $lineTotal,
+                    ];
                 }
 
-                $lineTotal = round($receiveQty * $poItem->unit_price, 2);
-                $totalReceivedAmount += $lineTotal;
+                if (empty($purchaseItemsData)) {
+                    $purchaseOrder->updateReceivingStatus();
+                    return;
+                }
 
-                $purchaseItemsData[] = [
-                    'po_item' => $poItem,
-                    'product_id' => $poItem->product_id,
-                    'qty' => $receiveQty,
-                    'unit_price' => $poItem->unit_price,
-                    'line_total' => $lineTotal,
-                ];
-            }
-
-            // 1. Create real Purchase (GRN)
-            $purchase = Purchase::create([
-                'party_id' => $purchaseOrder->party_id,
-                'warehouse_id' => $request->warehouse_id,
-                'purchase_order_id' => $purchaseOrder->id,
-                'date' => $request->receiving_date,
-                'currency' => $purchaseOrder->currency,
-                'exchange_rate' => $purchaseOrder->exchange_rate,
-                'total_amount' => $totalReceivedAmount,
-                'discount_amount' => 0,
-                'paid_amount' => 0,
-                'note' => 'Received against ' . $purchaseOrder->po_number . ($request->note ? ' — ' . $request->note : ''),
-            ]);
-
-            // 2. Insert PurchaseItems, Update Stock and Weighted Average Cost
-            foreach ($purchaseItemsData as $itemData) {
-                $pricePkr = ($purchaseOrder->currency === 'RMB')
-                    ? round($itemData['unit_price'] * $purchaseOrder->exchange_rate, 2)
-                    : $itemData['unit_price'];
-
-                PurchaseItem::create([
-                    'purchase_id' => $purchase->id,
-                    'product_id' => $itemData['product_id'],
-                    'qty' => $itemData['qty'],
-                    'price_rmb' => ($purchaseOrder->currency === 'RMB') ? $itemData['unit_price'] : 0,
-                    'price_pkr' => $pricePkr,
-                    'total' => $itemData['line_total'],
-                    'cargo_amount' => 0,
+                // 1. Create real Purchase (GRN)
+                $purchase = Purchase::create([
+                    'party_id' => $purchaseOrder->party_id,
+                    'warehouse_id' => $request->warehouse_id,
+                    'purchase_order_id' => $purchaseOrder->id,
+                    'date' => $request->receiving_date,
+                    'currency' => $purchaseOrder->currency,
+                    'exchange_rate' => $purchaseOrder->exchange_rate,
+                    'total_amount' => $totalReceivedAmount,
+                    'discount_amount' => 0,
+                    'paid_amount' => 0,
+                    'note' => 'Received against ' . $purchaseOrder->po_number . ($request->note ? ' — ' . $request->note : ''),
                 ]);
 
-                // Stock & Avg Cost calculation
-                $stock = Stock::where('product_id', $itemData['product_id'])
-                    ->where('warehouse_id', $request->warehouse_id)
-                    ->lockForUpdate()
-                    ->first();
+                // 2. Insert PurchaseItems, Update Stock and Weighted Average Cost
+                foreach ($purchaseItemsData as $itemData) {
+                    $pricePkr = ($purchaseOrder->currency === 'RMB')
+                        ? round($itemData['unit_price'] * $purchaseOrder->exchange_rate, 2)
+                        : $itemData['unit_price'];
 
-                if (!$stock) {
-                    $stock = new Stock([
+                    PurchaseItem::create([
+                        'purchase_id' => $purchase->id,
                         'product_id' => $itemData['product_id'],
-                        'warehouse_id' => $request->warehouse_id,
-                        'qty' => 0,
-                        'avg_cost' => 0,
+                        'qty' => $itemData['qty'],
+                        'price_rmb' => ($purchaseOrder->currency === 'RMB') ? $itemData['unit_price'] : 0,
+                        'price_pkr' => $pricePkr,
+                        'total' => $itemData['line_total'],
+                        'cargo_amount' => 0,
+                    ]);
+
+                    // Stock & Avg Cost calculation
+                    $stock = Stock::where('product_id', $itemData['product_id'])
+                        ->where('warehouse_id', $request->warehouse_id)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (!$stock) {
+                        $stock = new Stock([
+                            'product_id' => $itemData['product_id'],
+                            'warehouse_id' => $request->warehouse_id,
+                            'qty' => 0,
+                            'avg_cost' => 0,
+                        ]);
+                    }
+
+                    $currentQty = (float) ($stock->qty ?? 0);
+                    $currentAvgCost = (float) ($stock->avg_cost ?? 0);
+                    $addedQty = $itemData['qty'];
+                    $addedRate = $itemData['unit_price'];
+
+                    $newQty = $currentQty + $addedQty;
+                    if ($newQty > 0) {
+                        $newAvgCost = (($currentQty * $currentAvgCost) + ($addedQty * $addedRate)) / $newQty;
+                    } else {
+                        $newAvgCost = $addedRate;
+                    }
+
+                    $stock->qty = $newQty;
+                    $stock->avg_cost = round($newAvgCost, 2);
+                    $stock->save();
+
+                    // Increment received_qty on PO Item
+                    $itemData['po_item']->increment('received_qty', $addedQty);
+                }
+
+                // 3. Post Double-Entry Ledger Entries
+                $inventoryAcc = ChartOfAccount::where('name', 'Inventory')->first();
+                $payableAcc   = ChartOfAccount::where('name', 'Accounts Payable')->first();
+
+                if (!$inventoryAcc) {
+                    $inventoryAcc = ChartOfAccount::create([
+                        'name' => 'Inventory',
+                        'type' => 'Asset',
+                        'opening_balance' => 0,
+                        'balance_type' => 'debit',
+                        'status' => true,
                     ]);
                 }
 
-                $currentQty = (float) ($stock->qty ?? 0);
-                $currentAvgCost = (float) ($stock->avg_cost ?? 0);
-                $addedQty = $itemData['qty'];
-                $addedRate = $itemData['unit_price'];
-
-                $newQty = $currentQty + $addedQty;
-                if ($newQty > 0) {
-                    $newAvgCost = (($currentQty * $currentAvgCost) + ($addedQty * $addedRate)) / $newQty;
-                } else {
-                    $newAvgCost = $addedRate;
+                if (!$payableAcc) {
+                    $payableAcc = ChartOfAccount::create([
+                        'name' => 'Accounts Payable',
+                        'type' => 'Liability',
+                        'opening_balance' => 0,
+                        'balance_type' => 'credit',
+                        'status' => true,
+                    ]);
                 }
 
-                $stock->qty = $newQty;
-                $stock->avg_cost = round($newAvgCost, 2);
-                $stock->save();
-
-                // Increment received_qty on PO Item
-                $itemData['po_item']->increment('received_qty', $addedQty);
-            }
-
-            // 3. Post Double-Entry Ledger Entries
-            $inventoryAcc = ChartOfAccount::where('name', 'Inventory')->first();
-            $payableAcc   = ChartOfAccount::where('name', 'Accounts Payable')->first();
-
-            if (!$inventoryAcc) {
-                $inventoryAcc = ChartOfAccount::create([
-                    'name' => 'Inventory',
-                    'type' => 'Asset',
-                    'opening_balance' => 0,
-                    'balance_type' => 'debit',
-                    'status' => true,
+                // Debit Inventory
+                LedgerEntry::create([
+                    'account_id' => $inventoryAcc->id,
+                    'party_id' => null,
+                    'warehouse_id' => $request->warehouse_id,
+                    'debit' => $totalReceivedAmount,
+                    'credit' => 0,
+                    'date' => $request->receiving_date,
+                    'reference_type' => 'purchase',
+                    'reference_id' => $purchase->id,
+                    'note' => 'Goods Receipt from PO ' . $purchaseOrder->po_number,
                 ]);
-            }
 
-            if (!$payableAcc) {
-                $payableAcc = ChartOfAccount::create([
-                    'name' => 'Accounts Payable',
-                    'type' => 'Liability',
-                    'opening_balance' => 0,
-                    'balance_type' => 'credit',
-                    'status' => true,
+                // Credit Accounts Payable (Vendor)
+                LedgerEntry::create([
+                    'account_id' => $payableAcc->id,
+                    'party_id' => $purchaseOrder->party_id,
+                    'warehouse_id' => $request->warehouse_id,
+                    'debit' => 0,
+                    'credit' => $totalReceivedAmount,
+                    'date' => $request->receiving_date,
+                    'reference_type' => 'purchase',
+                    'reference_id' => $purchase->id,
+                    'note' => 'Goods Received against PO ' . $purchaseOrder->po_number,
                 ]);
-            }
 
-            // Debit Inventory
-            LedgerEntry::create([
-                'account_id' => $inventoryAcc->id,
-                'party_id' => null,
-                'warehouse_id' => $request->warehouse_id,
-                'debit' => $totalReceivedAmount,
-                'credit' => 0,
-                'date' => $request->receiving_date,
-                'reference_type' => 'purchase',
-                'reference_id' => $purchase->id,
-                'note' => 'Goods Receipt from PO ' . $purchaseOrder->po_number,
-            ]);
+                // 4. Update PO overall status
+                $purchaseOrder->refresh();
+                $purchaseOrder->updateReceivingStatus();
 
-            // Credit Accounts Payable (Vendor)
-            LedgerEntry::create([
-                'account_id' => $payableAcc->id,
-                'party_id' => $purchaseOrder->party_id,
-                'warehouse_id' => $request->warehouse_id,
-                'debit' => 0,
-                'credit' => $totalReceivedAmount,
-                'date' => $request->receiving_date,
-                'reference_type' => 'purchase',
-                'reference_id' => $purchase->id,
-                'note' => 'Goods Received against PO ' . $purchaseOrder->po_number,
-            ]);
+                $this->logActivity('Received Goods (GRN)', 'Purchase Orders', $purchaseOrder->id, null, [
+                    'purchase_id' => $purchase->id,
+                    'received_amount' => $totalReceivedAmount,
+                    'new_status' => $purchaseOrder->status,
+                ]);
+            });
 
-            // 4. Update PO overall status
-            $purchaseOrder->refresh();
-            $purchaseOrder->updateReceivingStatus();
-
-            $this->logActivity('Received Goods (GRN)', 'Purchase Orders', $purchaseOrder->id, null, [
-                'purchase_id' => $purchase->id,
-                'received_amount' => $totalReceivedAmount,
-                'new_status' => $purchaseOrder->status,
-            ]);
-        });
-
-        return redirect()->route('purchase-orders.show', $purchaseOrder)->with('success', 'Goods received successfully! Stock and accounting ledger have been updated.');
+            return redirect()->route('purchase-orders.show', $purchaseOrder)
+                ->with('success', 'Goods received successfully! Stock and accounting ledger have been updated.');
+        } catch (\Exception $e) {
+            return redirect()->route('purchase-orders.show', $purchaseOrder)
+                ->with('error', $e->getMessage());
+        }
     }
 
     public function destroy(PurchaseOrder $purchaseOrder)

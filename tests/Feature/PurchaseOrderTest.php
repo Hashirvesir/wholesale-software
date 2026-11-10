@@ -226,5 +226,19 @@ class PurchaseOrderTest extends TestCase
 
         $stock->refresh();
         $this->assertEquals(100, (float)$stock->qty);
+
+        // Now try receiving again on already completed PO (should cleanly warn without 500 crash)
+        $thirdResponse = $this->actingAs($this->user)->post(route('purchase-orders.receive', $po), [
+            'receiving_date' => now()->toDateString(),
+            'warehouse_id' => $this->warehouse->id,
+            'items' => [
+                [
+                    'po_item_id' => $poItem->id,
+                    'receive_qty' => 10,
+                ]
+            ],
+        ]);
+        $thirdResponse->assertRedirect(route('purchase-orders.show', $po));
+        $thirdResponse->assertSessionHas('warning');
     }
 }

@@ -29,7 +29,7 @@
                         </div>
 
                         <div class="flex items-center gap-2">
-                            @if ($purchaseOrder->status !== 'completed' && $purchaseOrder->status !== 'cancelled')
+                            @if ($purchaseOrder->status !== 'completed' && $purchaseOrder->status !== 'cancelled' && $purchaseOrder->getPendingQty() > 0)
                                 <button type="button" @click="receiveModalOpen = true"
                                     class="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition shadow-sm">
                                     <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
