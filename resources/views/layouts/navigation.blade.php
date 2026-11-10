@@ -49,13 +49,12 @@
 
                     <!-- AI Copilot Button -->
                     <button type="button" @click="$dispatch('toggle-ai-copilot')"
-                        class="ml-2 group flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-white bg-[#252ebf] hover:bg-[#1e2599] border border-[#252ebf] rounded-lg transition-all duration-150 shrink-0 cursor-pointer shadow-sm active:scale-95"
-                        title="Invenco AI Copilot (Alt + A)">
-                        <svg class="w-3.5 h-3.5 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        class="ml-2 group flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-[#252ebf] hover:bg-[#1e2599] rounded-lg transition-all duration-150 shrink-0 cursor-pointer shadow-sm active:scale-95"
+                        title="Invenco AI (Alt + A)">
+                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
                         </svg>
-                        <span class="font-bold">Ask AI</span>
-                        <kbd class="hidden 2xl:inline-flex items-center rounded bg-black/20 text-white px-1 py-0.2 text-[9px] font-bold">Alt+A</kbd>
+                        <span>Ask AI</span>
                     </button>
 
                     <!-- POS Counter Button -->

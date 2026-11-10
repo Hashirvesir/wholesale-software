@@ -4,18 +4,14 @@
      @keydown.window.alt.a="open = !open"
      class="select-none">
 
-    <!-- Floating AI Bubble Button (Desktop & Tablet) -->
+    <!-- Floating AI Button (Desktop & Tablet) -->
     <button type="button" @click="open = true"
-        class="fixed bottom-20 xl:bottom-6 right-4 sm:right-6 z-40 p-3 sm:px-4 sm:py-3 rounded-full sm:rounded-2xl bg-[#252ebf] hover:bg-[#1e2599] text-white shadow-xl shadow-[#252ebf]/30 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2.5 border border-white/20 group cursor-pointer"
-        title="Open Invenco AI Copilot (Alt + A)">
-        <span class="relative flex h-3 w-3">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-400"></span>
-        </span>
-        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-amber-300 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        class="fixed bottom-20 xl:bottom-6 right-4 sm:right-6 z-40 h-11 px-4 rounded-full bg-[#252ebf] hover:bg-[#1e2599] text-white shadow-lg shadow-[#252ebf]/25 hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-150 flex items-center gap-2 cursor-pointer border border-white/10"
+        title="Invenco AI (Alt + A)">
+        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
         </svg>
-        <span class="hidden sm:inline font-black text-xs uppercase tracking-wider">Ask Invenco AI</span>
+        <span class="text-xs font-bold tracking-wide">AI Assistant</span>
     </button>
 
     <!-- Backdrop -->
@@ -27,7 +23,7 @@
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
         @click="open = false"
-        class="fixed inset-0 bg-gray-900/60 backdrop-blur-xs z-50"></div>
+        class="fixed inset-0 bg-gray-900/50 backdrop-blur-xs z-50"></div>
 
     <!-- AI Slide-over Drawer -->
     <div x-show="open" x-cloak
@@ -37,93 +33,86 @@
         x-transition:leave="transform transition ease-in-out duration-300"
         x-transition:leave-start="translate-x-0"
         x-transition:leave-end="translate-x-full"
-        class="fixed inset-y-0 right-0 w-full sm:max-w-md md:max-w-lg bg-white dark:bg-gray-900 shadow-2xl z-50 flex flex-col border-l border-gray-200 dark:border-gray-800">
+        class="fixed inset-y-0 right-0 w-full sm:max-w-md bg-white dark:bg-gray-900 shadow-2xl z-50 flex flex-col border-l border-gray-200 dark:border-gray-800">
 
         <!-- Header -->
-        <div class="p-4 bg-[#252ebf] text-white flex items-center justify-between shrink-0 shadow-md">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-black/20 flex items-center justify-center border border-white/20 shadow-inner font-black text-sm tracking-wider">
+        <div class="px-5 py-3.5 bg-[#252ebf] text-white flex items-center justify-between shrink-0 shadow-xs">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold text-xs tracking-wider text-white">
                     IN
                 </div>
                 <div>
-                    <div class="flex items-center gap-2">
-                        <h3 class="font-black text-sm tracking-wide uppercase">Invenco AI Copilot</h3>
-                        <span class="px-2 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-black uppercase tracking-wider border border-white/30">Live Database</span>
-                    </div>
-                    <p class="text-[11px] text-blue-100 font-medium">Profit & Loss, Expenses, Ledgers & Insights</p>
+                    <h3 class="font-bold text-sm tracking-wide">Invenco AI</h3>
+                    <p class="text-[11px] text-blue-100/80">Business & Accounts Assistant</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-1">
-                <button type="button" @click="clearChat()" class="p-2 text-blue-100 hover:text-white rounded-lg hover:bg-black/20 transition" title="Clear Chat">
+                <button type="button" @click="clearChat()" class="p-1.5 text-blue-100 hover:text-white rounded-lg hover:bg-white/10 transition" title="Clear Chat">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
-                <button type="button" @click="open = false" class="p-2 text-blue-100 hover:text-white rounded-lg hover:bg-black/20 transition" title="Close Drawer">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                <button type="button" @click="open = false" class="p-1.5 text-blue-100 hover:text-white rounded-lg hover:bg-white/10 transition" title="Close">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
-        </div>
-
-        <!-- Quick Prompts Horizontal Pills -->
-        <div class="px-3 py-2 bg-gray-50 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-800 flex items-center gap-1.5 overflow-x-auto scrollbar-none shrink-0">
-            <button type="button" @click="sendQuickPrompt('Is saal 2026 ka Profit & Loss aur net munafa batao.')"
-                class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:border-[#252ebf] hover:text-[#252ebf] transition whitespace-nowrap shadow-2xs">
-                📈 Is Saal Ka P&L
-            </button>
-            <button type="button" @click="sendQuickPrompt('Dukaan ke total kharchay (expenses) kitnay hain aur sab se baray kharchay kon se hain?')"
-                class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:border-[#252ebf] hover:text-[#252ebf] transition whitespace-nowrap shadow-2xs">
-                💸 Kharchay (Expenses)
-            </button>
-            <button type="button" @click="sendQuickPrompt('Top 5 overdue customers aur unke pending balances batao.')"
-                class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:border-[#252ebf] hover:text-[#252ebf] transition whitespace-nowrap shadow-2xs">
-                ⚠️ Top Overdue
-            </button>
-            <button type="button" @click="sendQuickPrompt('Cash aur Bank accounts ke balances kitnay hain?')"
-                class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:border-[#252ebf] hover:text-[#252ebf] transition whitespace-nowrap shadow-2xs">
-                🏦 Cash & Bank
-            </button>
-            <button type="button" @click="sendQuickPrompt('Kon se products low stock ya alert par hain?')"
-                class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:border-[#252ebf] hover:text-[#252ebf] transition whitespace-nowrap shadow-2xs">
-                📦 Low Stock Alert
-            </button>
         </div>
 
         <!-- Chat History Messages Scroll Area -->
         <div class="flex-1 p-4 overflow-y-auto space-y-3.5 select-text" x-ref="messagesContainer">
-            <!-- Welcome Bot Message -->
-            <div class="flex items-start gap-2.5">
-                <div class="w-8 h-8 rounded-full bg-[#252ebf] text-white flex items-center justify-center shrink-0 text-xs font-black tracking-wider shadow">
-                    IN
+            <!-- Empty State / Greeting -->
+            <template x-if="messages.length === 0">
+                <div class="space-y-4 py-2">
+                    <div class="flex items-start gap-2.5">
+                        <div class="w-7 h-7 rounded-full bg-[#252ebf] text-white flex items-center justify-center shrink-0 text-[10px] font-bold tracking-wider">
+                            IN
+                        </div>
+                        <div class="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-2xl rounded-tl-sm px-4 py-3 text-xs sm:text-sm leading-relaxed border border-gray-200/50 dark:border-gray-700">
+                            <p class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Salam! Main Invenco AI hoon.</p>
+                            <p class="text-gray-600 dark:text-gray-300">Aap profit & loss, kharchay, customer balances, cash/bank ya inventory ke baray mein sawal pooch saktay hain.</p>
+                        </div>
+                    </div>
+
+                    <!-- Clean Suggestions -->
+                    <div class="pl-9 space-y-1.5 pt-1">
+                        <button type="button" @click="sendQuickPrompt('Is saal ka Profit & Loss aur net munafa batao.')"
+                            class="text-left w-full px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-750 text-gray-700 dark:text-gray-300 text-xs transition border border-gray-200/70 dark:border-gray-700 cursor-pointer">
+                            Is saal ka Profit & Loss kitna hai?
+                        </button>
+                        <button type="button" @click="sendQuickPrompt('Top 5 overdue customers aur unke pending balances batao.')"
+                            class="text-left w-full px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-750 text-gray-700 dark:text-gray-300 text-xs transition border border-gray-200/70 dark:border-gray-700 cursor-pointer">
+                            Top overdue customers aur unke balances
+                        </button>
+                        <button type="button" @click="sendQuickPrompt('Cash aur Bank accounts ke balances kitnay hain?')"
+                            class="text-left w-full px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-750 text-gray-700 dark:text-gray-300 text-xs transition border border-gray-200/70 dark:border-gray-700 cursor-pointer">
+                            Cash aur Bank accounts ke balances
+                        </button>
+                    </div>
                 </div>
-                <div class="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-2xl rounded-tl-none p-3.5 text-xs sm:text-[13px] leading-relaxed shadow-xs max-w-[88%] border border-gray-200/60 dark:border-gray-700">
-                    <p class="font-bold text-[#252ebf] dark:text-blue-400 mb-1">Salam! Main Invenco AI Copilot hoon. 🤝</p>
-                    <p>Mujhe Invenco ke poore database ka pata hai: <strong>is saal ka Profit & Loss</strong>, <strong>kharchon (rent, salary, bills) ka hisaab</strong>, <strong>customer udhaar/balances</strong>, <strong>cash & bank accounts</strong> aur <strong>inventory</strong>. Aap Roman Urdu ya English mein pooch saktay hain ya bol kar sawal kar saktay hain!</p>
-                </div>
-            </div>
+            </template>
 
             <!-- Dynamic Messages -->
             <template x-for="(msg, mIdx) in messages" :key="mIdx">
                 <div class="flex items-start gap-2.5" :class="msg.role === 'user' ? 'justify-end' : 'justify-start'">
                     <template x-if="msg.role === 'assistant'">
-                        <div class="w-8 h-8 rounded-full bg-[#252ebf] text-white flex items-center justify-center shrink-0 text-xs font-black tracking-wider shadow">
+                        <div class="w-7 h-7 rounded-full bg-[#252ebf] text-white flex items-center justify-center shrink-0 text-[10px] font-bold tracking-wider">
                             IN
                         </div>
                     </template>
 
-                    <div class="p-3.5 rounded-2xl text-xs sm:text-[13px] leading-relaxed shadow-xs max-w-[88%] border"
+                    <div class="px-4 py-2.5 rounded-2xl text-xs sm:text-sm leading-relaxed max-w-[85%]"
                         :class="msg.role === 'user'
-                            ? 'bg-[#252ebf] text-white rounded-tr-none border-[#252ebf] font-medium'
-                            : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-none border-gray-200/60 dark:border-gray-700'">
+                            ? 'bg-[#252ebf] text-white rounded-tr-sm'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-tl-sm border border-gray-200/50 dark:border-gray-700'">
                         <template x-if="msg.role === 'user'">
                             <div class="whitespace-pre-wrap" x-text="msg.content"></div>
                         </template>
                         <template x-if="msg.role === 'assistant'">
                             <div class="ai-rendered-content select-text leading-relaxed" x-html="renderMessage(msg.content)"></div>
                         </template>
-                        <div class="mt-1 flex items-center justify-between text-[10px] opacity-70">
+                        <div class="mt-1 flex items-center justify-between text-[10px] opacity-60">
                             <span x-text="msg.time"></span>
                             <template x-if="msg.role === 'assistant'">
-                                <button type="button" @click="copyText(msg.content)" class="hover:underline flex items-center gap-0.5 ml-3">
+                                <button type="button" @click="copyText(msg.content)" class="hover:underline flex items-center gap-0.5 ml-2 cursor-pointer">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                                     <span>Copy</span>
                                 </button>
@@ -135,8 +124,8 @@
 
             <!-- Typing Loading Indicator -->
             <div x-show="loading" x-cloak class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 italic py-1">
-                <span class="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></span>
-                <span>Invenco AI database analyze kar raha hai...</span>
+                <span class="w-2 h-2 rounded-full bg-[#252ebf] animate-ping"></span>
+                <span>Invenco AI soch raha hai...</span>
             </div>
         </div>
 
@@ -144,48 +133,39 @@
         <div x-show="listening" x-cloak class="px-4 py-2 bg-red-500 text-white flex items-center justify-between text-xs font-bold animate-pulse">
             <div class="flex items-center gap-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
-                <span x-text="voiceStatus || '🔴 Microphone Active: Boliye (Say your question)...'"></span>
+                <span x-text="voiceStatus || 'Microphone Active: Boliye...'"></span>
             </div>
-            <button type="button" @click="stopVoice()" class="px-2 py-0.5 bg-white text-red-600 rounded text-[11px] font-black uppercase">Stop ⏹</button>
+            <button type="button" @click="stopVoice()" class="px-2 py-0.5 bg-white text-red-600 rounded text-[11px] font-black uppercase">Stop</button>
         </div>
 
         <!-- Chat Input Form -->
-        <div class="p-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shrink-0">
+        <div class="p-3 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 shrink-0">
             <form @submit.prevent="sendMessage()" class="flex items-center gap-2">
                 <!-- Voice Input Mic Button -->
                 <button type="button" @click="toggleVoice()"
                     class="p-2.5 rounded-xl border transition-all duration-150 flex items-center justify-center cursor-pointer shrink-0"
                     :class="listening
                         ? 'bg-red-500 text-white border-red-600 ring-2 ring-red-400'
-                        : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700'"
-                    :title="listening ? 'Stop Recording' : 'Bol kar poochein (Click to Speak)'">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700'"
+                    :title="listening ? 'Stop Recording' : 'Voice Input'">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
                     </svg>
                 </button>
 
-                <!-- Voice Language Selector Toggle -->
-                <button type="button" @click="toggleVoiceLang()"
-                    class="px-2 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 shrink-0"
-                    :title="'Voice language: ' + (voiceLang === 'ur-PK' ? 'Urdu (اردو)' : 'English / Roman')">
-                    <span x-text="voiceLang === 'ur-PK' ? 'اردو' : 'EN/ROM'"></span>
-                </button>
-
                 <input type="text" x-model="userInput" x-ref="chatInput"
-                    placeholder="Sawal poochein (e.g. Is saal ka profit kitna hai?)..."
+                    placeholder="Sawal likhein..."
                     :disabled="loading"
-                    class="flex-1 text-xs sm:text-sm font-semibold rounded-xl border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 focus:border-[#252ebf] focus:ring-[#252ebf] shadow-inner py-2.5" />
+                    class="flex-1 text-xs sm:text-sm rounded-xl border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 focus:border-[#252ebf] focus:ring-[#252ebf] shadow-xs py-2 px-3.5" />
 
                 <button type="submit" :disabled="loading || !userInput.trim()"
-                    class="px-4 py-2.5 bg-[#252ebf] hover:bg-[#1e2599] text-white rounded-xl font-bold text-xs shadow-md transition disabled:opacity-50 active:scale-95 flex items-center gap-1.5 cursor-pointer shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                    <span class="hidden sm:inline">Send</span>
+                    class="p-2.5 bg-[#252ebf] hover:bg-[#1e2599] text-white rounded-xl font-bold shadow-sm transition disabled:opacity-30 active:scale-95 flex items-center justify-center cursor-pointer shrink-0"
+                    title="Send">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                    </svg>
                 </button>
             </form>
-            <div class="mt-1.5 flex items-center justify-between text-[10px] text-gray-400 dark:text-gray-500 px-1">
-                <span>AI powered by GPT-4o-mini & Invenco Live Database</span>
-                <span x-show="!isSecure" class="text-amber-500 font-bold">⚠️ Mic requires HTTPS or localhost</span>
-            </div>
         </div>
 
     </div>
