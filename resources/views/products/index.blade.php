@@ -316,7 +316,7 @@
                                                 Edit
                                             </a>
                                         @endcan
-                                        <a href="{{ route('products.print_barcodes') }}?product_id={{ $product->id }}" 
+                                        <a href="{{ route('products.print-labels') }}?product_id={{ $product->id }}" 
                                            class="py-1 px-2.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 text-xs rounded-lg font-bold transition">
                                             Barcode
                                         </a>

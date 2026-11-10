@@ -46,6 +46,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('brands', BrandController::class)->middleware('permission:view brands');
     Route::resource('warehouses', WarehouseController::class)->middleware('permission:view warehouses');
     Route::get('/products/print-labels', [ProductController::class, 'printLabels'])->name('products.print-labels')->middleware('permission:view products');
+    Route::get('/products/print-barcodes', [ProductController::class, 'printLabels'])->name('products.print_barcodes')->middleware('permission:view products');
     Route::get('/products/{product}/get-barcode', [ProductController::class, 'getBarcode'])->name('products.get-barcode')->middleware('permission:view products');
     Route::get('/products/export/pdf', [ProductController::class, 'exportPdf'])->name('products.export.pdf')->middleware('permission:view products');
     Route::get('/products/export/excel', [ProductController::class, 'exportExcel'])->name('products.export.excel')->middleware('permission:view products');
