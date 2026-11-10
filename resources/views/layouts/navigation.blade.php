@@ -49,19 +49,19 @@
 
                     <!-- AI Copilot Button -->
                     <button type="button" @click="$dispatch('toggle-ai-copilot')"
-                        class="ml-2 group flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/50 border border-violet-200 dark:border-violet-800 rounded-lg hover:bg-violet-100 dark:hover:bg-violet-900/60 transition-all duration-150 shrink-0 cursor-pointer shadow-2xs"
+                        class="ml-2 group flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-white bg-[#252ebf] hover:bg-[#1e2599] border border-[#252ebf] rounded-lg transition-all duration-150 shrink-0 cursor-pointer shadow-sm active:scale-95"
                         title="Invenco AI Copilot (Alt + A)">
-                        <svg class="w-3.5 h-3.5 text-amber-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-3.5 h-3.5 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                         </svg>
                         <span class="font-bold">Ask AI</span>
-                        <kbd class="hidden 2xl:inline-flex items-center rounded bg-violet-100 dark:bg-violet-900 px-1 py-0.2 text-[9px] font-bold">Alt+A</kbd>
+                        <kbd class="hidden 2xl:inline-flex items-center rounded bg-black/20 text-white px-1 py-0.2 text-[9px] font-bold">Alt+A</kbd>
                     </button>
 
                     <!-- POS Counter Button -->
                     @can('view sales')
                         <a href="{{ route('pos.index') }}"
-                            class="ml-2 group flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-black uppercase tracking-wider text-white bg-gradient-to-r from-emerald-500 to-teal-600 rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all duration-150 shadow-md shadow-emerald-500/20 transform hover:scale-105 shrink-0"
+                            class="ml-2 group flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-black uppercase tracking-wider text-white bg-[#252ebf] hover:bg-[#1e2599] rounded-lg transition-all duration-150 shadow-md shadow-[#252ebf]/20 transform hover:scale-105 shrink-0"
                             title="POS Counter Screen (F1)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -102,7 +102,8 @@
                         }
                     }" class="ml-2">
                         <button @click="open = true; fetchStats()"
-                            class="group flex items-center gap-2 px-3 py-1.5 text-sm font-bold text-white bg-gradient-to-r from-indigo-500 to-purple-600 border border-transparent rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-150 shadow-md transform hover:scale-105">
+                            class="group flex items-center gap-2 px-3 py-1.5 text-sm font-bold text-white bg-gray-900 hover:bg-black border border-gray-700 rounded-lg transition-all duration-150 shadow-md transform hover:scale-105"
+                            title="Quick View Stats">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -830,7 +831,7 @@
                 <!-- Mobile POS Button -->
                 @can('view sales')
                     <a href="{{ route('pos.index') }}"
-                        class="flex items-center gap-1 px-2.5 py-1.5 text-xs font-black uppercase tracking-wider text-white bg-gradient-to-r from-emerald-500 to-teal-600 rounded-lg shadow-sm hover:from-emerald-600 hover:to-teal-700 transition"
+                        class="flex items-center gap-1 px-2.5 py-1.5 text-xs font-black uppercase tracking-wider text-white bg-[#252ebf] hover:bg-[#1e2599] rounded-lg shadow-sm transition active:scale-95"
                         title="POS Counter">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"

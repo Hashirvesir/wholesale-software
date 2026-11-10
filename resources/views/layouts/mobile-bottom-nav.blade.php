@@ -44,13 +44,13 @@ style="padding-bottom: max(0.4rem, env(safe-area-inset-bottom));">
         @canany(['view pos', 'create sales'])
         <div class="flex flex-col items-center justify-center -mt-6 flex-1 relative z-10">
             <a href="{{ route('pos.index') }}"
-                class="w-14 h-14 rounded-full bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-400 hover:from-emerald-700 hover:to-teal-500 text-white shadow-xl shadow-emerald-500/30 flex items-center justify-center border-4 border-white dark:border-gray-800 active:scale-90 transition-all duration-150 group"
+                class="w-14 h-14 rounded-full bg-[#252ebf] hover:bg-[#1e2599] text-white shadow-xl shadow-[#252ebf]/30 flex items-center justify-center border-4 border-white dark:border-gray-800 active:scale-90 transition-all duration-150 group"
                 title="POS Counter">
                 <svg class="w-6 h-6 stroke-[2.5] transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                 </svg>
             </a>
-            <span class="text-[10px] font-black mt-0.5 tracking-tight {{ request()->routeIs('pos.*') ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-600 dark:text-gray-300' }}">POS</span>
+            <span class="text-[10px] font-black mt-0.5 tracking-tight {{ request()->routeIs('pos.*') ? 'text-[#252ebf] dark:text-blue-400' : 'text-gray-600 dark:text-gray-300' }}">POS</span>
         </div>
         @endcanany
 

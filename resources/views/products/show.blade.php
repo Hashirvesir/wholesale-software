@@ -234,13 +234,13 @@
 
                     @if($product->openingStocks && $product->openingStocks->isNotEmpty())
                         <!-- Initial Opening Stock History -->
-                        <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-2xl border border-indigo-200 dark:border-indigo-900/50 overflow-hidden">
+                        <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                             <div class="p-6">
                                 <div class="flex items-center justify-between mb-4">
-                                    <h4 class="text-sm font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest flex items-center gap-2">
+                                    <h4 class="text-sm font-black text-[#252ebf] dark:text-blue-400 uppercase tracking-widest flex items-center gap-2">
                                         <span>📦 Initial Opening Stock Entries</span>
                                     </h4>
-                                    <span class="text-xs bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 font-bold px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                                    <span class="text-xs bg-blue-50 text-[#252ebf] dark:bg-blue-950/60 dark:text-blue-300 font-bold px-2.5 py-1 rounded-lg border border-blue-200 dark:border-blue-800">
                                         {{ $product->openingStocks->count() }} Entry(s)
                                     </span>
                                 </div>
@@ -334,7 +334,7 @@
                 <!-- Summary Card -->
                 <div class="space-y-6">
                     <div
-                        class="bg-gradient-to-br from-primary-600 to-indigo-700 rounded-3xl p-8 shadow-2xl text-white relative overflow-hidden">
+                        class="bg-[#252ebf] rounded-2xl p-7 shadow-xl text-white relative overflow-hidden">
                         <div class="relative z-10">
                             <h4 class="text-xs font-black uppercase tracking-[0.2em] opacity-80 mb-2 italic">Total On
                                 Hand Stock</h4>

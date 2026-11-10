@@ -6,7 +6,7 @@
 
     <!-- Floating AI Bubble Button (Desktop & Tablet) -->
     <button type="button" @click="open = true"
-        class="fixed bottom-20 xl:bottom-6 right-4 sm:right-6 z-40 p-3 sm:px-4 sm:py-3 rounded-full sm:rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-purple-500 text-white shadow-2xl shadow-indigo-500/40 hover:shadow-indigo-500/60 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2.5 border-2 border-white/20 group cursor-pointer"
+        class="fixed bottom-20 xl:bottom-6 right-4 sm:right-6 z-40 p-3 sm:px-4 sm:py-3 rounded-full sm:rounded-2xl bg-[#252ebf] hover:bg-[#1e2599] text-white shadow-xl shadow-[#252ebf]/30 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2.5 border border-white/20 group cursor-pointer"
         title="Open Invenco AI Copilot (Alt + A)">
         <span class="relative flex h-3 w-3">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -40,52 +40,50 @@
         class="fixed inset-y-0 right-0 w-full sm:max-w-md md:max-w-lg bg-white dark:bg-gray-900 shadow-2xl z-50 flex flex-col border-l border-gray-200 dark:border-gray-800">
 
         <!-- Header -->
-        <div class="p-4 bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 text-white flex items-center justify-between shrink-0 shadow-md">
+        <div class="p-4 bg-[#252ebf] text-white flex items-center justify-between shrink-0 shadow-md">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner">
-                    <svg class="w-6 h-6 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
+                <div class="w-10 h-10 rounded-xl bg-black/20 flex items-center justify-center border border-white/20 shadow-inner font-black text-sm tracking-wider">
+                    IN
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
                         <h3 class="font-black text-sm tracking-wide uppercase">Invenco AI Copilot</h3>
-                        <span class="px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 text-[10px] font-black uppercase tracking-wider border border-emerald-400/30">Live Database</span>
+                        <span class="px-2 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-black uppercase tracking-wider border border-white/30">Live Database</span>
                     </div>
-                    <p class="text-[11px] text-indigo-100 font-medium">Profit & Loss, Expenses, Ledgers & Insights</p>
+                    <p class="text-[11px] text-blue-100 font-medium">Profit & Loss, Expenses, Ledgers & Insights</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-1">
-                <button type="button" @click="clearChat()" class="p-2 text-indigo-100 hover:text-white rounded-lg hover:bg-white/10 transition" title="Clear Chat">
+                <button type="button" @click="clearChat()" class="p-2 text-blue-100 hover:text-white rounded-lg hover:bg-black/20 transition" title="Clear Chat">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
-                <button type="button" @click="open = false" class="p-2 text-indigo-100 hover:text-white rounded-lg hover:bg-white/10 transition" title="Close Drawer">
+                <button type="button" @click="open = false" class="p-2 text-blue-100 hover:text-white rounded-lg hover:bg-black/20 transition" title="Close Drawer">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
         </div>
 
         <!-- Quick Prompts Horizontal Pills -->
-        <div class="px-3 py-2 bg-indigo-50/70 dark:bg-gray-800/60 border-b border-indigo-100 dark:border-gray-800 flex items-center gap-1.5 overflow-x-auto scrollbar-none shrink-0">
+        <div class="px-3 py-2 bg-gray-50 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-800 flex items-center gap-1.5 overflow-x-auto scrollbar-none shrink-0">
             <button type="button" @click="sendQuickPrompt('Is saal 2026 ka Profit & Loss aur net munafa batao.')"
-                class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-gray-600 hover:bg-emerald-50 dark:hover:bg-gray-600 transition whitespace-nowrap shadow-2xs">
+                class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:border-[#252ebf] hover:text-[#252ebf] transition whitespace-nowrap shadow-2xs">
                 📈 Is Saal Ka P&L
             </button>
             <button type="button" @click="sendQuickPrompt('Dukaan ke total kharchay (expenses) kitnay hain aur sab se baray kharchay kon se hain?')"
-                class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-gray-600 hover:bg-indigo-50 dark:hover:bg-gray-600 transition whitespace-nowrap shadow-2xs">
+                class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:border-[#252ebf] hover:text-[#252ebf] transition whitespace-nowrap shadow-2xs">
                 💸 Kharchay (Expenses)
             </button>
             <button type="button" @click="sendQuickPrompt('Top 5 overdue customers aur unke pending balances batao.')"
-                class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-gray-600 hover:bg-rose-50 dark:hover:bg-gray-600 transition whitespace-nowrap shadow-2xs">
+                class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:border-[#252ebf] hover:text-[#252ebf] transition whitespace-nowrap shadow-2xs">
                 ⚠️ Top Overdue
             </button>
             <button type="button" @click="sendQuickPrompt('Cash aur Bank accounts ke balances kitnay hain?')"
-                class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-gray-600 hover:bg-amber-50 dark:hover:bg-gray-600 transition whitespace-nowrap shadow-2xs">
+                class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:border-[#252ebf] hover:text-[#252ebf] transition whitespace-nowrap shadow-2xs">
                 🏦 Cash & Bank
             </button>
             <button type="button" @click="sendQuickPrompt('Kon se products low stock ya alert par hain?')"
-                class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-gray-600 hover:bg-purple-50 dark:hover:bg-gray-600 transition whitespace-nowrap shadow-2xs">
+                class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:border-[#252ebf] hover:text-[#252ebf] transition whitespace-nowrap shadow-2xs">
                 📦 Low Stock Alert
             </button>
         </div>
@@ -94,11 +92,11 @@
         <div class="flex-1 p-4 overflow-y-auto space-y-3.5 select-text" x-ref="messagesContainer">
             <!-- Welcome Bot Message -->
             <div class="flex items-start gap-2.5">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-600 text-white flex items-center justify-center shrink-0 text-xs font-black shadow">
-                    INV
+                <div class="w-8 h-8 rounded-full bg-[#252ebf] text-white flex items-center justify-center shrink-0 text-xs font-black tracking-wider shadow">
+                    IN
                 </div>
                 <div class="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-2xl rounded-tl-none p-3.5 text-xs sm:text-[13px] leading-relaxed shadow-xs max-w-[88%] border border-gray-200/60 dark:border-gray-700">
-                    <p class="font-bold text-indigo-600 dark:text-indigo-400 mb-1">Salam! Main Invenco AI Copilot hoon. 🤝</p>
+                    <p class="font-bold text-[#252ebf] dark:text-blue-400 mb-1">Salam! Main Invenco AI Copilot hoon. 🤝</p>
                     <p>Mujhe Invenco ke poore database ka pata hai: <strong>is saal ka Profit & Loss</strong>, <strong>kharchon (rent, salary, bills) ka hisaab</strong>, <strong>customer udhaar/balances</strong>, <strong>cash & bank accounts</strong> aur <strong>inventory</strong>. Aap Roman Urdu ya English mein pooch saktay hain ya bol kar sawal kar saktay hain!</p>
                 </div>
             </div>
@@ -107,14 +105,14 @@
             <template x-for="(msg, mIdx) in messages" :key="mIdx">
                 <div class="flex items-start gap-2.5" :class="msg.role === 'user' ? 'justify-end' : 'justify-start'">
                     <template x-if="msg.role === 'assistant'">
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-600 text-white flex items-center justify-center shrink-0 text-xs font-black shadow">
-                            INV
+                        <div class="w-8 h-8 rounded-full bg-[#252ebf] text-white flex items-center justify-center shrink-0 text-xs font-black tracking-wider shadow">
+                            IN
                         </div>
                     </template>
 
                     <div class="p-3.5 rounded-2xl text-xs sm:text-[13px] leading-relaxed shadow-xs max-w-[88%] border"
                         :class="msg.role === 'user'
-                            ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-tr-none border-indigo-500 font-medium'
+                            ? 'bg-[#252ebf] text-white rounded-tr-none border-[#252ebf] font-medium'
                             : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-none border-gray-200/60 dark:border-gray-700'">
                         <template x-if="msg.role === 'user'">
                             <div class="whitespace-pre-wrap" x-text="msg.content"></div>
@@ -176,10 +174,10 @@
                 <input type="text" x-model="userInput" x-ref="chatInput"
                     placeholder="Sawal poochein (e.g. Is saal ka profit kitna hai?)..."
                     :disabled="loading"
-                    class="flex-1 text-xs sm:text-sm font-semibold rounded-xl border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500 shadow-inner py-2.5" />
+                    class="flex-1 text-xs sm:text-sm font-semibold rounded-xl border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 focus:border-[#252ebf] focus:ring-[#252ebf] shadow-inner py-2.5" />
 
                 <button type="submit" :disabled="loading || !userInput.trim()"
-                    class="px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white rounded-xl font-bold text-xs shadow-md transition disabled:opacity-50 active:scale-95 flex items-center gap-1.5 cursor-pointer shrink-0">
+                    class="px-4 py-2.5 bg-[#252ebf] hover:bg-[#1e2599] text-white rounded-xl font-bold text-xs shadow-md transition disabled:opacity-50 active:scale-95 flex items-center gap-1.5 cursor-pointer shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     <span class="hidden sm:inline">Send</span>
                 </button>

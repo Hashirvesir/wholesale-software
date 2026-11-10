@@ -139,11 +139,11 @@
                     }
                 }
             }" x-init="loadBriefing()" x-show="!dismissed" x-cloak
-                class="rounded-3xl p-5 bg-gradient-to-r from-violet-900/40 via-indigo-900/30 to-purple-900/40 border border-violet-500/30 backdrop-blur-md shadow-xl text-white relative overflow-hidden transition-all">
+                class="rounded-2xl p-5 bg-gray-900/90 dark:bg-black/80 border border-[#252ebf]/40 backdrop-blur-md shadow-xl text-white relative overflow-hidden transition-all">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-xl bg-violet-600 text-amber-300 flex items-center justify-center shadow-inner font-bold">
-                            ✨
+                        <div class="w-8 h-8 rounded-xl bg-[#252ebf] text-white flex items-center justify-center shadow-inner font-bold text-xs tracking-wider">
+                            IN
                         </div>
                         <div>
                             <h4 class="font-black text-xs sm:text-sm tracking-wide uppercase flex items-center gap-2">

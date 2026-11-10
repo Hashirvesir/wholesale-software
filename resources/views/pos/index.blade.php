@@ -11,7 +11,7 @@
                             <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                         </span>
                         <h1 class="text-sm sm:text-base font-black text-gray-800 dark:text-gray-100 tracking-wide uppercase flex items-center gap-1.5">
-                            <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 text-[#252ebf]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                             </svg>
                             <span>POS Counter</span>
@@ -510,17 +510,17 @@
                             </div>
 
                             <!-- GRAND TOTAL HERO -->
-                            <div class="bg-gradient-to-br from-emerald-600 to-teal-700 text-white p-4 rounded-xl shadow-lg relative overflow-hidden transition-all duration-200">
+                            <div class="bg-[#252ebf] text-white p-4 rounded-xl shadow-lg relative overflow-hidden transition-all duration-200">
                                 <div class="relative z-10 flex justify-between items-baseline">
                                     <div>
-                                        <div class="text-[10px] font-black uppercase tracking-widest text-emerald-100 opacity-90">Net Payable</div>
+                                        <div class="text-[10px] font-black uppercase tracking-widest text-blue-100 opacity-90">Net Payable</div>
                                         <div class="text-3xl font-black tracking-tight font-mono">
                                             <span class="text-xl" x-text="currency"></span> <span x-text="formatNumber(grandTotal())"></span>
                                         </div>
                                     </div>
                                     <template x-if="selectedCustomer && !isWalkIn()">
                                         <div class="text-right">
-                                            <div class="text-[10px] font-bold text-emerald-100">Customer Net Due</div>
+                                            <div class="text-[10px] font-bold text-blue-100">Customer Net Due</div>
                                             <div class="text-xs font-black font-mono"
                                                 x-text="currency + ' ' + formatNumber(grandTotal() + (selectedCustomer.current_balance || 0) - totalPaid())"></div>
                                         </div>
@@ -620,7 +620,7 @@
 
                             <!-- Primary: Pay & Thermal Print -->
                             <button type="button" @click="submitSale('thermal')" :disabled="isSubmitting || items.length === 0"
-                                class="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl shadow-lg shadow-emerald-600/30 font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition transform active:scale-98">
+                                class="w-full py-3.5 px-4 bg-[#252ebf] hover:bg-[#1e2599] disabled:opacity-50 text-white rounded-xl shadow-lg shadow-[#252ebf]/30 font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition transform active:scale-98 cursor-pointer">
                                 <template x-if="!isSubmitting">
                                     <div class="flex items-center gap-2">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
@@ -634,13 +634,13 @@
 
                             <div class="grid grid-cols-2 gap-2">
                                 <button type="button" @click="submitSale('pdf')" :disabled="isSubmitting || items.length === 0"
-                                    class="py-2.5 px-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition active:scale-95 shadow-sm">
+                                    class="py-2.5 px-3 bg-gray-900 hover:bg-black disabled:opacity-50 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition active:scale-95 shadow-sm cursor-pointer">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                                     <span>Pay & A4 PDF</span>
                                 </button>
 
                                 <button type="button" @click="submitSale('save_only')" :disabled="isSubmitting || items.length === 0"
-                                    class="py-2.5 px-3 bg-gray-700 hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition active:scale-95 shadow-sm">
+                                    class="py-2.5 px-3 bg-gray-700 hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition active:scale-95 shadow-sm cursor-pointer">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                                     <span>Save Only</span>
                                 </button>
@@ -658,7 +658,7 @@
             x-transition:enter-end="opacity-100 translate-y-0"
             class="lg:hidden fixed bottom-18 inset-x-0 z-30 px-3 pb-2 pointer-events-none">
             <button type="button" @click="mobileTab = 'checkout'; $nextTick(() => { if ($refs.cashTenderInput) $refs.cashTenderInput.focus(); });"
-                class="pointer-events-auto w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 text-white font-black text-xs uppercase tracking-wider rounded-2xl shadow-2xl shadow-emerald-600/40 flex items-center justify-between active:scale-98 transition-all border border-emerald-400/40">
+                class="pointer-events-auto w-full py-3.5 px-4 bg-[#252ebf] hover:bg-[#1e2599] text-white font-black text-xs uppercase tracking-wider rounded-2xl shadow-xl shadow-[#252ebf]/40 flex items-center justify-between active:scale-98 transition-all border border-white/20">
                 <div class="flex items-center gap-2">
                     <span class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center font-bold text-xs" x-text="items.length"></span>
                     <span>Proceed to Pay</span>

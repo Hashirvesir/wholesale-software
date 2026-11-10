@@ -18,17 +18,17 @@
             class="bg-white dark:bg-gray-800 rounded-2xl max-w-lg w-full shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden transform transition-all my-8">
 
             <!-- Modal Header -->
-            <div class="px-5 py-4 bg-gradient-to-r from-violet-600 to-indigo-600 text-white flex items-center justify-between">
+            <div class="px-5 py-4 bg-[#252ebf] text-white flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shadow-inner font-bold text-amber-300">
-                        ⚡
+                    <div class="w-9 h-9 rounded-xl bg-black/20 flex items-center justify-center shadow-inner font-bold text-xs tracking-wider">
+                        IN
                     </div>
                     <div>
                         <h3 class="font-black text-sm uppercase tracking-wide">AI Payment Recovery Drafter</h3>
-                        <p class="text-[11px] text-indigo-100">Polite & context-aware WhatsApp reminder in Roman Urdu</p>
+                        <p class="text-[11px] text-blue-100">Polite & context-aware WhatsApp reminder in Roman Urdu</p>
                     </div>
                 </div>
-                <button type="button" @click="modalOpen = false" class="text-indigo-100 hover:text-white text-xl font-black p-1 leading-none">&times;</button>
+                <button type="button" @click="modalOpen = false" class="text-blue-100 hover:text-white text-xl font-black p-1 leading-none">&times;</button>
             </div>
 
             <!-- Modal Body -->

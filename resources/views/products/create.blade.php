@@ -167,10 +167,10 @@
                             </div>
 
                             <!-- Opening Stock Card (Product Creation Ke Sath Opening Stock) -->
-                            <div class="col-span-1 md:col-span-2 mt-2 bg-gradient-to-br from-indigo-50/70 via-purple-50/40 to-slate-50 dark:from-gray-900/70 dark:via-gray-850 dark:to-gray-900 rounded-2xl p-5 border border-indigo-200 dark:border-gray-700 space-y-4 shadow-xs">
-                                <div class="flex items-center justify-between border-b border-indigo-100 dark:border-gray-700 pb-3">
+                            <div class="col-span-1 md:col-span-2 mt-2 bg-gray-50 dark:bg-gray-900/60 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 space-y-4 shadow-xs">
+                                <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-3">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-600 text-white flex items-center justify-center text-base shadow">
+                                        <div class="w-9 h-9 rounded-xl bg-[#252ebf] text-white flex items-center justify-center text-base shadow">
                                             📦
                                         </div>
                                         <div>
@@ -184,7 +184,7 @@
                                         </div>
                                     </div>
 
-                                    <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                                    <span class="text-xs font-bold text-[#252ebf] dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2.5 py-1 rounded-lg border border-blue-200 dark:border-blue-900">
                                         Optional Stock
                                     </span>
                                 </div>
@@ -220,7 +220,7 @@
                                                 <x-input-label for="opening_stock_rate" :value="__('Cost Rate / Unit (Rs.)')" />
                                                 <button type="button" 
                                                     @click="copyRateFromPrice()"
-                                                    class="text-[10px] text-indigo-600 dark:text-indigo-400 hover:underline font-bold"
+                                                    class="text-[10px] text-[#252ebf] dark:text-blue-400 hover:underline font-bold"
                                                     x-show="(wholesalePrice > 0 || salePrice > 0) && (!openingRate || openingRate == 0)">
                                                     Use Price Rate
                                                 </button>
