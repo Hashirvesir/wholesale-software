@@ -1,6 +1,9 @@
 <!-- Quick Search Modal (Command Palette) -->
-<div x-data="commandPalette()" x-show="open" x-cloak @keydown.window.ctrl.k.prevent="toggle()"
-    @keydown.window.meta.k.prevent="toggle()" @keydown.escape.window="open = false"
+<div x-data="commandPalette()" x-show="open" x-cloak
+    @toggle-command-palette.window="toggle()"
+    @keydown.window.ctrl.k.prevent="toggle()"
+    @keydown.window.meta.k.prevent="toggle()"
+    @keydown.escape.window="open = false"
     class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
 
     <!-- Backdrop -->
@@ -418,7 +421,9 @@
                 this.open = !this.open;
                 if (this.open) {
                     this.$nextTick(() => {
-                        this.$refs.searchInput.focus();
+                        if (this.$refs.searchInput) {
+                            this.$refs.searchInput.focus();
+                        }
                         this.filterResults();
                     });
                 } else {
