@@ -1,4 +1,16 @@
-<nav x-data="{ open: false }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+<nav x-data="{
+    open: false,
+    darkMode: localStorage.getItem('dark-mode') === 'true' || (!('dark-mode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches),
+    toggleDarkMode() {
+        this.darkMode = !this.darkMode;
+        localStorage.setItem('dark-mode', this.darkMode);
+        if (this.darkMode) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }
+}" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 sticky top-0 z-40">
     <!-- Primary Navigation Menu -->
     <div class="max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -11,7 +23,7 @@
                 </div>
 
                 <!-- Quick Search Button -->
-                <div class="hidden sm:flex sm:items-center sm:ml-4">
+                <div class="hidden xl:flex xl:items-center xl:ml-4">
                     <button @click="$dispatch('toggle-command-palette')"
                         onclick="document.querySelector('[x-data*=commandPalette]').__x.$data.toggle()"
                         class="group flex items-center gap-2 px-2.5 py-1.5 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 transition-all duration-150 shrink-0">
@@ -358,7 +370,7 @@
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-3 xl:space-x-5 sm:-my-px sm:ms-4 sm:flex items-center shrink-0">
+                <div class="hidden xl:flex xl:items-center space-x-3 2xl:space-x-5 xl:-my-px xl:ms-4 shrink-0">
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
@@ -372,7 +384,7 @@
                         'view
                         cargo charges',
                         ])
-                        <div class="hidden sm:flex sm:items-center">
+                        <div class="hidden xl:flex xl:items-center">
                             <x-dropdown align="left" width="48">
                                 <x-slot name="trigger">
                                     <button
@@ -417,7 +429,7 @@
 
                     <!-- Finance Dropdown -->
                     @canany(['view chart of accounts', 'view payments', 'view expenses', 'view account transfers'])
-                        <div class="hidden sm:flex sm:items-center">
+                        <div class="hidden xl:flex xl:items-center">
                             <x-dropdown align="left" width="48">
                                 <x-slot name="trigger">
                                     <button
@@ -472,7 +484,7 @@
                         'view activity
                         logs',
                         ])
-                        <div class="hidden sm:flex sm:items-center">
+                        <div class="hidden xl:flex xl:items-center">
                             <x-dropdown align="left" width="48">
                                 <x-slot name="trigger">
                                     <button
@@ -554,7 +566,7 @@
                         parties',
                         'view opening stocks',
                         ])
-                        <div class="hidden sm:flex sm:items-center">
+                        <div class="hidden xl:flex xl:items-center">
                             <x-dropdown align="left" width="48">
                                 <x-slot name="trigger">
                                     <button
@@ -600,7 +612,7 @@
                     @endcanany
                     <!-- Access Control Dropdown -->
                     @canany(['manage users', 'manage roles'])
-                        <div class="hidden sm:flex sm:items-center">
+                        <div class="hidden xl:flex xl:items-center">
                             <x-dropdown align="left" width="48">
                                 <x-slot name="trigger">
                                     <button
@@ -631,7 +643,7 @@
             </div>
 
             <!-- Settings & Sync -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6 space-x-3">
+            <div class="hidden xl:flex xl:items-center xl:ms-6 space-x-3">
                 <!-- Offline / Online Sync Indicator -->
                 <div x-data="{
                     open: false,
@@ -802,10 +814,46 @@
                 </x-dropdown>
             </div>
 
-            <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
+            <!-- Mobile / Tablet Action Icons & Hamburger -->
+            <div class="-me-2 flex items-center space-x-1.5 xl:hidden">
+                <!-- Mobile POS Button -->
+                @can('view sales')
+                    <a href="{{ route('pos.index') }}"
+                        class="flex items-center gap-1 px-2.5 py-1.5 text-xs font-black uppercase tracking-wider text-white bg-gradient-to-r from-emerald-500 to-teal-600 rounded-lg shadow-sm hover:from-emerald-600 hover:to-teal-700 transition"
+                        title="POS Counter">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        <span>POS</span>
+                    </a>
+                @endcan
+
+                <!-- Mobile Quick Search -->
+                <button @click="$dispatch('toggle-command-palette')"
+                    class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+                    title="Search (⌘K)">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </button>
+
+                <!-- Mobile Dark Mode -->
+                <button @click="toggleDarkMode()"
+                    class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+                    title="Toggle Dark/Light Mode">
+                    <svg x-show="darkMode" class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
+                    </svg>
+                    <svg x-show="!darkMode" class="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+                    </svg>
+                </button>
+
+                <!-- Hamburger Button -->
                 <button @click="open = ! open"
-                    class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-gray-500 dark:focus:text-gray-400 transition duration-150 ease-in-out">
+                    class="inline-flex items-center justify-center p-2 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{ 'hidden': open, 'inline-flex': !open }" class="inline-flex"
                             stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -819,235 +867,291 @@
     </div>
 
     <!-- Responsive Navigation Menu -->
-    <div :class="{ 'block': open, 'hidden': !open }" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
-
-            <!-- Masters Section -->
-            @canany([
-                'view units',
-                'view categories',
-                'view brands',
-                'view warehouses',
-                'view products',
-                'view opening
-                stocks',
-                'view parties',
-                ])
-                <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
-                <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Masters') }}
+    <div :class="{ 'block': open, 'hidden': !open }"
+        class="hidden xl:hidden max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-2xl">
+        <div x-data="{
+            activeSection: '{{ request()->routeIs(['pos.*', 'sales.*', 'quotations.*', 'purchases.*', 'purchase-orders.*', 'stock-transfers.*', 'stock-adjustments.*', 'cargo-charges.*']) ? 'trading' : (request()->routeIs(['chart-of-accounts.*', 'payments.*', 'cheques.*', 'expenses.*', 'account-transfers.*']) ? 'finance' : (request()->routeIs(['units.*', 'categories.*', 'brands.*', 'warehouses.*', 'products.*', 'opening-stocks.*', 'parties.*']) ? 'masters' : (request()->routeIs(['reports.*', 'activity-logs.*']) ? 'reports' : (request()->routeIs(['users.*', 'roles.*']) ? 'access' : '')))) }}',
+            toggle(sec) {
+                this.activeSection = this.activeSection === sec ? '' : sec;
+            }
+        }">
+            <!-- User Info Card -->
+            <div class="p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/80 dark:to-gray-900 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-primary-600 text-white font-black flex items-center justify-center text-sm shadow-sm uppercase">
+                        {{ substr(Auth::user()->name, 0, 2) }}
+                    </div>
+                    <div>
+                        <div class="font-bold text-sm text-gray-900 dark:text-gray-100">{{ Auth::user()->name }}</div>
+                        <div class="text-[11px] text-gray-500 dark:text-gray-400">{{ Auth::user()->email }}</div>
+                    </div>
                 </div>
-                @can('view units')
-                    <x-responsive-nav-link :href="route('units.index')" :active="request()->routeIs('units.*')">{{ __('Units') }}</x-responsive-nav-link>
-                @endcan
-                @can('view categories')
-                    <x-responsive-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')">{{ __('Categories') }}</x-responsive-nav-link>
-                @endcan
-                @can('view brands')
-                    <x-responsive-nav-link :href="route('brands.index')" :active="request()->routeIs('brands.*')">{{ __('Brands') }}</x-responsive-nav-link>
-                @endcan
-                @can('view warehouses')
-                    <x-responsive-nav-link :href="route('warehouses.index')" :active="request()->routeIs('warehouses.*')">{{ __('Warehouses') }}</x-responsive-nav-link>
-                @endcan
-                @can('view products')
-                    <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">{{ __('Products') }}</x-responsive-nav-link>
-                @endcan
-                @can('view opening stocks')
-                    <x-responsive-nav-link :href="route('opening-stocks.index')"
-                        :active="request()->routeIs('opening-stocks.*')">{{ __('Opening Stock') }}</x-responsive-nav-link>
-                @endcan
-                @can('view parties')
-                    <x-responsive-nav-link :href="route('parties.index')" :active="request()->routeIs('parties.*')">{{ __('Parties') }}</x-responsive-nav-link>
-                @endcan
-            @endcanany
-
-            <!-- Trading Section -->
-            @canany([
-                'view sales',
-                'view purchases',
-                'view stock transfers',
-                'view stock adjustments',
-                'view cargo
-                charges',
-                ])
-                <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
-                <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Trading') }}
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] px-2.5 py-1 rounded-full font-black uppercase tracking-wider bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800">
+                        {{ Auth::user()->roles->first()->name ?? 'User' }}
+                    </span>
                 </div>
-                @can('view sales')
-                    <x-responsive-nav-link :href="route('pos.index')" :active="request()->routeIs('pos.*')" class="font-bold text-emerald-600 dark:text-emerald-400">
-                        ⚡ {{ __('POS Counter') }}
-                    </x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('sales.index')" :active="request()->routeIs('sales.*')">{{ __('Sales') }}</x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('quotations.index')" :active="request()->routeIs('quotations.*')">{{ __('Quotations / Estimates') }}</x-responsive-nav-link>
-                @endcan
-                @can('view purchases')
-                    <x-responsive-nav-link :href="route('purchase-orders.index')" :active="request()->routeIs('purchase-orders.*')">{{ __('Purchase Orders (PO)') }}</x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('purchases.index')" :active="request()->routeIs('purchases.*')">{{ __('Purchases') }}</x-responsive-nav-link>
-                @endcan
-                @can('view stock transfers')
-                    <x-responsive-nav-link :href="route('stock-transfers.index')"
-                        :active="request()->routeIs('stock-transfers.*')">{{ __('Stock Transfers') }}</x-responsive-nav-link>
-                @endcan
-                @can('view stock adjustments')
-                    <x-responsive-nav-link :href="route('stock-adjustments.index')"
-                        :active="request()->routeIs('stock-adjustments.*')">{{ __('Stock Adjustments') }}</x-responsive-nav-link>
-                @endcan
-                @can('view cargo charges')
-                    <x-responsive-nav-link :href="route('cargo-charges.index')"
-                        :active="request()->routeIs('cargo-charges.*')">{{ __('Cargo Charges') }}</x-responsive-nav-link>
-                @endcan
-            @endcanany
-
-            <!-- Finance Section -->
-            @canany(['view chart of accounts', 'view payments', 'view expenses', 'view account transfers'])
-                <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
-                <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Finance') }}
-                </div>
-                @can('view chart of accounts')
-                    <x-responsive-nav-link :href="route('chart-of-accounts.index')"
-                        :active="request()->routeIs('chart-of-accounts.*')">{{ __('Chart of Accounts') }}</x-responsive-nav-link>
-                @endcan
-                @can('view payments')
-                    <x-responsive-nav-link :href="route('payments.index')" :active="request()->routeIs('payments.*')">{{ __('Payments') }}</x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('cheques.index')" :active="request()->routeIs('cheques.*')">{{ __('Cheques / PDCs') }}</x-responsive-nav-link>
-                @endcan
-                @can('view expenses')
-                    <x-responsive-nav-link :href="route('expenses.index')" :active="request()->routeIs('expenses.*')">{{ __('Expenses') }}</x-responsive-nav-link>
-                @endcan
-                @can('view account transfers')
-                    <x-responsive-nav-link :href="route('account-transfers.index')"
-                        :active="request()->routeIs('account-transfers.*')">{{ __('Account Transfers') }}</x-responsive-nav-link>
-                @endcan
-            @endcanany
-
-            <!-- Reports Section -->
-            @canany([
-                'view account ledger',
-                'view party ledger',
-                'view trial balance',
-                'view profit loss',
-                'view balance
-                sheet',
-                'view dead stock',
-                'view products summary',
-                'view stock alert',
-                'view aging report',
-                'view daily collection report',
-                'view expense report',
-                'view sales analysis report',
-                'view returns summary',
-                'view cargo charges report',
-                'view activity logs',
-                ])
-                <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
-                <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Reports') }}
-                </div>
-                @can('view account ledger')
-                    <x-responsive-nav-link :href="route('reports.account-ledger')"
-                        :active="request()->routeIs('reports.account-ledger')">{{ __('Account Ledger') }}</x-responsive-nav-link>
-                @endcan
-                @can('view party ledger')
-                    <x-responsive-nav-link :href="route('reports.party-ledger')"
-                        :active="request()->routeIs('reports.party-ledger')">{{ __('Party Ledger') }}</x-responsive-nav-link>
-                @endcan
-                @can('view trial balance')
-                    <x-responsive-nav-link :href="route('reports.trial-balance')"
-                        :active="request()->routeIs('reports.trial-balance')">{{ __('Trial Balance') }}</x-responsive-nav-link>
-                @endcan
-                @can('view profit loss')
-                    <x-responsive-nav-link :href="route('reports.profit-loss')"
-                        :active="request()->routeIs('reports.profit-loss')">{{ __('Profit & Loss') }}</x-responsive-nav-link>
-                @endcan
-                @can('view balance sheet')
-                    <x-responsive-nav-link :href="route('reports.balance-sheet')"
-                        :active="request()->routeIs('reports.balance-sheet')">{{ __('Balance Sheet') }}</x-responsive-nav-link>
-                @endcan
-                @can('view dead stock')
-                    <x-responsive-nav-link :href="route('reports.dead-stock')"
-                        :active="request()->routeIs('reports.dead-stock')">{{ __('Dead Stock Report') }}</x-responsive-nav-link>
-                @endcan
-                @can('view products summary')
-                    <x-responsive-nav-link :href="route('reports.products-summary')"
-                        :active="request()->routeIs('reports.products-summary')">{{ __('Product Ledger') }}</x-responsive-nav-link>
-                @endcan
-                @can('view stock alert')
-                    <x-responsive-nav-link :href="route('reports.stock-alert')"
-                        :active="request()->routeIs('reports.stock-alert')">{{ __('Stock Alert Report') }}</x-responsive-nav-link>
-                @endcan
-                @can('view aging report')
-                    <x-responsive-nav-link :href="route('reports.aging')"
-                        :active="request()->routeIs('reports.aging')">{{ __('Aging Report') }}</x-responsive-nav-link>
-                @endcan
-                @can('view daily collection report')
-                    <x-responsive-nav-link :href="route('reports.daily-collection')"
-                        :active="request()->routeIs('reports.daily-collection')">{{ __('Daily Collection Report') }}</x-responsive-nav-link>
-                @endcan
-                @can('view expense report')
-                    <x-responsive-nav-link :href="route('reports.expenses')"
-                        :active="request()->routeIs('reports.expenses')">{{ __('Expense Report') }}</x-responsive-nav-link>
-                @endcan
-                @can('view sales analysis report')
-                    <x-responsive-nav-link :href="route('reports.sales-analysis')"
-                        :active="request()->routeIs('reports.sales-analysis')">{{ __('Sales Analysis Report') }}</x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('reports.salesman-performance')"
-                        :active="request()->routeIs('reports.salesman-performance')">{{ __('Salesman & Recovery Report') }}</x-responsive-nav-link>
-                @endcan
-                @can('view returns summary')
-                    <x-responsive-nav-link :href="route('reports.returns-summary')"
-                        :active="request()->routeIs('reports.returns-summary')">{{ __('Returns Summary') }}</x-responsive-nav-link>
-                @endcan
-                @can('view cargo charges report')
-                    <x-responsive-nav-link :href="route('reports.cargo-charges')"
-                        :active="request()->routeIs('reports.cargo-charges')">{{ __('Cargo Charges Report') }}</x-responsive-nav-link>
-                @endcan
-                @can('view activity logs')
-                    <x-responsive-nav-link :href="route('activity-logs.index')" :active="request()->routeIs('activity-logs.*')">{{ __('Audit Logs') }}</x-responsive-nav-link>
-                @endcan
-            @endcanany
-
-            <!-- Access Control Section -->
-            @canany(['manage users', 'manage roles'])
-                <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
-                <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    {{ __('Access Control') }}</div>
-                @can('manage users')
-                    <x-responsive-nav-link :href="route('users.index')"
-                        :active="request()->routeIs('users.*')">{{ __('Manage Users') }}</x-responsive-nav-link>
-                @endcan
-                @can('manage roles')
-                    <x-responsive-nav-link :href="route('roles.index')"
-                        :active="request()->routeIs('roles.*')">{{ __('Manage Roles') }}</x-responsive-nav-link>
-                @endcan
-            @endcanany
-        </div>
-
-        <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
-            <div class="px-4">
-                <div class="font-medium text-base text-gray-800 dark:text-gray-200">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
             </div>
 
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Profile') }}
+            <!-- Primary Direct Links -->
+            <div class="p-2 space-y-1">
+                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="rounded-xl flex items-center gap-2">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>{{ __('Dashboard') }}</span>
                 </x-responsive-nav-link>
 
-                <x-responsive-nav-link :href="route('settings.edit')">
-                    {{ __('Settings') }}
+                @can('view sales')
+                    <x-responsive-nav-link :href="route('pos.index')" :active="request()->routeIs('pos.*')"
+                        class="rounded-xl font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border-l-4 border-emerald-500 flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                            <span>{{ __('⚡ POS Counter Screen') }}</span>
+                        </span>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-600 text-white font-mono uppercase font-black">Live</span>
+                    </x-responsive-nav-link>
+                @endcan
+            </div>
+
+            <!-- Accordion Section: Trading -->
+            @canany(['view sales', 'view purchases', 'view stock transfers', 'view stock adjustments', 'view cargo charges'])
+                <div class="border-t border-gray-100 dark:border-gray-700">
+                    <button @click="toggle('trading')" type="button"
+                        class="w-full flex items-center justify-between px-4 py-3 text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                        <div class="flex items-center gap-2.5">
+                            <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            <span>{{ __('Trading & Orders') }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] px-1.5 py-0.2 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-500 font-mono font-bold">8</span>
+                            <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="activeSection === 'trading' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+                    <div x-show="activeSection === 'trading'" class="pl-4 pr-2 pb-2 space-y-1 bg-gray-50/50 dark:bg-gray-900/30">
+                        @can('view sales')
+                            <x-responsive-nav-link :href="route('sales.index')" :active="request()->routeIs('sales.*')">{{ __('Sales Invoices') }}</x-responsive-nav-link>
+                            <x-responsive-nav-link :href="route('quotations.index')" :active="request()->routeIs('quotations.*')">{{ __('Quotations / Estimates') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view purchases')
+                            <x-responsive-nav-link :href="route('purchase-orders.index')" :active="request()->routeIs('purchase-orders.*')">{{ __('Purchase Orders (PO)') }}</x-responsive-nav-link>
+                            <x-responsive-nav-link :href="route('purchases.index')" :active="request()->routeIs('purchases.*')">{{ __('Purchase Invoices') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view stock transfers')
+                            <x-responsive-nav-link :href="route('stock-transfers.index')" :active="request()->routeIs('stock-transfers.*')">{{ __('Stock Transfers') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view stock adjustments')
+                            <x-responsive-nav-link :href="route('stock-adjustments.index')" :active="request()->routeIs('stock-adjustments.*')">{{ __('Stock Adjustments') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view cargo charges')
+                            <x-responsive-nav-link :href="route('cargo-charges.index')" :active="request()->routeIs('cargo-charges.*')">{{ __('Cargo Charges') }}</x-responsive-nav-link>
+                        @endcan
+                    </div>
+                </div>
+            @endcanany
+
+            <!-- Accordion Section: Finance -->
+            @canany(['view chart of accounts', 'view payments', 'view expenses', 'view account transfers'])
+                <div class="border-t border-gray-100 dark:border-gray-700">
+                    <button @click="toggle('finance')" type="button"
+                        class="w-full flex items-center justify-between px-4 py-3 text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                        <div class="flex items-center gap-2.5">
+                            <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>{{ __('Finance & Accounts') }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] px-1.5 py-0.2 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-500 font-mono font-bold">5</span>
+                            <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="activeSection === 'finance' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+                    <div x-show="activeSection === 'finance'" class="pl-4 pr-2 pb-2 space-y-1 bg-gray-50/50 dark:bg-gray-900/30">
+                        @can('view chart of accounts')
+                            <x-responsive-nav-link :href="route('chart-of-accounts.index')" :active="request()->routeIs('chart-of-accounts.*')">{{ __('Chart of Accounts') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view payments')
+                            <x-responsive-nav-link :href="route('payments.index')" :active="request()->routeIs('payments.*')">{{ __('Payment Vouchers') }}</x-responsive-nav-link>
+                            <x-responsive-nav-link :href="route('cheques.index')" :active="request()->routeIs('cheques.*')">{{ __('Cheques / PDCs Management') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view expenses')
+                            <x-responsive-nav-link :href="route('expenses.index')" :active="request()->routeIs('expenses.*')">{{ __('Expenses') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view account transfers')
+                            <x-responsive-nav-link :href="route('account-transfers.index')" :active="request()->routeIs('account-transfers.*')">{{ __('Account Transfers') }}</x-responsive-nav-link>
+                        @endcan
+                    </div>
+                </div>
+            @endcanany
+
+            <!-- Accordion Section: Masters -->
+            @canany(['view units', 'view categories', 'view brands', 'view warehouses', 'view products', 'view opening stocks', 'view parties'])
+                <div class="border-t border-gray-100 dark:border-gray-700">
+                    <button @click="toggle('masters')" type="button"
+                        class="w-full flex items-center justify-between px-4 py-3 text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                        <div class="flex items-center gap-2.5">
+                            <svg class="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                            <span>{{ __('Masters & Catalog') }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] px-1.5 py-0.2 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-500 font-mono font-bold">8</span>
+                            <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="activeSection === 'masters' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+                    <div x-show="activeSection === 'masters'" class="pl-4 pr-2 pb-2 space-y-1 bg-gray-50/50 dark:bg-gray-900/30">
+                        @can('view products')
+                            <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.index')">{{ __('Products Catalog') }}</x-responsive-nav-link>
+                            <x-responsive-nav-link :href="route('products.print-labels')" :active="request()->routeIs('products.print-labels')">{{ __('Print Barcodes') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view categories')
+                            <x-responsive-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')">{{ __('Categories') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view brands')
+                            <x-responsive-nav-link :href="route('brands.index')" :active="request()->routeIs('brands.*')">{{ __('Brands') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view units')
+                            <x-responsive-nav-link :href="route('units.index')" :active="request()->routeIs('units.*')">{{ __('Units') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view warehouses')
+                            <x-responsive-nav-link :href="route('warehouses.index')" :active="request()->routeIs('warehouses.*')">{{ __('Warehouses & Shops') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view parties')
+                            <x-responsive-nav-link :href="route('parties.index')" :active="request()->routeIs('parties.*')">{{ __('Parties (Customers & Vendors)') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view opening stocks')
+                            <x-responsive-nav-link :href="route('opening-stocks.index')" :active="request()->routeIs('opening-stocks.*')">{{ __('Opening Stock') }}</x-responsive-nav-link>
+                        @endcan
+                    </div>
+                </div>
+            @endcanany
+
+            <!-- Accordion Section: Reports -->
+            @canany(['view account ledger', 'view party ledger', 'view trial balance', 'view profit loss', 'view balance sheet', 'view dead stock', 'view products summary', 'view stock alert', 'view aging report', 'view daily collection report', 'view expense report', 'view sales analysis report', 'view returns summary', 'view cargo charges report', 'view activity logs'])
+                <div class="border-t border-gray-100 dark:border-gray-700">
+                    <button @click="toggle('reports')" type="button"
+                        class="w-full flex items-center justify-between px-4 py-3 text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                        <div class="flex items-center gap-2.5">
+                            <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            <span>{{ __('Reports & Analytics') }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] px-1.5 py-0.2 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-500 font-mono font-bold">16</span>
+                            <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="activeSection === 'reports' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+                    <div x-show="activeSection === 'reports'" class="pl-4 pr-2 pb-2 space-y-1 bg-gray-50/50 dark:bg-gray-900/30">
+                        @can('view account ledger')
+                            <x-responsive-nav-link :href="route('reports.account-ledger')" :active="request()->routeIs('reports.account-ledger')">{{ __('Account Ledger') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view party ledger')
+                            <x-responsive-nav-link :href="route('reports.party-ledger')" :active="request()->routeIs('reports.party-ledger')">{{ __('Party Ledger') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view sales analysis report')
+                            <x-responsive-nav-link :href="route('reports.salesman-performance')" :active="request()->routeIs('reports.salesman-performance')">
+                                <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ __('Salesman & Recovery Report') }}</span>
+                            </x-responsive-nav-link>
+                        @endcan
+                        @can('view trial balance')
+                            <x-responsive-nav-link :href="route('reports.trial-balance')" :active="request()->routeIs('reports.trial-balance')">{{ __('Trial Balance') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view profit loss')
+                            <x-responsive-nav-link :href="route('reports.profit-loss')" :active="request()->routeIs('reports.profit-loss')">{{ __('Profit & Loss') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view balance sheet')
+                            <x-responsive-nav-link :href="route('reports.balance-sheet')" :active="request()->routeIs('reports.balance-sheet')">{{ __('Balance Sheet') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view daily collection report')
+                            <x-responsive-nav-link :href="route('reports.daily-collection')" :active="request()->routeIs('reports.daily-collection')">{{ __('Daily Collection Report') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view sales analysis report')
+                            <x-responsive-nav-link :href="route('reports.sales-analysis')" :active="request()->routeIs('reports.sales-analysis')">{{ __('Sales Analysis Report') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view products summary')
+                            <x-responsive-nav-link :href="route('reports.products-summary')" :active="request()->routeIs('reports.products-summary')">{{ __('Product Ledger') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view stock alert')
+                            <x-responsive-nav-link :href="route('reports.stock-alert')" :active="request()->routeIs('reports.stock-alert')">{{ __('Stock Alert Report') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view aging report')
+                            <x-responsive-nav-link :href="route('reports.aging')" :active="request()->routeIs('reports.aging')">{{ __('Aging Report') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view dead stock')
+                            <x-responsive-nav-link :href="route('reports.dead-stock')" :active="request()->routeIs('reports.dead-stock')">{{ __('Dead Stock Report') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view expense report')
+                            <x-responsive-nav-link :href="route('reports.expenses')" :active="request()->routeIs('reports.expenses')">{{ __('Expense Report') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view returns summary')
+                            <x-responsive-nav-link :href="route('reports.returns-summary')" :active="request()->routeIs('reports.returns-summary')">{{ __('Returns Summary') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view cargo charges report')
+                            <x-responsive-nav-link :href="route('reports.cargo-charges')" :active="request()->routeIs('reports.cargo-charges')">{{ __('Cargo Charges Report') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view activity logs')
+                            <x-responsive-nav-link :href="route('activity-logs.index')" :active="request()->routeIs('activity-logs.*')">{{ __('Audit Logs') }}</x-responsive-nav-link>
+                        @endcan
+                    </div>
+                </div>
+            @endcanany
+
+            <!-- Accordion Section: Access Control -->
+            @canany(['manage users', 'manage roles'])
+                <div class="border-t border-gray-100 dark:border-gray-700">
+                    <button @click="toggle('access')" type="button"
+                        class="w-full flex items-center justify-between px-4 py-3 text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                        <div class="flex items-center gap-2.5">
+                            <svg class="w-4 h-4 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                            <span>{{ __('Access Control') }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] px-1.5 py-0.2 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-500 font-mono font-bold">2</span>
+                            <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="activeSection === 'access' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+                    <div x-show="activeSection === 'access'" class="pl-4 pr-2 pb-2 space-y-1 bg-gray-50/50 dark:bg-gray-900/30">
+                        @can('manage users')
+                            <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">{{ __('Manage Users') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('manage roles')
+                            <x-responsive-nav-link :href="route('roles.index')" :active="request()->routeIs('roles.*')">{{ __('Manage Roles') }}</x-responsive-nav-link>
+                        @endcan
+                    </div>
+                </div>
+            @endcanany
+
+            <!-- Mobile Offline Sync Status Bar -->
+            <div class="p-3 m-2 rounded-2xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-xs">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full"
+                            :class="navigator.onLine ? 'bg-emerald-500' : 'bg-red-500 animate-ping'"></span>
+                        <span class="font-black uppercase tracking-wider text-gray-800 dark:text-gray-200 text-[11px]"
+                            x-text="navigator.onLine ? 'System Online' : 'Offline Mode (Local Storage)'"></span>
+                    </div>
+                    <button type="button" @click="if (window.OfflineSync) window.OfflineSync.syncAll();"
+                        class="px-3 py-1.5 text-[11px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition shadow-xs flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <span>Sync Now</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Profile & Settings -->
+            <div class="p-2 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/40 space-y-1">
+                <x-responsive-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.*')" class="rounded-xl flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <span>{{ __('Profile Settings') }}</span>
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('settings.edit')" :active="request()->routeIs('settings.*')" class="rounded-xl flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <span>{{ __('Shop / App Settings') }}</span>
                 </x-responsive-nav-link>
 
                 <!-- Authentication -->
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-
-                    <x-responsive-nav-link :href="route('logout')"
-                        onclick="event.preventDefault();
-                                        this.closest('form').submit();">
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
+                    <button type="submit"
+                        class="w-full text-start px-3 py-2 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition flex items-center gap-2">
+                        <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                        <span>{{ __('Log Out') }}</span>
+                    </button>
                 </form>
             </div>
         </div>
