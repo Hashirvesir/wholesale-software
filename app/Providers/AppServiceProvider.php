@@ -20,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Share settings with all views
-        if (!app()->runningInConsole() && \Illuminate\Support\Facades\Schema::hasTable('settings')) {
+        if (\Illuminate\Support\Facades\Schema::hasTable('settings')) {
             $settings = \App\Models\Setting::first();
             
             // If no settings found in DB, create a default anonymous object

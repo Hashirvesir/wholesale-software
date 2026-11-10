@@ -169,15 +169,26 @@
                                         </td>
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                            <span class="font-bold">{{ $settings->currency_symbol }}
+                                            <span class="font-bold">{{ $settings->currency_symbol ?? 'Rs.' }}
                                                 {{ number_format($product->sale_price, 2) }}</span>
                                             <span class="text-xs text-gray-400">/
                                                 {{ $product->unit->short_name }}</span>
                                         </td>
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            <span
-                                                class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 text-xs font-bold">{{ number_format($product->getCurrentStock(), 2) }}</span>
+                                            <div class="flex flex-col items-start gap-0.5">
+                                                <div class="flex items-center gap-1.5">
+                                                    <span
+                                                        class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 text-xs font-bold">{{ number_format($product->getCurrentStock(), 2) }}</span>
+                                                    <span class="text-xs text-gray-400">{{ $product->unit->short_name }}</span>
+                                                </div>
+                                                @php
+                                                    $stockVal = $product->getTotalStockValue();
+                                                @endphp
+                                                <span class="text-[10px] font-mono font-semibold {{ $stockVal > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400' }}" title="Current Stock Valuation">
+                                                    Val: Rs. {{ number_format($stockVal, 2) }}
+                                                </span>
+                                            </div>
                                         </td>
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
@@ -296,17 +307,23 @@
                                     </div>
                                     <div class="text-right shrink-0">
                                         <span class="text-sm font-black text-gray-900 dark:text-gray-100">
-                                            {{ $settings->currency_symbol }}{{ number_format($product->sale_price, 2) }}
+                                            {{ $settings->currency_symbol ?? 'Rs.' }} {{ number_format($product->sale_price, 2) }}
                                         </span>
                                         <span class="block text-[10px] text-gray-400">/ {{ $product->unit->short_name }}</span>
                                     </div>
                                 </div>
 
                                 <div class="flex items-center justify-between pt-2 border-t border-gray-200/60 dark:border-gray-700/60 text-xs">
-                                    <div class="flex items-center gap-1.5">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
                                         <span class="text-gray-400">Stock:</span>
                                         <span class="px-2 py-0.5 rounded text-xs font-bold {{ $isLowStock ? 'bg-red-100 text-red-700 dark:bg-red-900/60 dark:text-red-300' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300' }}">
                                             {{ number_format($stock, 2) }} {{ $product->unit->short_name }}
+                                        </span>
+                                        @php
+                                            $mobileVal = $product->getTotalStockValue();
+                                        @endphp
+                                        <span class="text-[11px] font-mono {{ $mobileVal > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400' }} font-bold">
+                                            (Rs. {{ number_format($mobileVal, 2) }})
                                         </span>
                                     </div>
                                     <div class="flex items-center gap-2">

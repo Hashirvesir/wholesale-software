@@ -71,7 +71,7 @@ class ProductController extends Controller implements HasMiddleware
 
     public function show(Product $product)
     {
-        $product->load(['category', 'brand', 'unit', 'stocks.warehouse']);
+        $product->load(['category', 'brand', 'unit', 'stocks.warehouse', 'openingStocks.warehouse']);
         $purchaseItems = \App\Models\PurchaseItem::where('product_id', $product->id)
             ->with(['purchase' => fn($q) => $q->with('party', 'warehouse')])
             ->orderByDesc('id')
@@ -126,6 +126,13 @@ class ProductController extends Controller implements HasMiddleware
             if ($hasOpening && $qty > 0) {
                 $warehouseId = $request->input('opening_stock_warehouse_id') ?: (Warehouse::first()->id ?? 1);
                 $rate = (float) $request->input('opening_stock_rate', 0);
+                if ($rate <= 0) {
+                    $rate = (float) $request->input('wholesale_price', 0);
+                }
+                if ($rate <= 0) {
+                    $rate = (float) $request->input('sale_price', 0);
+                }
+
                 $date = $request->input('opening_stock_date', now()->toDateString());
                 $note = $request->input('opening_stock_note') ?: "Initial Opening Stock on product creation";
                 $total = round($qty * $rate, 2);

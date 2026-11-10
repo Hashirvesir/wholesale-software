@@ -232,6 +232,48 @@
                         </div>
                     </div>
 
+                    @if($product->openingStocks && $product->openingStocks->isNotEmpty())
+                        <!-- Initial Opening Stock History -->
+                        <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-2xl border border-indigo-200 dark:border-indigo-900/50 overflow-hidden">
+                            <div class="p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h4 class="text-sm font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest flex items-center gap-2">
+                                        <span>📦 Initial Opening Stock Entries</span>
+                                    </h4>
+                                    <span class="text-xs bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 font-bold px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                                        {{ $product->openingStocks->count() }} Entry(s)
+                                    </span>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-xs">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-left text-xs font-black text-gray-500 uppercase tracking-widest py-3 pr-4">Date</th>
+                                                <th class="text-left text-xs font-black text-gray-500 uppercase tracking-widest py-3 pr-4">Warehouse</th>
+                                                <th class="text-right text-xs font-black text-gray-500 uppercase tracking-widest py-3 pr-4">Opening Qty</th>
+                                                <th class="text-right text-xs font-black text-gray-500 uppercase tracking-widest py-3 pr-4">Cost Rate</th>
+                                                <th class="text-right text-xs font-black text-gray-500 uppercase tracking-widest py-3 pr-4">Total Valuation</th>
+                                                <th class="text-left text-xs font-black text-gray-500 uppercase tracking-widest py-3">Remarks / Note</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                                            @foreach($product->openingStocks as $os)
+                                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                                    <td class="py-3 pr-4 text-gray-600 dark:text-gray-400 font-mono">{{ $os->date }}</td>
+                                                    <td class="py-3 pr-4 font-semibold text-gray-800 dark:text-gray-200">{{ $os->warehouse->name ?? 'Default Godown' }}</td>
+                                                    <td class="py-3 pr-4 text-right font-black text-indigo-600 font-mono">{{ number_format($os->qty, 2) }} {{ $product->unit->short_name }}</td>
+                                                    <td class="py-3 pr-4 text-right font-mono text-gray-700 dark:text-gray-300">Rs. {{ number_format($os->rate, 2) }}</td>
+                                                    <td class="py-3 pr-4 text-right font-black text-emerald-600 dark:text-emerald-400 font-mono">Rs. {{ number_format($os->total, 2) }}</td>
+                                                    <td class="py-3 text-gray-500 dark:text-gray-400 italic">{{ $os->note ?: 'Initial Opening Stock' }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     <!-- Purchase History -->
                     <div
                         class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">

@@ -117,7 +117,7 @@
                             <div>
                                 <x-input-label for="sale_price" :value="__('Default Sale Price (Rs.)')" />
                                 <x-text-input id="sale_price" class="block mt-1 w-full" type="number" step="0.01"
-                                    name="sale_price" :value="old('sale_price', '0.00')" required />
+                                    name="sale_price" :value="old('sale_price', '0.00')" x-model="salePrice" required />
                                 <x-input-error :messages="$errors->get('sale_price')" class="mt-2" />
                             </div>
 
@@ -125,7 +125,7 @@
                             <div>
                                 <x-input-label for="wholesale_price" :value="__('Wholesale Price (Rs.)')" />
                                 <x-text-input id="wholesale_price" class="block mt-1 w-full" type="number" step="0.01"
-                                    name="wholesale_price" :value="old('wholesale_price')" placeholder="Optional (falls back to Sale Price)" />
+                                    name="wholesale_price" :value="old('wholesale_price')" x-model="wholesalePrice" placeholder="Optional (falls back to Sale Price)" />
                                 <x-input-error :messages="$errors->get('wholesale_price')" class="mt-2" />
                             </div>
 
@@ -196,7 +196,7 @@
                                         <div>
                                             <x-input-label for="opening_stock_qty" :value="__('Opening Quantity')" />
                                             <x-text-input id="opening_stock_qty" class="block mt-1 w-full font-mono font-bold text-sm bg-white dark:bg-gray-900" type="number" step="any"
-                                                name="opening_stock_qty" x-model.number="openingQty" placeholder="0" />
+                                                name="opening_stock_qty" x-model="openingQty" placeholder="0" />
                                             <x-input-error :messages="$errors->get('opening_stock_qty')" class="mt-1" />
                                         </div>
 
@@ -216,17 +216,38 @@
 
                                         <!-- Purchase Cost Rate -->
                                         <div>
-                                            <x-input-label for="opening_stock_rate" :value="__('Cost Rate / Unit (Rs.)')" />
+                                            <div class="flex items-center justify-between">
+                                                <x-input-label for="opening_stock_rate" :value="__('Cost Rate / Unit (Rs.)')" />
+                                                <button type="button" 
+                                                    @click="copyRateFromPrice()"
+                                                    class="text-[10px] text-indigo-600 dark:text-indigo-400 hover:underline font-bold"
+                                                    x-show="(wholesalePrice > 0 || salePrice > 0) && (!openingRate || openingRate == 0)">
+                                                    Use Price Rate
+                                                </button>
+                                            </div>
                                             <x-text-input id="opening_stock_rate" class="block mt-1 w-full font-mono text-sm bg-white dark:bg-gray-900" type="number" step="0.01"
-                                                name="opening_stock_rate" x-model.number="openingRate" placeholder="0.00" />
+                                                name="opening_stock_rate" x-model="openingRate" placeholder="0.00" />
                                             <x-input-error :messages="$errors->get('opening_stock_rate')" class="mt-1" />
                                         </div>
 
                                         <!-- Total Valuation Preview -->
                                         <div>
                                             <x-input-label :value="__('Total Stock Value')" />
-                                            <div class="mt-1 h-[42px] px-3.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex items-center font-mono font-black text-sm text-emerald-600 dark:text-emerald-400">
-                                                Rs. <span x-text="((openingQty || 0) * (openingRate || 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})"></span>
+                                            <div class="mt-1 min-h-[42px] px-3.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex flex-col justify-center">
+                                                <div class="font-mono font-black text-sm text-emerald-600 dark:text-emerald-400">
+                                                    Rs. <span x-text="formattedTotalValue"></span>
+                                                </div>
+                                                <div class="text-[10px] leading-tight" x-show="Number(openingQty) > 0">
+                                                    <template x-if="hasExplicitRate">
+                                                        <span class="text-emerald-600 dark:text-emerald-400 font-medium">Custom: Rs. <span x-text="Number(openingRate).toFixed(2)"></span></span>
+                                                    </template>
+                                                    <template x-if="!hasExplicitRate && effectiveRate > 0">
+                                                        <span class="text-amber-600 dark:text-amber-400 font-medium">Fallback: Rs. <span x-text="effectiveRate.toFixed(2)"></span></span>
+                                                    </template>
+                                                    <template x-if="!hasExplicitRate && effectiveRate === 0">
+                                                        <span class="text-gray-400">Enter rate</span>
+                                                    </template>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -321,8 +342,42 @@
                 quickName: '',
                 modalError: '',
                 hasOpeningStock: {{ old('has_opening_stock') || old('opening_stock_qty') ? 'true' : 'false' }},
-                openingQty: {{ old('opening_stock_qty') ? (float) old('opening_stock_qty') : "''" }},
-                openingRate: {{ old('opening_stock_rate') ? (float) old('opening_stock_rate') : "''" }},
+                salePrice: '{{ old('sale_price', '0.00') }}',
+                wholesalePrice: '{{ old('wholesale_price', '') }}',
+                openingQty: '{{ old('opening_stock_qty', '') }}',
+                openingRate: '{{ old('opening_stock_rate', '') }}',
+
+                get hasExplicitRate() {
+                    return this.openingRate !== '' && !isNaN(this.openingRate) && Number(this.openingRate) > 0;
+                },
+
+                get effectiveRate() {
+                    if (this.hasExplicitRate) {
+                        return Number(this.openingRate);
+                    }
+                    if (this.wholesalePrice !== '' && !isNaN(this.wholesalePrice) && Number(this.wholesalePrice) > 0) {
+                        return Number(this.wholesalePrice);
+                    }
+                    if (this.salePrice !== '' && !isNaN(this.salePrice) && Number(this.salePrice) > 0) {
+                        return Number(this.salePrice);
+                    }
+                    return 0;
+                },
+
+                get formattedTotalValue() {
+                    const qty = Number(this.openingQty) || 0;
+                    const rate = this.effectiveRate;
+                    const total = qty * rate;
+                    return total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                },
+
+                copyRateFromPrice() {
+                    if (this.wholesalePrice && Number(this.wholesalePrice) > 0) {
+                        this.openingRate = this.wholesalePrice;
+                    } else if (this.salePrice && Number(this.salePrice) > 0) {
+                        this.openingRate = this.salePrice;
+                    }
+                },
 
                 openModal(type) {
                     this.modalType = type;

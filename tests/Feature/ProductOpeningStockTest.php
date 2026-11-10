@@ -91,4 +91,42 @@ class ProductOpeningStockTest extends TestCase
         $this->assertEquals(100, $stock->qty);
         $this->assertEquals(200, $stock->avg_cost);
     }
+
+    public function test_opening_stock_rate_falls_back_to_sale_price_and_shows_valuation(): void
+    {
+        $response = $this->actingAs($this->user)->post(route('products.store'), [
+            'name' => 'Redmi Note 13 Protector',
+            'sku' => 'REDMI-PROT-01',
+            'category_id' => $this->category->id,
+            'brand_id' => $this->brand->id,
+            'unit_id' => $this->unit->id,
+            'sale_price' => 150.00,
+            'alert_quantity' => 10,
+            'status' => 1,
+            'opening_stock_qty' => 50,
+            // rate left empty/0
+            'opening_stock_rate' => 0,
+            'opening_stock_warehouse_id' => $this->warehouse->id,
+        ]);
+
+        $response->assertRedirect(route('products.index'));
+
+        $product = Product::where('sku', 'REDMI-PROT-01')->first();
+        $this->assertNotNull($product);
+
+        $this->assertEquals(50, $product->getCurrentStock());
+        // Fallback rate = 150.00, total valuation = 50 * 150 = 7500
+        $this->assertEquals(7500.00, $product->getTotalStockValue());
+
+        // Verify index page displays valuation
+        $indexResponse = $this->actingAs($this->user)->get(route('products.index'));
+        $indexResponse->assertOk();
+        $indexResponse->assertSee('Val: Rs. 7,500.00');
+
+        // Verify show page displays opening stock table
+        $showResponse = $this->actingAs($this->user)->get(route('products.show', $product));
+        $showResponse->assertOk();
+        $showResponse->assertSee('Initial Opening Stock Entries');
+        $showResponse->assertSee('7,500.00');
+    }
 }

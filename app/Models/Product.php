@@ -46,6 +46,11 @@ class Product extends Model
         return $this->hasMany(PurchaseItem::class);
     }
 
+    public function openingStocks()
+    {
+        return $this->hasMany(OpeningStock::class);
+    }
+
     public function saleItems()
     {
         return $this->hasMany(SaleItem::class);
@@ -58,6 +63,18 @@ class Product extends Model
             $query->where('warehouse_id', $warehouseId);
         }
         return (float) $query->sum('qty');
+    }
+
+    public function getTotalStockValue($warehouseId = null): float
+    {
+        if ($this->relationLoaded('stocks') && !$warehouseId) {
+            return (float) $this->stocks->sum(fn($s) => (float) $s->qty * (float) $s->avg_cost);
+        }
+        $query = $this->stocks();
+        if ($warehouseId) {
+            $query->where('warehouse_id', $warehouseId);
+        }
+        return (float) $query->get()->sum(fn($s) => (float) $s->qty * (float) $s->avg_cost);
     }
 
     public function getPriceForTier(?string $tier): float
