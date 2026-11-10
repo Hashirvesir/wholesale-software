@@ -170,7 +170,7 @@
                             <span>Analyzing live database figures, pending receivables & stock burn rates...</span>
                         </div>
                     </template>
-                    <div class="whitespace-pre-wrap font-medium" x-text="briefing"></div>
+                    <div class="ai-rendered-content font-medium text-xs sm:text-sm text-gray-100" x-html="window.renderMarkdown ? window.renderMarkdown(briefing) : briefing"></div>
                 </div>
             </div>
 

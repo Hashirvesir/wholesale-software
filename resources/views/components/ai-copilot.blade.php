@@ -116,7 +116,12 @@
                         :class="msg.role === 'user'
                             ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-tr-none border-indigo-500 font-medium'
                             : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-none border-gray-200/60 dark:border-gray-700'">
-                        <div class="whitespace-pre-wrap" x-text="msg.content"></div>
+                        <template x-if="msg.role === 'user'">
+                            <div class="whitespace-pre-wrap" x-text="msg.content"></div>
+                        </template>
+                        <template x-if="msg.role === 'assistant'">
+                            <div class="ai-rendered-content select-text leading-relaxed" x-html="renderMessage(msg.content)"></div>
+                        </template>
                         <div class="mt-1 flex items-center justify-between text-[10px] opacity-70">
                             <span x-text="msg.time"></span>
                             <template x-if="msg.role === 'assistant'">
@@ -367,6 +372,26 @@
                 alert('Copied to clipboard!');
             },
 
+            renderMessage(content) {
+                if (!content) return '';
+                if (window.renderMarkdown) {
+                    return window.renderMarkdown(content);
+                }
+                // Fallback converter if marked is not yet available
+                let escaped = String(content)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+                return escaped
+                    .replace(/^### (.*$)/gim, '<h4 class="font-bold text-indigo-600 dark:text-indigo-400 mt-2 mb-1">$1</h4>')
+                    .replace(/^## (.*$)/gim, '<h3 class="font-bold text-gray-900 dark:text-white mt-2 mb-1">$1</h3>')
+                    .replace(/^# (.*$)/gim, '<h2 class="font-black text-gray-900 dark:text-white mt-2 mb-1">$1</h2>')
+                    .replace(/\*\*(.*?)\*\*/gim, '<strong class="font-bold text-gray-900 dark:text-white">$1</strong>')
+                    .replace(/^\* (.*$)/gim, '<li class="ml-4 list-disc">$1</li>')
+                    .replace(/^- (.*$)/gim, '<li class="ml-4 list-disc">$1</li>')
+                    .replace(/\n/gim, '<br>');
+            },
+
             scrollToBottom() {
                 this.$nextTick(() => {
                     const el = this.$refs.messagesContainer;
@@ -376,3 +401,44 @@
         };
     }
 </script>
+
+<style>
+.ai-rendered-content h1, .ai-rendered-content h2, .ai-rendered-content h3, .ai-rendered-content h4 {
+    font-weight: 700;
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
+    line-height: 1.3;
+}
+.ai-rendered-content h1 { font-size: 0.95rem; }
+.ai-rendered-content h2 { font-size: 0.9rem; }
+.ai-rendered-content h3 { font-size: 0.85rem; color: #4f46e5; }
+.dark .ai-rendered-content h3 { color: #818cf8; }
+.ai-rendered-content h4 { font-size: 0.8rem; color: #6366f1; }
+.ai-rendered-content strong { font-weight: 700; color: #111827; }
+.dark .ai-rendered-content strong { color: #f9fafb; }
+.ai-rendered-content ul {
+    list-style-type: disc;
+    padding-left: 1.15rem;
+    margin-top: 0.25rem;
+    margin-bottom: 0.4rem;
+}
+.ai-rendered-content ol {
+    list-style-type: decimal;
+    padding-left: 1.15rem;
+    margin-top: 0.25rem;
+    margin-bottom: 0.4rem;
+}
+.ai-rendered-content li {
+    margin-bottom: 0.2rem;
+}
+.ai-rendered-content p {
+    margin-bottom: 0.35rem;
+}
+.ai-rendered-content p:last-child {
+    margin-bottom: 0;
+}
+.ai-rendered-content hr {
+    border-color: rgba(156, 163, 175, 0.3);
+    margin: 0.5rem 0;
+}
+</style>

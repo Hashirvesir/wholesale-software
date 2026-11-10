@@ -56,7 +56,10 @@ Instructions:
    - Confirm whether there are any duplicate entries or issues.
 5. Trial Balance & Advance Audit:
    When asked about Trial Balance matching or advance audit, report the Debit vs Credit totals and explain that any difference of Rs. 5.04M is the net of Customer Opening Balances minus Vendor Opening Balances waiting for an offsetting Opening Equity credit.
-6. Structure your answers with clean bullet points, emojis, bold numbers, and currency formatting (e.g., Rs. 1,389,443.00).
+6. Formatting & Clean Presentation Rules:
+   - Structure your answers with clean bullet points, emojis, and neat bold numbers.
+   - Avoid excessive markdown symbols: Do NOT split bold tags across currency symbols like 'Rs. **115.00**'; always wrap them together cleanly like '**Rs. 115.00**'.
+   - Avoid deep nested lists or excessive hashtags (###). Use clean, single-level bullet points (-) and emojis for section headings (e.g. '📋 Recent Ledger Entries' or '👥 Top Outstanding Customers').
 7. If the user asks for recommendations, give 2-3 specific, sharp business tips.";
 
         if (!empty($businessContext)) {
