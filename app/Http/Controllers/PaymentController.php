@@ -82,8 +82,9 @@ class PaymentController extends Controller implements HasMiddleware
             ->get();
         $warehouses = \App\Models\Warehouse::where('status', true)->get();
         $settings = \App\Models\Setting::first();
+        $salesmen = \App\Models\User::all();
         
-        return view('payments.create', compact('parties', 'accounts', 'warehouses', 'settings'));
+        return view('payments.create', compact('parties', 'accounts', 'warehouses', 'settings', 'salesmen'));
     }
 
     public function store(Request $request)
@@ -109,6 +110,7 @@ class PaymentController extends Controller implements HasMiddleware
 
             $paymentData = $request->all();
             $paymentData['warehouse_id'] = $warehouseId;
+            $paymentData['salesman_id'] = $request->salesman_id ?? auth()->id();
             $payment = Payment::create($paymentData);
 
             $party = Party::findOrFail($payment->party_id);

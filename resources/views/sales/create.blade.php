@@ -111,6 +111,12 @@
                                     <template x-if="party_id">
                                         <div class="mt-1.5 space-y-1">
                                             <div class="flex flex-wrap items-center gap-2 text-xs">
+                                                <template x-if="getSelectedCustomer()">
+                                                    <span class="px-2 py-0.5 rounded text-[11px] font-black uppercase tracking-wider"
+                                                        :class="(getSelectedCustomer()?.price_tier || 'wholesale') === 'retail' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300' : ((getSelectedCustomer()?.price_tier || 'wholesale') === 'dealer' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300')">
+                                                        <span x-text="(getSelectedCustomer()?.price_tier || 'wholesale') + ' rate'"></span>
+                                                    </span>
+                                                </template>
                                                 <span class="font-bold" :class="getCustomerBalance() >= 0 ? 'text-red-500' : 'text-green-500'">
                                                     Prev. Balance: <span x-text="currency"></span> <span
                                                         x-text="formatNumber(Math.abs(getCustomerBalance()))"></span>
@@ -578,12 +584,30 @@
                     }).slice(0, 10);
                 },
 
+                getProductPrice(product, tier) {
+                    if (!tier) {
+                        const cust = this.customers.find(c => c.id == this.party_id);
+                        tier = cust?.price_tier || 'wholesale';
+                    }
+                    if (tier === 'retail' && product.retail_price && parseFloat(product.retail_price) > 0) {
+                        return parseFloat(product.retail_price);
+                    }
+                    if (tier === 'dealer' && product.dealer_price && parseFloat(product.dealer_price) > 0) {
+                        return parseFloat(product.dealer_price);
+                    }
+                    if (tier === 'wholesale' && product.wholesale_price && parseFloat(product.wholesale_price) > 0) {
+                        return parseFloat(product.wholesale_price);
+                    }
+                    return parseFloat(product.sale_price) || 0;
+                },
+
                 selectProduct(index, product) {
+                    const price = this.getProductPrice(product);
                     // Check if SAME product with SAME price already exists
                     const exists = this.items.some((item, i) => i !== index && item.product_id === product.id && item
-                        .price === (product.sale_price || 0));
+                        .price === price);
                     if (exists) {
-                        alert('Product "' + product.name + '" with price ' + (product.sale_price || 0) +
+                        alert('Product "' + product.name + '" with price ' + price +
                             ' is already added!');
                         this.items[index].search = '';
                         this.items[index].product_id = '';
@@ -592,7 +616,7 @@
 
                     this.items[index].product_id = product.id;
                     this.items[index].search = product.name + ' (' + product.sku + ')';
-                    this.items[index].price = product.sale_price || 0;
+                    this.items[index].price = price;
                     this.items[index].open = false;
                     this.items[index].error = false;
                     this.items[index].highlightedIndex = -1;
@@ -788,9 +812,13 @@
                         this.warehouse_id = this.shopWarehouseId;
                     }
 
-                    // Check last prices for any items currently in rows
+                    // Update prices for any existing items to match selected customer's price tier
                     this.items.forEach((item, idx) => {
                         if (item.product_id) {
+                            const p = this.products.find(prod => prod.id == item.product_id);
+                            if (p) {
+                                item.price = this.getProductPrice(p, customer.price_tier);
+                            }
                             this.fetchLastSoldPrice(idx);
                         }
                     });

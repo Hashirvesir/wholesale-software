@@ -75,11 +75,15 @@ class SaleController extends Controller implements HasMiddleware
             $customer->credit_limit = (float)($customer->credit_limit ?? 0);
             $customer->credit_days = (int)($customer->credit_days ?? 0);
             $customer->has_overdue = $customer->hasOverdueInvoices();
+            $customer->price_tier = $customer->price_tier ?? 'wholesale';
             return $customer;
         });
         $warehouses = Warehouse::all();
         $products = Product::with('stocks')->get()->map(function($product) {
             $product->current_stock = $product->getCurrentStock();
+            $product->wholesale_price = (float)($product->wholesale_price ?? $product->sale_price);
+            $product->retail_price = (float)($product->retail_price ?? $product->sale_price);
+            $product->dealer_price = (float)($product->dealer_price ?? $product->sale_price);
             $product->warehouse_stocks = $product->stocks->pluck('qty', 'warehouse_id');
             $product->warehouse_costs = $product->stocks->pluck('avg_cost', 'warehouse_id');
             return $product;
@@ -97,7 +101,9 @@ class SaleController extends Controller implements HasMiddleware
             $quotation = \App\Models\Quotation::with('items.product')->find($request->from_quotation);
         }
 
-        return view('sales.create', compact('customers', 'warehouses', 'products', 'paymentAccounts', 'settings', 'quotation'));
+        $salesmen = \App\Models\User::all();
+
+        return view('sales.create', compact('customers', 'warehouses', 'products', 'paymentAccounts', 'settings', 'quotation', 'salesmen'));
     }
 
     public function store(Request $request)
@@ -180,6 +186,7 @@ class SaleController extends Controller implements HasMiddleware
             $sale = Sale::create([
                 'party_id' => $request->party_id,
                 'warehouse_id' => $request->warehouse_id,
+                'salesman_id' => $request->salesman_id ?? auth()->id(),
                 'account_id' => $payments[0]['account_id'] ?? null,
                 'date' => $request->date,
                 'total_amount' => $total,

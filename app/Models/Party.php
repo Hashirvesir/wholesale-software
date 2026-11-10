@@ -9,6 +9,7 @@ class Party extends Model
     protected $fillable = [
         'name',
         'type',
+        'price_tier',
         'phone',
         'address',
         'opening_balance',

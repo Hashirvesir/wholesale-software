@@ -46,6 +46,7 @@ class PartyController extends Controller implements HasMiddleware
         $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|in:customer,vendor,cargo',
+            'price_tier' => 'nullable|in:wholesale,retail,dealer',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
             'opening_balance' => 'required|numeric',
@@ -72,6 +73,7 @@ class PartyController extends Controller implements HasMiddleware
         $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|in:customer,vendor,cargo',
+            'price_tier' => 'nullable|in:wholesale,retail,dealer',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
             'opening_balance' => 'required|numeric',

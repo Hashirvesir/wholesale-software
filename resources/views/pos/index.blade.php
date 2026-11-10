@@ -156,6 +156,9 @@
                                 <div class="mt-1 flex flex-wrap items-center justify-between text-[11px] font-bold gap-1">
                                     <template x-if="selectedCustomer">
                                         <div class="flex flex-wrap items-center gap-2">
+                                            <span class="px-1.5 py-0.5 rounded text-[9px] uppercase font-black tracking-wider"
+                                                :class="(selectedCustomer.price_tier || 'wholesale') === 'retail' ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300' : ((selectedCustomer.price_tier || 'wholesale') === 'dealer' ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300')"
+                                                x-text="(selectedCustomer.price_tier || 'wholesale') + ' rate'"></span>
                                             <span class="text-gray-500 dark:text-gray-400">Balance:</span>
                                             <span :class="selectedCustomer.current_balance >= 0 ? 'text-red-500' : 'text-emerald-500'">
                                                 <span x-text="currency"></span> <span x-text="formatNumber(Math.abs(selectedCustomer.current_balance))"></span>
@@ -743,6 +746,16 @@
                             placeholder="e.g. Shop #12, Wholesale Market" />
                     </div>
 
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Pricing Tier</label>
+                        <select x-model="newCustomer.price_tier"
+                            class="w-full text-xs rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                            <option value="wholesale">Wholesale Rate (Normal)</option>
+                            <option value="retail">Retail Rate (Aam Grahak)</option>
+                            <option value="dealer">Dealer / Bulk Rate</option>
+                        </select>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Opening Balance</label>
@@ -1018,11 +1031,36 @@
                     this.customerSearch = c.name;
                     this.customerDropdownOpen = false;
                     this.customerHighlightedIndex = -1;
+
+                    // Update prices of items in cart matching customer's price tier
+                    if (this.items.length > 0) {
+                        this.items.forEach(item => {
+                            const p = this.products.find(prod => prod.id == item.product_id);
+                            if (p) {
+                                item.price = this.getProductPrice(p, c.price_tier);
+                            }
+                        });
+                    }
+
                     this.recalculate();
                     this.focusBarcode();
 
                     // Check last sold rate for any items in cart for this customer
                     this.items.forEach(item => this.fetchLastSoldPrice(item));
+                },
+
+                getProductPrice(product, tier) {
+                    tier = tier || (this.selectedCustomer?.price_tier || 'wholesale');
+                    if (tier === 'retail' && product.retail_price && parseFloat(product.retail_price) > 0) {
+                        return parseFloat(product.retail_price);
+                    }
+                    if (tier === 'dealer' && product.dealer_price && parseFloat(product.dealer_price) > 0) {
+                        return parseFloat(product.dealer_price);
+                    }
+                    if (tier === 'wholesale' && product.wholesale_price && parseFloat(product.wholesale_price) > 0) {
+                        return parseFloat(product.wholesale_price);
+                    }
+                    return parseFloat(product.sale_price) || 0;
                 },
 
                 resetToWalkIn() {
@@ -1059,6 +1097,7 @@
                         name: '',
                         phone: '',
                         address: '',
+                        price_tier: 'wholesale',
                         opening_balance: 0,
                         balance_type: 'debit'
                     };
@@ -1186,7 +1225,8 @@
                 },
 
                 addProductToCart(product) {
-                    const existingIdx = this.items.findIndex(i => i.product_id == product.id && i.price == product.sale_price);
+                    const price = this.getProductPrice(product);
+                    const existingIdx = this.items.findIndex(i => i.product_id == product.id && Math.abs(i.price - price) < 0.001);
 
                     if (existingIdx >= 0) {
                         // Already in cart with same rate -> increment quantity
@@ -1206,7 +1246,7 @@
                             stock: this.getProductWarehouseStock(product),
                             cost: this.getProductWarehouseCost(product),
                             qty: 1,
-                            price: parseFloat(product.sale_price) || 0,
+                            price: price,
                             justAdded: true,
                             lastPrice: null
                         };

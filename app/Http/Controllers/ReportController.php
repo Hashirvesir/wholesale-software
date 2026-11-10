@@ -1707,4 +1707,68 @@ class ReportController extends Controller
 
         return view('reports.cargo_charges', $data);
     }
+
+    public function salesmanPerformance(Request $request)
+    {
+        $salesmen = \App\Models\User::all();
+        $selectedSalesmanId = $request->get('salesman_id');
+        $dateFrom = $request->get('date_from', now()->startOfMonth()->toDateString());
+        $dateTo = $request->get('date_to', now()->toDateString());
+        $selectedSalesman = $selectedSalesmanId ? \App\Models\User::find($selectedSalesmanId) : null;
+
+        // Sales Query
+        $salesQuery = \App\Models\Sale::with(['party', 'warehouse'])
+            ->whereBetween('date', [$dateFrom, $dateTo]);
+        if ($selectedSalesmanId) {
+            $salesQuery->where('salesman_id', $selectedSalesmanId);
+        }
+        $sales = $salesQuery->latest('date')->get();
+
+        // Collections Query
+        $collectionsQuery = \App\Models\Payment::with(['party', 'account'])
+            ->where('payment_type', 'received')
+            ->whereBetween('date', [$dateFrom, $dateTo]);
+        if ($selectedSalesmanId) {
+            $collectionsQuery->where('salesman_id', $selectedSalesmanId);
+        }
+        $collections = $collectionsQuery->latest('date')->get();
+
+        $totalSales = (float) $sales->sum('total_amount');
+        $totalCollected = (float) $collections->sum('amount');
+
+        $commissionRate = $selectedSalesman ? (float)($selectedSalesman->commission_rate ?? 0) : 0;
+        $commissionOnSales = round($totalSales * ($commissionRate / 100), 2);
+        $commissionOnRecovery = round($totalCollected * ($commissionRate / 100), 2);
+
+        // Active customer route recovery list (customers with outstanding receivable)
+        $routeCustomers = Party::where('type', 'customer')
+            ->where('status', true)
+            ->get()
+            ->map(function ($c) {
+                $c->current_bal = (float)$c->getCurrentBalance();
+                return $c;
+            })
+            ->filter(fn ($c) => $c->current_bal > 0)
+            ->sortByDesc('current_bal')
+            ->values();
+
+        $settings = Setting::first();
+
+        return view('reports.salesman_performance', compact(
+            'salesmen',
+            'selectedSalesman',
+            'selectedSalesmanId',
+            'dateFrom',
+            'dateTo',
+            'sales',
+            'collections',
+            'totalSales',
+            'totalCollected',
+            'commissionRate',
+            'commissionOnSales',
+            'commissionOnRecovery',
+            'routeCustomers',
+            'settings'
+        ));
+    }
 }

@@ -74,6 +74,7 @@ class QuotationController extends Controller implements HasMiddleware
     {
         $customers = Party::where('type', 'customer')->get()->map(function ($customer) {
             $customer->current_balance = $customer->getCurrentBalance();
+            $customer->price_tier = $customer->price_tier ?? 'wholesale';
             return $customer;
         });
 
@@ -81,6 +82,9 @@ class QuotationController extends Controller implements HasMiddleware
 
         $products = Product::with('stocks')->where('status', 1)->get()->map(function ($product) {
             $product->current_stock = $product->getCurrentStock();
+            $product->wholesale_price = (float)($product->wholesale_price ?? $product->sale_price);
+            $product->retail_price = (float)($product->retail_price ?? $product->sale_price);
+            $product->dealer_price = (float)($product->dealer_price ?? $product->sale_price);
             $product->warehouse_stocks = $product->stocks->pluck('qty', 'warehouse_id');
             return $product;
         });
@@ -172,6 +176,7 @@ class QuotationController extends Controller implements HasMiddleware
 
         $customers = Party::where('type', 'customer')->get()->map(function ($customer) {
             $customer->current_balance = $customer->getCurrentBalance();
+            $customer->price_tier = $customer->price_tier ?? 'wholesale';
             return $customer;
         });
 
@@ -179,6 +184,9 @@ class QuotationController extends Controller implements HasMiddleware
 
         $products = Product::with('stocks')->where('status', 1)->get()->map(function ($product) {
             $product->current_stock = $product->getCurrentStock();
+            $product->wholesale_price = (float)($product->wholesale_price ?? $product->sale_price);
+            $product->retail_price = (float)($product->retail_price ?? $product->sale_price);
+            $product->dealer_price = (float)($product->dealer_price ?? $product->sale_price);
             $product->warehouse_stocks = $product->stocks->pluck('qty', 'warehouse_id');
             return $product;
         });

@@ -30,6 +30,11 @@ class ChartOfAccount extends Model
         return $this->hasMany(LedgerEntry::class, 'account_id');
     }
 
+    public function getCurrentBalance()
+    {
+        return $this->getBalance();
+    }
+
     public function getBalance()
     {
         $debits = $this->ledgerEntries()->sum('debit');

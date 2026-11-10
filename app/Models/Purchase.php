@@ -9,6 +9,7 @@ class Purchase extends Model
     protected $fillable = [
         'party_id',
         'warehouse_id',
+        'purchase_order_id',
         'account_id',
         'date',
         'currency',
@@ -32,6 +33,11 @@ class Purchase extends Model
     public function warehouse()
     {
         return $this->belongsTo(Warehouse::class);
+    }
+
+    public function purchaseOrder()
+    {
+        return $this->belongsTo(PurchaseOrder::class);
     }
 
     public function cargoCharge()

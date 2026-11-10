@@ -101,12 +101,36 @@
                                 <x-input-error :messages="$errors->get('unit_id')" class="mt-2" />
                             </div>
 
-                            <!-- Sale Price -->
+                            <!-- Sale Price (Base) -->
                             <div>
-                                <x-input-label for="sale_price" :value="__('Sale Price (Rs.)')" />
+                                <x-input-label for="sale_price" :value="__('Default Sale Price (Rs.)')" />
                                 <x-text-input id="sale_price" class="block mt-1 w-full" type="number" step="0.01"
                                     name="sale_price" :value="old('sale_price', $product->sale_price)" required />
                                 <x-input-error :messages="$errors->get('sale_price')" class="mt-2" />
+                            </div>
+
+                            <!-- Wholesale Price -->
+                            <div>
+                                <x-input-label for="wholesale_price" :value="__('Wholesale Price (Rs.)')" />
+                                <x-text-input id="wholesale_price" class="block mt-1 w-full" type="number" step="0.01"
+                                    name="wholesale_price" :value="old('wholesale_price', $product->wholesale_price)" placeholder="Optional (falls back to Sale Price)" />
+                                <x-input-error :messages="$errors->get('wholesale_price')" class="mt-2" />
+                            </div>
+
+                            <!-- Retail Price -->
+                            <div>
+                                <x-input-label for="retail_price" :value="__('Retail Price (Rs.)')" />
+                                <x-text-input id="retail_price" class="block mt-1 w-full" type="number" step="0.01"
+                                    name="retail_price" :value="old('retail_price', $product->retail_price)" placeholder="Optional (walk-in retail rate)" />
+                                <x-input-error :messages="$errors->get('retail_price')" class="mt-2" />
+                            </div>
+
+                            <!-- Dealer Price -->
+                            <div>
+                                <x-input-label for="dealer_price" :value="__('Dealer / Bulk Price (Rs.)')" />
+                                <x-text-input id="dealer_price" class="block mt-1 w-full" type="number" step="0.01"
+                                    name="dealer_price" :value="old('dealer_price', $product->dealer_price)" placeholder="Optional (dealer rate)" />
+                                <x-input-error :messages="$errors->get('dealer_price')" class="mt-2" />
                             </div>
 
                             <!-- Alert Quantity -->

@@ -22,7 +22,18 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'commission_rate',
     ];
+
+    public function sales()
+    {
+        return $this->hasMany(Sale::class, 'salesman_id');
+    }
+
+    public function paymentsCollected()
+    {
+        return $this->hasMany(Payment::class, 'salesman_id');
+    }
 
     /**
      * The attributes that should be hidden for serialization.

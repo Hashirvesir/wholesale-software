@@ -14,6 +14,7 @@ use App\Models\ChartOfAccount;
 use App\Models\LedgerEntry;
 use App\Models\PaymentSplit;
 use App\Models\Setting;
+use App\Models\User;
 use App\Traits\TracksActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -40,6 +41,7 @@ class PosController extends Controller implements HasMiddleware
             $customer->credit_limit = (float)($customer->credit_limit ?? 0);
             $customer->credit_days = (int)($customer->credit_days ?? 0);
             $customer->has_overdue = $customer->hasOverdueInvoices();
+            $customer->price_tier = $customer->price_tier ?? 'wholesale';
             return $customer;
         });
 
@@ -62,6 +64,9 @@ class PosController extends Controller implements HasMiddleware
                     'brand_name' => $product->brand->name ?? '',
                     'unit_name' => $product->unit->name ?? 'pc',
                     'sale_price' => (float)$product->sale_price,
+                    'wholesale_price' => (float)($product->wholesale_price ?? $product->sale_price),
+                    'retail_price' => (float)($product->retail_price ?? $product->sale_price),
+                    'dealer_price' => (float)($product->dealer_price ?? $product->sale_price),
                     'current_stock' => (float)$product->getCurrentStock(),
                     'warehouse_stocks' => $product->stocks->pluck('qty', 'warehouse_id')->map(fn ($q) => (float)$q),
                     'warehouse_costs' => $product->stocks->pluck('avg_cost', 'warehouse_id')->map(fn ($c) => (float)$c),
@@ -74,8 +79,9 @@ class PosController extends Controller implements HasMiddleware
             ->get();
 
         $settings = Setting::first();
+        $salesmen = User::all();
 
-        return view('pos.index', compact('customers', 'warehouses', 'categories', 'brands', 'products', 'paymentAccounts', 'settings'));
+        return view('pos.index', compact('customers', 'warehouses', 'categories', 'brands', 'products', 'paymentAccounts', 'settings', 'salesmen'));
     }
 
     public function store(Request $request)
@@ -164,6 +170,7 @@ class PosController extends Controller implements HasMiddleware
                 $sale = Sale::create([
                     'party_id' => $request->party_id,
                     'warehouse_id' => $request->warehouse_id,
+                    'salesman_id' => $request->salesman_id ?? auth()->id(),
                     'account_id' => $payments[0]['account_id'] ?? null,
                     'date' => $request->date,
                     'total_amount' => $total,
@@ -354,11 +361,13 @@ class PosController extends Controller implements HasMiddleware
             'address' => 'nullable|string|max:500',
             'opening_balance' => 'nullable|numeric',
             'balance_type' => 'nullable|in:debit,credit',
+            'price_tier' => 'nullable|in:wholesale,retail,dealer',
         ]);
 
         $party = Party::create([
             'name' => $validated['name'],
             'type' => 'customer',
+            'price_tier' => $validated['price_tier'] ?? 'wholesale',
             'phone' => $validated['phone'] ?? null,
             'address' => $validated['address'] ?? null,
             'opening_balance' => (float)($validated['opening_balance'] ?? 0),
@@ -376,6 +385,7 @@ class PosController extends Controller implements HasMiddleware
                 'name' => $party->name,
                 'phone' => $party->phone ?? '',
                 'address' => $party->address ?? '',
+                'price_tier' => $party->price_tier ?? 'wholesale',
                 'current_balance' => (float)$party->getCurrentBalance(),
                 'credit_limit' => (float)($party->credit_limit ?? 0),
                 'credit_days' => (int)($party->credit_days ?? 0),

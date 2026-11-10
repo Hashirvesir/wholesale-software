@@ -398,6 +398,7 @@
                                         <x-dropdown-link :href="route('quotations.index')">{{ __('Quotations / Estimates') }}</x-dropdown-link>
                                     @endcan
                                     @can('view purchases')
+                                        <x-dropdown-link :href="route('purchase-orders.index')">{{ __('Purchase Orders (PO)') }}</x-dropdown-link>
                                         <x-dropdown-link :href="route('purchases.index')">{{ __('Purchases') }}</x-dropdown-link>
                                     @endcan
                                     @can('view stock transfers')
@@ -438,6 +439,7 @@
                                     @endcan
                                     @can('view payments')
                                         <x-dropdown-link :href="route('payments.index')">{{ __('Payments') }}</x-dropdown-link>
+                                        <x-dropdown-link :href="route('cheques.index')">{{ __('Cheques / PDCs') }}</x-dropdown-link>
                                     @endcan
                                     @can('view expenses')
                                         <x-dropdown-link :href="route('expenses.index')">{{ __('Expenses') }}</x-dropdown-link>
@@ -524,6 +526,7 @@
                                     @endcan
                                     @can('view sales analysis report')
                                         <x-dropdown-link :href="route('reports.sales-analysis')">{{ __('Sales Analysis Report') }}</x-dropdown-link>
+                                        <x-dropdown-link :href="route('reports.salesman-performance')">{{ __('Salesman & Recovery Report') }}</x-dropdown-link>
                                     @endcan
                                     @can('view returns summary')
                                         <x-dropdown-link :href="route('reports.returns-summary')">{{ __('Returns Summary') }}</x-dropdown-link>
@@ -880,6 +883,7 @@
                     <x-responsive-nav-link :href="route('quotations.index')" :active="request()->routeIs('quotations.*')">{{ __('Quotations / Estimates') }}</x-responsive-nav-link>
                 @endcan
                 @can('view purchases')
+                    <x-responsive-nav-link :href="route('purchase-orders.index')" :active="request()->routeIs('purchase-orders.*')">{{ __('Purchase Orders (PO)') }}</x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('purchases.index')" :active="request()->routeIs('purchases.*')">{{ __('Purchases') }}</x-responsive-nav-link>
                 @endcan
                 @can('view stock transfers')
@@ -907,6 +911,7 @@
                 @endcan
                 @can('view payments')
                     <x-responsive-nav-link :href="route('payments.index')" :active="request()->routeIs('payments.*')">{{ __('Payments') }}</x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('cheques.index')" :active="request()->routeIs('cheques.*')">{{ __('Cheques / PDCs') }}</x-responsive-nav-link>
                 @endcan
                 @can('view expenses')
                     <x-responsive-nav-link :href="route('expenses.index')" :active="request()->routeIs('expenses.*')">{{ __('Expenses') }}</x-responsive-nav-link>
@@ -986,6 +991,8 @@
                 @can('view sales analysis report')
                     <x-responsive-nav-link :href="route('reports.sales-analysis')"
                         :active="request()->routeIs('reports.sales-analysis')">{{ __('Sales Analysis Report') }}</x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('reports.salesman-performance')"
+                        :active="request()->routeIs('reports.salesman-performance')">{{ __('Salesman & Recovery Report') }}</x-responsive-nav-link>
                 @endcan
                 @can('view returns summary')
                     <x-responsive-nav-link :href="route('reports.returns-summary')"

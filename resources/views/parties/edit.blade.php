@@ -73,7 +73,18 @@
                                     </svg>
                                     <h4 class="text-sm font-bold text-blue-900 dark:text-blue-200 uppercase tracking-wider">Credit Terms & Overdue Control</h4>
                                 </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <x-input-label for="price_tier" :value="__('Default Pricing Tier')" />
+                                        <select id="price_tier" name="price_tier"
+                                            class="block mt-1 w-full border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-sm transition duration-150">
+                                            <option value="wholesale" {{ old('price_tier', $party->price_tier ?? 'wholesale') == 'wholesale' ? 'selected' : '' }}>Wholesale Rate (Normal)</option>
+                                            <option value="retail" {{ old('price_tier', $party->price_tier ?? 'wholesale') == 'retail' ? 'selected' : '' }}>Retail Rate (Aam Grahak)</option>
+                                            <option value="dealer" {{ old('price_tier', $party->price_tier ?? 'wholesale') == 'dealer' ? 'selected' : '' }}>Dealer / Bulk Rate</option>
+                                        </select>
+                                        <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Rates will automatically apply when billing this customer.</p>
+                                        <x-input-error :messages="$errors->get('price_tier')" class="mt-2" />
+                                    </div>
                                     <div>
                                         <x-input-label for="credit_limit" :value="__('Credit Limit (Rs.)')" />
                                         <x-text-input id="credit_limit" class="block mt-1 w-full bg-white dark:bg-gray-900" type="number"

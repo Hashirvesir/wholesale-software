@@ -14,6 +14,9 @@ class Product extends Model
         'brand_id',
         'unit_id',
         'sale_price',
+        'wholesale_price',
+        'retail_price',
+        'dealer_price',
         'alert_quantity',
         'status'
     ];
@@ -55,6 +58,21 @@ class Product extends Model
             $query->where('warehouse_id', $warehouseId);
         }
         return (float) $query->sum('qty');
+    }
+
+    public function getPriceForTier(?string $tier): float
+    {
+        $tier = strtolower($tier ?? 'wholesale');
+        if ($tier === 'retail' && $this->retail_price !== null && (float) $this->retail_price > 0) {
+            return (float) $this->retail_price;
+        }
+        if ($tier === 'dealer' && $this->dealer_price !== null && (float) $this->dealer_price > 0) {
+            return (float) $this->dealer_price;
+        }
+        if ($tier === 'wholesale' && $this->wholesale_price !== null && (float) $this->wholesale_price > 0) {
+            return (float) $this->wholesale_price;
+        }
+        return (float) $this->sale_price;
     }
 
     public function getBarcodeSVG()

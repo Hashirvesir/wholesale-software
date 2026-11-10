@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Payment extends Model
 {
     protected $fillable = [
-        'offline_id', 'party_id', 'warehouse_id', 'from_account_id', 'amount', 'payment_type', 'date', 'note'
+        'offline_id', 'party_id', 'warehouse_id', 'salesman_id', 'from_account_id', 'amount', 'payment_type', 'date', 'note'
     ];
 
     public function party()
@@ -22,5 +22,10 @@ class Payment extends Model
     public function warehouse()
     {
         return $this->belongsTo(Warehouse::class);
+    }
+
+    public function salesman()
+    {
+        return $this->belongsTo(User::class, 'salesman_id');
     }
 }

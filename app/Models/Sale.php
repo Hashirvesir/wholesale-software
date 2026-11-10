@@ -10,6 +10,7 @@ class Sale extends Model
         'offline_id',
         'party_id',
         'warehouse_id',
+        'salesman_id',
         'account_id',
         'date',
         'total_amount',
@@ -31,6 +32,11 @@ class Sale extends Model
     public function warehouse()
     {
         return $this->belongsTo(Warehouse::class);
+    }
+
+    public function salesman()
+    {
+        return $this->belongsTo(User::class, 'salesman_id');
     }
 
     public function items()

@@ -234,4 +234,34 @@ class WholesaleFeaturesTest extends TestCase
         $posResponse->assertOk();
         $posResponse->assertSee('Credit Limit');
     }
+
+    public function test_product_multi_tier_pricing_and_party_assignment(): void
+    {
+        $this->product->update([
+            'sale_price' => 1000.00,
+            'wholesale_price' => 950.00,
+            'retail_price' => 1100.00,
+            'dealer_price' => 900.00,
+        ]);
+
+        $this->assertEquals(950.00, $this->product->getPriceForTier('wholesale'));
+        $this->assertEquals(1100.00, $this->product->getPriceForTier('retail'));
+        $this->assertEquals(900.00, $this->product->getPriceForTier('dealer'));
+        $this->assertEquals(1000.00, $this->product->getPriceForTier('unknown'));
+
+        // Quick add customer from POS with price_tier
+        $posCustResponse = $this->actingAs($this->user)->postJson(route('pos.quick-add-customer'), [
+            'name' => 'Dealer Imran',
+            'phone' => '03331112233',
+            'price_tier' => 'dealer',
+            'opening_balance' => 0,
+            'balance_type' => 'debit',
+        ]);
+
+        $posCustResponse->assertOk()->assertJson(['success' => true]);
+        $this->assertDatabaseHas('parties', [
+            'name' => 'Dealer Imran',
+            'price_tier' => 'dealer',
+        ]);
+    }
 }

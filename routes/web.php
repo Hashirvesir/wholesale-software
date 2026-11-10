@@ -58,6 +58,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('parties', PartyController::class)->middleware('permission:view parties');
     Route::resource('chart-of-accounts', ChartOfAccountController::class)->middleware('permission:view chart of accounts');
     Route::resource('purchases', PurchaseController::class)->middleware('permission:view purchases');
+    Route::post('/purchase-orders/{purchase_order}/receive', [\App\Http\Controllers\PurchaseOrderController::class, 'receiveGoods'])->name('purchase-orders.receive');
+    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->middleware('permission:view purchases');
     Route::get('/sales/customer-last-price', [SaleController::class, 'customerLastPrice'])->name('sales.customer-last-price');
     Route::resource('sales', SaleController::class)->middleware('permission:view sales');
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
@@ -69,6 +71,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('quotations', QuotationController::class);
     Route::resource('cargo-charges', CargoChargeController::class)->middleware('permission:view cargo charges');
     Route::resource('payments', PaymentController::class)->middleware('permission:view payments');
+    Route::post('cheques/{cheque}/deposit', [\App\Http\Controllers\ChequeController::class, 'deposit'])->name('cheques.deposit');
+    Route::post('cheques/{cheque}/clear', [\App\Http\Controllers\ChequeController::class, 'clear'])->name('cheques.clear');
+    Route::post('cheques/{cheque}/bounce', [\App\Http\Controllers\ChequeController::class, 'bounce'])->name('cheques.bounce');
+    Route::resource('cheques', \App\Http\Controllers\ChequeController::class)->middleware('permission:view payments');
     Route::resource('account-transfers', AccountTransferController::class)->middleware('permission:view account transfers');
     Route::resource('stock-transfers', StockTransferController::class)->middleware('permission:view stock transfers');
     Route::resource('stock-adjustments', \App\Http\Controllers\StockAdjustmentController::class)->middleware('permission:view stock adjustments');
@@ -110,6 +116,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports/sales-analysis', [ReportController::class, 'salesAnalysis'])->name('reports.sales-analysis')->middleware('permission:view sales analysis report');
     Route::get('/reports/returns-summary', [ReportController::class, 'returnsSummary'])->name('reports.returns-summary')->middleware('permission:view returns summary');
     Route::get('/reports/cargo-charges', [ReportController::class, 'cargoChargesReport'])->name('reports.cargo-charges')->middleware('permission:view cargo charges report');
+    Route::get('/reports/salesman-performance', [ReportController::class, 'salesmanPerformance'])->name('reports.salesman-performance')->middleware('permission:view sales');
 
     // Quick Add Routes (Returning JSON for Alpine.js)
     Route::post('/quick-add-category', function (Request $request) {

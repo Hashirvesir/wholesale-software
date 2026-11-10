@@ -91,6 +91,9 @@ class ProductController extends Controller implements HasMiddleware
             'brand_id' => 'required|exists:brands,id',
             'unit_id' => 'required|exists:units,id',
             'sale_price' => 'required|numeric|min:0',
+            'wholesale_price' => 'nullable|numeric|min:0',
+            'retail_price' => 'nullable|numeric|min:0',
+            'dealer_price' => 'nullable|numeric|min:0',
             'alert_quantity' => 'required|numeric|min:0',
             'status' => 'required|boolean',
         ]);
@@ -120,6 +123,9 @@ class ProductController extends Controller implements HasMiddleware
             'brand_id' => 'required|exists:brands,id',
             'unit_id' => 'required|exists:units,id',
             'sale_price' => 'required|numeric|min:0',
+            'wholesale_price' => 'nullable|numeric|min:0',
+            'retail_price' => 'nullable|numeric|min:0',
+            'dealer_price' => 'nullable|numeric|min:0',
             'alert_quantity' => 'required|numeric|min:0',
             'status' => 'required|boolean',
         ]);

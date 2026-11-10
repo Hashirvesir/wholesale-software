@@ -115,14 +115,25 @@
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            <span
-                                                class="px-2 py-0.5 rounded text-xs font-bold uppercase {{ $party->type == 'customer'
-                                                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                                                    : ($party->type == 'vendor'
-                                                        ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
-                                                        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200') }}">
-                                                {{ $party->type }}
-                                            </span>
+                                            <div class="flex flex-col gap-1 items-start">
+                                                <span
+                                                    class="px-2 py-0.5 rounded text-xs font-bold uppercase {{ $party->type == 'customer'
+                                                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                                                        : ($party->type == 'vendor'
+                                                            ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+                                                            : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200') }}">
+                                                    {{ $party->type }}
+                                                </span>
+                                                @if ($party->type === 'customer')
+                                                    @if (($party->price_tier ?? 'wholesale') === 'retail')
+                                                        <span class="px-1.5 py-0.2 rounded text-[10px] font-medium bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300">Retail Rate</span>
+                                                    @elseif (($party->price_tier ?? 'wholesale') === 'dealer')
+                                                        <span class="px-1.5 py-0.2 rounded text-[10px] font-medium bg-indigo-100 dark:bg-indigo-900/40 text-indigo-800 dark:text-indigo-300">Dealer Rate</span>
+                                                    @else
+                                                        <span class="px-1.5 py-0.2 rounded text-[10px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">Wholesale</span>
+                                                    @endif
+                                                @endif
+                                            </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                                             <span class="text-gray-500">Rs.
