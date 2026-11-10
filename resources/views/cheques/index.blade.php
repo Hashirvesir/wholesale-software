@@ -1,5 +1,6 @@
 <x-app-layout>
     <div class="py-8" x-data="{
+        submitting: false,
         depositModalOpen: false,
         clearModalOpen: false,
         bounceModalOpen: false,
@@ -11,16 +12,19 @@
         bounceReason: '',
 
         openDeposit(cheque) {
+            this.submitting = false;
             this.activeCheque = cheque;
             this.selectedBankId = cheque.bank_account_id || '';
             this.depositModalOpen = true;
         },
         openClear(cheque) {
+            this.submitting = false;
             this.activeCheque = cheque;
             this.selectedBankId = cheque.bank_account_id || '';
             this.clearModalOpen = true;
         },
         openBounce(cheque) {
+            this.submitting = false;
             this.activeCheque = cheque;
             this.bounceReason = '';
             this.bounceModalOpen = true;
@@ -304,7 +308,7 @@
             <div @click.away="depositModalOpen = false" class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full shadow-2xl p-6 border border-gray-100 dark:border-gray-700">
                 <h3 class="text-base font-black text-gray-900 dark:text-gray-100 uppercase mb-3">Deposit Cheque to Bank</h3>
                 <template x-if="activeCheque">
-                    <form :action="'/cheques/' + activeCheque.id + '/deposit'" method="POST" class="space-y-4">
+                    <form :action="'/cheques/' + activeCheque.id + '/deposit'" method="POST" @submit="if(submitting){ $event.preventDefault(); return; } submitting = true;" class="space-y-4">
                         @csrf
                         <div>
                             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Select Bank Account *</label>
@@ -323,7 +327,10 @@
                         </div>
                         <div class="pt-3 flex justify-end gap-2 border-t dark:border-gray-700">
                             <button type="button" @click="depositModalOpen = false" class="px-4 py-2 text-xs font-bold rounded-xl border dark:border-gray-600">Cancel</button>
-                            <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white">Deposit to Bank</button>
+                            <button type="submit" :disabled="submitting" :class="submitting ? 'opacity-50 cursor-not-allowed' : ''" class="px-4 py-2 text-xs font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white">
+                                <span x-show="!submitting">Deposit to Bank</span>
+                                <span x-show="submitting">Processing...</span>
+                            </button>
                         </div>
                     </form>
                 </template>
@@ -336,7 +343,7 @@
                 <h3 class="text-base font-black text-gray-900 dark:text-gray-100 uppercase mb-1">Clear Cheque & Post Ledger</h3>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Clearing this cheque will officially update customer ledger and bank accounts.</p>
                 <template x-if="activeCheque">
-                    <form :action="'/cheques/' + activeCheque.id + '/clear'" method="POST" class="space-y-4">
+                    <form :action="'/cheques/' + activeCheque.id + '/clear'" method="POST" @submit="if(submitting){ $event.preventDefault(); return; } submitting = true;" class="space-y-4">
                         @csrf
                         <div>
                             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Bank Account *</label>
@@ -355,7 +362,10 @@
                         </div>
                         <div class="pt-3 flex justify-end gap-2 border-t dark:border-gray-700">
                             <button type="button" @click="clearModalOpen = false" class="px-4 py-2 text-xs font-bold rounded-xl border dark:border-gray-600">Cancel</button>
-                            <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white">Confirm Clearance</button>
+                            <button type="submit" :disabled="submitting" :class="submitting ? 'opacity-50 cursor-not-allowed' : ''" class="px-4 py-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white">
+                                <span x-show="!submitting">Confirm Clearance</span>
+                                <span x-show="submitting">Processing...</span>
+                            </button>
                         </div>
                     </form>
                 </template>
@@ -367,7 +377,7 @@
             <div @click.away="bounceModalOpen = false" class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full shadow-2xl p-6 border border-gray-100 dark:border-gray-700">
                 <h3 class="text-base font-black text-rose-600 uppercase mb-2">Mark Cheque as Bounced</h3>
                 <template x-if="activeCheque">
-                    <form :action="'/cheques/' + activeCheque.id + '/bounce'" method="POST" class="space-y-4">
+                    <form :action="'/cheques/' + activeCheque.id + '/bounce'" method="POST" @submit="if(submitting){ $event.preventDefault(); return; } submitting = true;" class="space-y-4">
                         @csrf
                         <div>
                             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Bounced Date *</label>
@@ -382,7 +392,10 @@
                         </div>
                         <div class="pt-3 flex justify-end gap-2 border-t dark:border-gray-700">
                             <button type="button" @click="bounceModalOpen = false" class="px-4 py-2 text-xs font-bold rounded-xl border dark:border-gray-600">Cancel</button>
-                            <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl bg-rose-600 hover:bg-rose-700 text-white">Confirm Bounce</button>
+                            <button type="submit" :disabled="submitting" :class="submitting ? 'opacity-50 cursor-not-allowed' : ''" class="px-4 py-2 text-xs font-bold rounded-xl bg-rose-600 hover:bg-rose-700 text-white">
+                                <span x-show="!submitting">Confirm Bounce</span>
+                                <span x-show="submitting">Processing...</span>
+                            </button>
                         </div>
                     </form>
                 </template>

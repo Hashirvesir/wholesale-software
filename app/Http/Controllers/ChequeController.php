@@ -137,6 +137,18 @@ class ChequeController extends Controller implements HasMiddleware
             $validated['warehouse_id'] = $settings->shop_warehouse_id ?? Warehouse::first()?->id;
         }
 
+        // Prevent duplicate double submission within 15 seconds
+        $recentDuplicate = Cheque::where('party_id', $validated['party_id'])
+            ->where('cheque_number', $validated['cheque_number'])
+            ->where('amount', $validated['amount'])
+            ->where('type', $validated['type'])
+            ->where('created_at', '>=', now()->subSeconds(15))
+            ->first();
+
+        if ($recentDuplicate) {
+            return redirect()->route('cheques.index')->with('warning', 'Cheque #' . $validated['cheque_number'] . ' was already recorded just now. Duplicate entry prevented.');
+        }
+
         $validated['created_by'] = auth()->id();
         $validated['status'] = 'pending';
 
@@ -228,6 +240,10 @@ class ChequeController extends Controller implements HasMiddleware
 
     public function clear(Request $request, Cheque $cheque)
     {
+        if ($cheque->status === 'cleared') {
+            return redirect()->back()->with('error', 'This cheque has already been cleared.');
+        }
+
         $validated = $request->validate([
             'bank_account_id' => 'nullable|exists:chart_of_accounts,id',
             'cleared_date' => 'required|date',
@@ -340,6 +356,10 @@ class ChequeController extends Controller implements HasMiddleware
 
     public function bounce(Request $request, Cheque $cheque)
     {
+        if ($cheque->status === 'bounced') {
+            return redirect()->back()->with('error', 'This cheque has already been marked as bounced.');
+        }
+
         $validated = $request->validate([
             'bounced_date' => 'required|date',
             'bounce_reason' => 'required|string|max:500',

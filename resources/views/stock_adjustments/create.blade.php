@@ -163,8 +163,11 @@
                             <div class="flex items-center justify-end">
                                 <a href="{{ route('stock-adjustments.index') }}"
                                     class="mr-6 text-sm text-gray-500 hover:text-gray-800 font-bold tracking-widest uppercase">Cancel</a>
-                                <x-primary-button class="!px-12 !py-4 !text-sm !rounded-xl !shadow-2xl">
-                                    {{ __('Finalize Adjustment') }}
+                                <x-primary-button class="!px-12 !py-4 !text-sm !rounded-xl !shadow-2xl"
+                                    x-bind:disabled="submitting"
+                                    x-bind:class="submitting ? 'opacity-50 cursor-not-allowed' : ''">
+                                    <span x-show="!submitting">{{ __('Finalize Adjustment') }}</span>
+                                    <span x-show="submitting">Processing...</span>
                                 </x-primary-button>
                             </div>
                         </div>
@@ -177,6 +180,7 @@
     <script>
         function adjustmentForm() {
             return {
+                submitting: false,
                 warehouse_id: '',
                 items: [{
                     product_id: '',
@@ -278,6 +282,8 @@
                 },
 
                 submitForm(e) {
+                    if (this.submitting) return;
+
                     if (!this.warehouse_id) {
                         alert('Please select a warehouse.');
                         return;
@@ -300,6 +306,7 @@
 
                     if (hasError) return;
 
+                    this.submitting = true;
                     e.target.submit();
                 }
             }

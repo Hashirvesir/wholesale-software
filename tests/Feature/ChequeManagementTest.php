@@ -105,6 +105,21 @@ class ChequeManagementTest extends TestCase
             'status' => 'pending',
             'type' => 'received',
         ]);
+
+        // Attempt duplicate submission immediately
+        $dupResponse = $this->actingAs($this->user)->post(route('cheques.store'), [
+            'type' => 'received',
+            'party_id' => $this->customer->id,
+            'warehouse_id' => $this->warehouse->id,
+            'cheque_number' => 'CHQ-998877',
+            'drawer_bank' => 'Allied Bank',
+            'amount' => 50000.00,
+            'issue_date' => now()->toDateString(),
+            'due_date' => now()->addDays(10)->toDateString(),
+        ]);
+        $dupResponse->assertSessionHas('warning');
+        // Cheques count should still be 1
+        $this->assertEquals(1, Cheque::where('cheque_number', 'CHQ-998877')->count());
     }
 
     public function test_can_deposit_cheque_to_bank(): void

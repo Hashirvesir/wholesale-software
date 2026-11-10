@@ -72,6 +72,17 @@ class StockAdjustmentController extends Controller implements HasMiddleware
             'note' => 'nullable|string',
         ]);
 
+        // Prevent duplicate double submission within 10 seconds
+        $recentAdjustment = StockAdjustment::where('warehouse_id', $request->warehouse_id)
+            ->where('user_id', Auth::id())
+            ->where('created_at', '>=', now()->subSeconds(10))
+            ->latest()
+            ->first();
+
+        if ($recentAdjustment) {
+            return redirect()->route('stock-adjustments.index')->with('warning', 'Adjustment was already recorded just now. Duplicate prevented.');
+        }
+
         try {
             DB::beginTransaction();
 

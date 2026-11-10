@@ -213,11 +213,14 @@
                                 Cancel
                             </a>
                             <button type="submit"
+                                :disabled="submitting"
+                                :class="submitting ? 'opacity-50 cursor-not-allowed' : ''"
                                 class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition shadow-md flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                 </svg>
-                                <span>Save Cheque</span>
+                                <span x-show="!submitting">Save Cheque</span>
+                                <span x-show="submitting">Saving...</span>
                             </button>
                         </div>
 
@@ -230,6 +233,7 @@
     <script>
         function chequeForm() {
             return {
+                submitting: false,
                 type: '{{ old('type', $type ?? 'received') }}',
                 party_id: '{{ old('party_id', '') }}',
                 parties: @json($parties),
@@ -315,12 +319,16 @@
                 },
 
                 submitForm(e) {
+                    if (this.submitting) return;
+
                     if (!this.party_id) {
                         this.errors.party_id = true;
                         this.partySearchOpen = true;
                         alert('Please select a valid ' + (this.type === 'received' ? 'Customer' : 'Vendor / Supplier') + ' from the list.');
                         return;
                     }
+
+                    this.submitting = true;
                     e.target.submit();
                 }
             };

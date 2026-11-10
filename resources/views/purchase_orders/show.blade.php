@@ -236,7 +236,7 @@
                     <button type="button" @click="receiveModalOpen = false" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
                 </div>
 
-                <form action="{{ route('purchase-orders.receive', $purchaseOrder) }}" method="POST" class="space-y-4">
+                <form action="{{ route('purchase-orders.receive', $purchaseOrder) }}" method="POST" @submit="if(submitting){ $event.preventDefault(); return; } submitting = true;" class="space-y-4">
                     @csrf
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -302,8 +302,9 @@
 
                     <div class="pt-4 flex justify-end gap-2 border-t dark:border-gray-700">
                         <button type="button" @click="receiveModalOpen = false" class="px-4 py-2 text-xs font-bold rounded-xl border dark:border-gray-600">Cancel</button>
-                        <button type="submit" class="px-5 py-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white uppercase tracking-wider">
-                            Confirm Goods Receipt
+                        <button type="submit" :disabled="submitting" :class="submitting ? 'opacity-50 cursor-not-allowed' : ''" class="px-5 py-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white uppercase tracking-wider">
+                            <span x-show="!submitting">Confirm Goods Receipt</span>
+                            <span x-show="submitting">Processing...</span>
                         </button>
                     </div>
                 </form>
@@ -332,6 +333,7 @@
     <script>
         function poShowData() {
             return {
+                submitting: false,
                 receiveModalOpen: false,
                 receivingDate: '{{ now()->toDateString() }}',
                 warehouseId: '{{ $purchaseOrder->warehouse_id }}',
