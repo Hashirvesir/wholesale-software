@@ -74,6 +74,16 @@ class ChequeManagementTest extends TestCase
         $response->assertSee('Cheque & PDC Management', false);
     }
 
+    public function test_cheque_create_page_renders_with_parties_and_search(): void
+    {
+        $response = $this->actingAs($this->user)->get(route('cheques.create'));
+        $response->assertOk();
+        $response->assertSee('Register Cheque / PDC', false);
+        $response->assertSee('chequeForm()', false);
+        $response->assertSee($this->customer->name, false);
+        $response->assertSee($this->vendor->name, false);
+    }
+
     public function test_can_register_received_and_issued_cheques(): void
     {
         $response = $this->actingAs($this->user)->post(route('cheques.store'), [

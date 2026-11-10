@@ -100,10 +100,15 @@ class ChequeController extends Controller implements HasMiddleware
     public function create(Request $request)
     {
         $type = $request->get('type', 'received');
-        $parties = Party::where('status', true)
-            ->when($type === 'received', fn ($q) => $q->where('type', 'customer'))
-            ->when($type === 'issued', fn ($q) => $q->whereIn('type', ['vendor', 'cargo']))
-            ->get();
+        $parties = Party::where('status', true)->get()->map(function ($party) {
+            return [
+                'id' => $party->id,
+                'name' => $party->name,
+                'type' => $party->type,
+                'phone' => $party->phone ?? '',
+                'balance' => (float)$party->getCurrentBalance(),
+            ];
+        });
 
         $bankAccounts = ChartOfAccount::where('type', 'Asset')->where('status', true)->get();
         $warehouses = Warehouse::where('status', true)->get();
