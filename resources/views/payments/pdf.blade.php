@@ -226,9 +226,12 @@
             <div class="right-box">
                 <div
                     style="font-weight: bold; text-transform: uppercase; color: #888; font-size: 10px; margin-bottom: 5px;">
-                    Payment Method</div>
+                    Payment Method & Shop</div>
                 <div style="font-size: 16px; font-weight: bold;">{{ $payment->account->name }}</div>
                 <div>{{ $payment->account->type }} Account</div>
+                <div style="margin-top: 6px; font-size: 12px; color: #1e40af; font-weight: bold;">
+                    Shop / Branch: {{ $payment->warehouse->name ?? 'Default (Head Office)' }}
+                </div>
             </div>
         </div>
 

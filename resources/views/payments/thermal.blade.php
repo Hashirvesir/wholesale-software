@@ -114,6 +114,10 @@
 
     <div class="mb-2">
         <div class="row">
+            <span><strong>Shop / Branch:</strong></span>
+            <span>{{ $payment->warehouse->name ?? 'Default (Shop)' }}</span>
+        </div>
+        <div class="row">
             <span><strong>Party:</strong></span>
             <span>{{ $payment->party->name }}</span>
         </div>

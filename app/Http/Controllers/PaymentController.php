@@ -81,8 +81,9 @@ class PaymentController extends Controller implements HasMiddleware
             ->where('status', true)
             ->get();
         $warehouses = \App\Models\Warehouse::where('status', true)->get();
+        $settings = \App\Models\Setting::first();
         
-        return view('payments.create', compact('parties', 'accounts', 'warehouses'));
+        return view('payments.create', compact('parties', 'accounts', 'warehouses', 'settings'));
     }
 
     public function store(Request $request)
@@ -103,9 +104,14 @@ class PaymentController extends Controller implements HasMiddleware
         ]);
 
         $payment = DB::transaction(function () use ($request) {
-            $payment = Payment::create($request->all());
+            $settings = \App\Models\Setting::first();
+            $warehouseId = $request->warehouse_id ?: ($settings->shop_warehouse_id ?? \App\Models\Warehouse::first()->id ?? 1);
+
+            $paymentData = $request->all();
+            $paymentData['warehouse_id'] = $warehouseId;
+            $payment = Payment::create($paymentData);
+
             $party = Party::findOrFail($payment->party_id);
-            $warehouseId = $request->warehouse_id ?? \App\Models\Warehouse::first()->id ?? 1; // Default to first warehouse if not selected
 
             $receivableAcc = ChartOfAccount::where('name', 'Accounts Receivable')->first();
             $payableAcc = ChartOfAccount::where('name', 'Accounts Payable')->first();
@@ -182,7 +188,7 @@ class PaymentController extends Controller implements HasMiddleware
 
     public function show(Payment $payment)
     {
-        $payment->load(['party', 'account']);
+        $payment->load(['party', 'account', 'warehouse']);
         $settings = \App\Models\Setting::first();
         return view('payments.show', compact('payment', 'settings'));
     }
@@ -201,7 +207,7 @@ class PaymentController extends Controller implements HasMiddleware
 
     public function downloadPdf(Payment $payment)
     {
-        $payment->load(['party', 'account']);
+        $payment->load(['party', 'account', 'warehouse']);
         $settings = \App\Models\Setting::first();
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('payments.pdf', compact('payment', 'settings'));
         return $pdf->download('payment-receipt-' . $payment->id . '.pdf');
@@ -209,7 +215,7 @@ class PaymentController extends Controller implements HasMiddleware
 
     public function thermalPrint(Payment $payment)
     {
-        $payment->load(['party', 'account']);
+        $payment->load(['party', 'account', 'warehouse']);
         $settings = \App\Models\Setting::first();
         
         $currentBalance = $payment->party->getCurrentBalance();

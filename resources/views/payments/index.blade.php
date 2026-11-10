@@ -28,7 +28,7 @@
                     <div
                         class="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 mb-6">
                         <form action="{{ route('payments.index') }}" method="GET"
-                            class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                            class="grid grid-cols-1 md:grid-cols-6 gap-4">
                             <!-- Search -->
                             <div class="md:col-span-2">
                                 <label for="search"
@@ -37,6 +37,21 @@
                                 <input type="text" name="search" id="search" value="{{ request('search') }}"
                                     placeholder="Search..."
                                     class="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-primary-500 focus:border-primary-500 dark:text-gray-100 italic">
+                            </div>
+
+                            <!-- Shop / Warehouse -->
+                            <div>
+                                <label for="warehouse_id"
+                                    class="block text-xs font-black uppercase text-gray-500 mb-1 tracking-widest">Shop / Warehouse</label>
+                                <select name="warehouse_id" id="warehouse_id"
+                                    class="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-primary-500 focus:border-primary-500 dark:text-gray-100">
+                                    <option value="">All Shops</option>
+                                    @foreach ($warehouses as $wh)
+                                        <option value="{{ $wh->id }}" {{ request('warehouse_id') == $wh->id ? 'selected' : '' }}>
+                                            {{ $wh->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
 
                             <!-- Payment Type -->
@@ -119,6 +134,7 @@
                                     <th class="px-6 py-4">Date</th>
                                     <th class="px-6 py-4">Type</th>
                                     <th class="px-6 py-4">Party</th>
+                                    <th class="px-6 py-4">Shop / Branch</th>
                                     <th class="px-6 py-4">Account</th>
                                     <th class="px-6 py-4 text-right">Amount</th>
                                     <th class="px-6 py-4">Note</th>
@@ -142,6 +158,12 @@
                                                 class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition hover:underline">
                                                 {{ $payment->party->name }}
                                             </a>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                                <svg class="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                                <span>{{ $payment->warehouse->name ?? 'Default (Shop)' }}</span>
+                                            </span>
                                         </td>
                                         <td class="px-6 py-4 italic text-gray-500 dark:text-gray-400">
                                             {{ $payment->account->name }}</td>
@@ -214,7 +236,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7"
+                                        <td colspan="9"
                                             class="px-6 py-12 text-center text-gray-500 dark:text-gray-400 italic"> No
                                             payments recorded yet.</td>
                                     </tr>

@@ -175,16 +175,15 @@
                                 </div>
                             </div>
 
-                            <!-- Warehouse / Branch -->
+                            <!-- Shop / Warehouse -->
                             <div>
                                 <label class="block text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
-                                    Warehouse / Branch
+                                    Shop / Warehouse *
                                 </label>
-                                <select name="warehouse_id" id="warehouse_id"
+                                <select name="warehouse_id" id="warehouse_id" required
                                     class="w-full text-xs font-bold rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500 shadow-sm">
-                                    <option value="">Default (Head Office)</option>
                                     @foreach ($warehouses as $warehouse)
-                                        <option value="{{ $warehouse->id }}" {{ old('warehouse_id') == $warehouse->id ? 'selected' : '' }}>
+                                        <option value="{{ $warehouse->id }}" {{ (old('warehouse_id', $settings->shop_warehouse_id ?? '') == $warehouse->id) ? 'selected' : '' }}>
                                             {{ $warehouse->name }}
                                         </option>
                                     @endforeach

@@ -36,6 +36,11 @@
                                         Payment Paid
                                     </span>
                                 @endif
+
+                                <span class="px-3 py-1 text-[11px] font-black uppercase tracking-wider rounded-full border bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700 flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                    <span>Shop: {{ $payment->warehouse->name ?? 'Default (Head Office)' }}</span>
+                                </span>
                             </div>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 Voucher Date: <span class="font-bold text-gray-700 dark:text-gray-300">{{ \Carbon\Carbon::parse($payment->date)->format('d M, Y') }}</span>
@@ -144,9 +149,12 @@
                                 <span class="text-gray-500">Account Type:</span>
                                 <span class="font-bold uppercase text-[11px]">{{ $payment->account->type }}</span>
                             </div>
-                            <div class="text-xs text-gray-700 dark:text-gray-300 flex justify-between py-1 border-b border-gray-200/50 dark:border-gray-700/50">
-                                <span class="text-gray-500">Warehouse/Shop:</span>
-                                <span class="font-bold">{{ $payment->warehouse->name ?? 'Default (Head Office)' }}</span>
+                            <div class="text-xs text-gray-700 dark:text-gray-300 flex justify-between py-1.5 border-b border-gray-200/50 dark:border-gray-700/50 bg-blue-50/50 dark:bg-blue-950/20 px-2 rounded-lg my-1">
+                                <span class="font-bold text-blue-800 dark:text-blue-300 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                    Shop / Branch:
+                                </span>
+                                <span class="font-black text-blue-900 dark:text-blue-200">{{ $payment->warehouse->name ?? 'Default (Head Office)' }}</span>
                             </div>
                             <div class="text-xs text-gray-700 dark:text-gray-300 flex justify-between py-1">
                                 <span class="text-gray-500">Voucher Type:</span>
