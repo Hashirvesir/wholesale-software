@@ -132,4 +132,48 @@ class AiFeaturesTest extends TestCase
         ]);
         $this->assertStringContainsString('Aaj ki sales stable hain', $response->json('briefing'));
     }
+
+    public function test_ai_audit_service_reconciles_accounts_receivable(): void
+    {
+        $ar = \App\Models\ChartOfAccount::create([
+            'name' => 'Accounts Receivable',
+            'type' => 'Asset',
+            'opening_balance' => 0,
+            'balance_type' => 'debit',
+            'status' => true,
+        ]);
+
+        $customer = Party::create([
+            'name' => 'Bilal Cloth',
+            'type' => 'customer',
+            'opening_balance' => 25000,
+            'balance_type' => 'debit',
+            'status' => true,
+        ]);
+
+        $auditService = app(\App\Services\AiAuditService::class);
+        $arAudit = $auditService->auditAccountsReceivable();
+
+        $this->assertEquals(0, $arAudit['gl_balance']);
+        $this->assertEquals(25000, $arAudit['customer_subledger_total']);
+        $this->assertEquals(25000, $arAudit['party_opening_net']);
+        $this->assertTrue($arAudit['is_perfectly_reconciled']);
+    }
+
+    public function test_ai_context_provider_injects_audit_on_audit_prompt(): void
+    {
+        \App\Models\ChartOfAccount::create([
+            'name' => 'Accounts Receivable',
+            'type' => 'Asset',
+            'opening_balance' => 0,
+            'balance_type' => 'debit',
+            'status' => true,
+        ]);
+
+        $provider = app(AiContextProvider::class);
+        $context = $provider->getLiveContext('**General Ledger Accounts Receivable:** is ko check karo');
+
+        $this->assertStringContainsString('GENERAL LEDGER AUDIT: ACCOUNTS RECEIVABLE', $context);
+        $this->assertStringContainsString('MATHEMATICAL RECONCILIATION', strtoupper($context));
+    }
 }

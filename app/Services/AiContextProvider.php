@@ -18,6 +18,12 @@ use Illuminate\Support\Facades\DB;
 
 class AiContextProvider
 {
+    protected AiAuditService $auditService;
+
+    public function __construct(?AiAuditService $auditService = null)
+    {
+        $this->auditService = $auditService ?? new AiAuditService();
+    }
     /**
      * Build a rich text representation of the store's financial, operational, and historical state.
      * Optionally takes the user prompt to dynamically pull targeted data for specific parties, products, or periods.
@@ -190,7 +196,13 @@ class AiContextProvider
 
         $ctx .= "=== 3. CHART OF ACCOUNTS & CASH/BANK BALANCES ===\n";
         foreach ($accountBalances as $acc) {
-            $ctx .= "- {$acc['name']} ({$acc['type']}): {$currency} " . number_format($acc['balance'], 2) . "\n";
+            $ctx .= "- {$acc['name']} ({$acc['type']}): {$currency} " . number_format($acc['balance'], 2);
+            if ($acc['name'] === 'Accounts Receivable') {
+                $ctx .= " [Note: Control account balance from transactions. Reconciles with Customer Udhaar when Customer Opening Balances are added]";
+            } elseif ($acc['name'] === 'Accounts Payable') {
+                $ctx .= " [Note: Control account balance from transactions. Reconciles with Vendor Payables when Vendor Opening Balances are added]";
+            }
+            $ctx .= "\n";
         }
         $ctx .= "\n";
 
@@ -202,7 +214,8 @@ class AiContextProvider
         $ctx .= "- Today Direct Expenses: {$currency} " . number_format($todayExpenses, 2) . "\n\n";
 
         $ctx .= "=== 5. MARKET RECEIVABLES (Customer Udhaar/Baaqi) ===\n";
-        $ctx .= "- Total Market Receivables: {$currency} " . number_format($totalReceivableAmount, 2) . "\n";
+        $ctx .= "- Total Market Receivables (Sub-ledger sum): {$currency} " . number_format($totalReceivableAmount, 2) . "\n";
+        $ctx .= "- GL Accounts Receivable Balance: {$currency} " . number_format($accountBalances[array_search('Accounts Receivable', array_column($accountBalances, 'name'))]['balance'] ?? 0, 2) . "\n";
         $ctx .= "- Top Outstanding Customers:\n";
         foreach ($topReceivables as $c) {
             $ctx .= "  * {$c['name']}: {$currency} " . number_format($c['balance'], 2) . " (Phone: {$c['phone']}, Terms: {$c['credit_days']}d)\n";
@@ -237,8 +250,13 @@ class AiContextProvider
             }
         }
 
+        if ($this->auditService->isAuditRelatedQuery($userPrompt)) {
+            $ctx .= "\n" . $this->auditService->getFullAuditSummaryText() . "\n";
+            $ctx .= $this->auditService->getArAuditText() . "\n";
+        }
+
         if (!empty($dynamicContext)) {
-            $ctx .= "\n=== 9. SPECIFIC SEARCH RESULTS FOR USER QUERY ===\n" . $dynamicContext;
+            $ctx .= "\n=== SPECIFIC ENTITY SEARCH RESULTS FOR USER QUERY ===\n" . $dynamicContext;
         }
 
         return $ctx;
