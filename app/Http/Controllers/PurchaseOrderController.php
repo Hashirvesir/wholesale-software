@@ -93,9 +93,16 @@ class PurchaseOrderController extends Controller implements HasMiddleware
 
     public function create()
     {
-        $vendors = Party::where('type', 'vendor')->where('status', true)->get();
+        $vendors = Party::where('type', 'vendor')->where('status', true)->get()->map(function ($v) {
+            $v->current_balance = (float)$v->getCurrentBalance();
+            return $v;
+        });
         $warehouses = Warehouse::where('status', true)->get();
-        $products = Product::where('status', 1)->get();
+        $products = Product::where('status', true)->get()->map(function ($p) {
+            $p->current_stock = (float)$p->getCurrentStock();
+            $p->warehouse_stocks = $p->stocks->pluck('qty', 'warehouse_id');
+            return $p;
+        });
         $settings = Setting::first();
 
         // Auto-generate next PO number
@@ -107,6 +114,17 @@ class PurchaseOrderController extends Controller implements HasMiddleware
 
     public function store(Request $request)
     {
+        // Normalize price field if price_pkr is passed
+        if ($request->has('items') && is_array($request->items)) {
+            $items = $request->items;
+            foreach ($items as $k => $item) {
+                if (!isset($item['price']) && isset($item['price_pkr'])) {
+                    $items[$k]['price'] = $item['price_pkr'];
+                }
+            }
+            $request->merge(['items' => $items]);
+        }
+
         $validated = $request->validate([
             'po_number' => 'required|string|max:50|unique:purchase_orders,po_number',
             'party_id' => 'required|exists:parties,id',
@@ -125,7 +143,8 @@ class PurchaseOrderController extends Controller implements HasMiddleware
         $po = DB::transaction(function () use ($validated, $request) {
             $totalAmount = 0;
             foreach ($validated['items'] as $item) {
-                $totalAmount += round($item['qty'] * $item['price'], 2);
+                $unitPrice = (float)($item['price'] ?? $item['price_pkr'] ?? 0);
+                $totalAmount += round($item['qty'] * $unitPrice, 2);
             }
 
             $purchaseOrder = PurchaseOrder::create([
@@ -143,13 +162,14 @@ class PurchaseOrderController extends Controller implements HasMiddleware
             ]);
 
             foreach ($validated['items'] as $item) {
-                $lineTotal = round($item['qty'] * $item['price'], 2);
+                $unitPrice = (float)($item['price'] ?? $item['price_pkr'] ?? 0);
+                $lineTotal = round($item['qty'] * $unitPrice, 2);
                 PurchaseOrderItem::create([
                     'purchase_order_id' => $purchaseOrder->id,
                     'product_id' => $item['product_id'],
                     'ordered_qty' => $item['qty'],
                     'received_qty' => 0,
-                    'unit_price' => $item['price'],
+                    'unit_price' => $unitPrice,
                     'total_price' => $lineTotal,
                 ]);
             }

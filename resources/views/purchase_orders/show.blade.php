@@ -1,32 +1,5 @@
 <x-app-layout>
-    <div class="py-8" x-data="{
-        receiveModalOpen: false,
-        receivingDate: '{{ now()->toDateString() }}',
-        warehouseId: '{{ $purchaseOrder->warehouse_id }}',
-        receivingItems: [
-            @foreach ($purchaseOrder->items as $item)
-                @if ($item->getRemainingQty() > 0)
-                {
-                    po_item_id: {{ $item->id }},
-                    product_name: '{{ addslashes($item->product->name ?? 'Product') }}',
-                    ordered_qty: {{ (float)$item->ordered_qty }},
-                    already_received: {{ (float)$item->received_qty }},
-                    remaining_qty: {{ (float)$item->getRemainingQty() }},
-                    unit_price: {{ (float)$item->unit_price }},
-                    receive_qty: {{ (float)$item->getRemainingQty() }}
-                },
-                @endif
-            @endforeach
-        ],
-
-        getTotalReceivingQty() {
-            return this.receivingItems.reduce((sum, i) => sum + (parseFloat(i.receive_qty) || 0), 0);
-        },
-
-        getTotalReceivingValue() {
-            return this.receivingItems.reduce((sum, i) => sum + ((parseFloat(i.receive_qty) || 0) * (parseFloat(i.unit_price) || 0)), 0);
-        }
-    }">
+    <div class="py-8" x-data="poShowData()">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-2xl border border-gray-100 dark:border-gray-700">
                 <div class="p-6 sm:p-8 text-gray-900 dark:text-gray-100">
@@ -338,4 +311,40 @@
         </div>
 
     </div>
+
+    @php
+        $receivingItemsData = [];
+        foreach ($purchaseOrder->items as $item) {
+            if ($item->getRemainingQty() > 0) {
+                $receivingItemsData[] = [
+                    'po_item_id' => $item->id,
+                    'product_name' => $item->product->name ?? 'Product',
+                    'ordered_qty' => (float)$item->ordered_qty,
+                    'already_received' => (float)$item->received_qty,
+                    'remaining_qty' => (float)$item->getRemainingQty(),
+                    'unit_price' => (float)$item->unit_price,
+                    'receive_qty' => (float)$item->getRemainingQty(),
+                ];
+            }
+        }
+    @endphp
+
+    <script>
+        function poShowData() {
+            return {
+                receiveModalOpen: false,
+                receivingDate: '{{ now()->toDateString() }}',
+                warehouseId: '{{ $purchaseOrder->warehouse_id }}',
+                receivingItems: @json($receivingItemsData),
+
+                getTotalReceivingQty() {
+                    return this.receivingItems.reduce((sum, i) => sum + (parseFloat(i.receive_qty) || 0), 0);
+                },
+
+                getTotalReceivingValue() {
+                    return this.receivingItems.reduce((sum, i) => sum + ((parseFloat(i.receive_qty) || 0) * (parseFloat(i.unit_price) || 0)), 0);
+                }
+            };
+        }
+    </script>
 </x-app-layout>

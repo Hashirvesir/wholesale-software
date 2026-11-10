@@ -92,6 +92,17 @@ class PurchaseOrderTest extends TestCase
         $response->assertSee('Purchase Orders (PO)', false);
     }
 
+    public function test_purchase_order_create_page_renders_with_same_layout_and_products(): void
+    {
+        $response = $this->actingAs($this->user)->get(route('purchase-orders.create'));
+        $response->assertOk();
+        $response->assertSee('Create Purchase Order (PO)', false);
+        $response->assertSee('poForm()', false);
+        $response->assertSee($this->vendor->name, false);
+        $response->assertSee($this->product->name, false);
+        $response->assertSee('Destination Warehouse', false);
+    }
+
     public function test_can_create_purchase_order_with_items(): void
     {
         $response = $this->actingAs($this->user)->post(route('purchase-orders.store'), [
