@@ -1,41 +1,41 @@
 <x-app-layout>
-    <div class="py-12">
-        <div class="max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center mb-6">
+    <div class="py-4 sm:py-8 lg:py-12">
+        <div class="max-w-[1750px] mx-auto px-2 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center mb-4 sm:mb-6">
                 <div>
-                    <h3 class="text-2xl font-black text-gray-900 dark:text-gray-100 uppercase tracking-tighter">
+                    <h3 class="text-xl sm:text-2xl font-black text-gray-900 dark:text-gray-100 uppercase tracking-tighter">
                         Daily Collection / Payment Report
                     </h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium italic">
+                    <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium italic">
                         Cash & bank movement across all payment accounts
                     </p>
                 </div>
             </div>
 
             <!-- Summary Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-xl border border-gray-200 dark:border-gray-700 border-l-4 border-l-green-500">
-                    <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Total Received</span>
-                    <div class="text-2xl font-black text-green-600 dark:text-green-400 mt-1">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-8">
+                <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xl border border-gray-200 dark:border-gray-700 border-l-4 border-l-green-500">
+                    <span class="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest">Total Received</span>
+                    <div class="text-xl sm:text-2xl font-black text-green-600 dark:text-green-400 mt-1">
                         {{ $settings->currency_symbol }} {{ number_format($totalReceived, 2) }}
                     </div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-xl border border-gray-200 dark:border-gray-700 border-l-4 border-l-red-500">
-                    <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Total Paid</span>
-                    <div class="text-2xl font-black text-red-600 dark:text-red-400 mt-1">
+                <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xl border border-gray-200 dark:border-gray-700 border-l-4 border-l-red-500">
+                    <span class="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest">Total Paid</span>
+                    <div class="text-xl sm:text-2xl font-black text-red-600 dark:text-red-400 mt-1">
                         {{ $settings->currency_symbol }} {{ number_format($totalPaid, 2) }}
                     </div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-xl border border-gray-200 dark:border-gray-700 bg-indigo-50/50">
-                    <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Net Movement</span>
-                    <div class="text-2xl font-black text-indigo-600 dark:text-indigo-400 mt-1">
+                <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xl border border-gray-200 dark:border-gray-700 bg-indigo-50/50">
+                    <span class="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest">Net Movement</span>
+                    <div class="text-xl sm:text-2xl font-black text-indigo-600 dark:text-indigo-400 mt-1">
                         {{ $settings->currency_symbol }} {{ number_format($totalReceived - $totalPaid, 2) }}
                     </div>
                 </div>
             </div>
 
             <!-- Filter -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-xl border border-gray-200 dark:border-gray-700 mb-6">
+            <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xl border border-gray-200 dark:border-gray-700 mb-6">
                 <form action="{{ route('reports.daily-collection') }}" method="GET" class="flex flex-wrap items-end gap-4">
                     <div class="w-full md:w-48">
                         <x-input-label for="start_date" :value="__('Start Date')" />

@@ -1,9 +1,9 @@
 <x-app-layout>
-    <div class="py-12">
-        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <h3 class="text-lg font-medium mb-6">Record New Expense</h3>
+    <div class="py-4 sm:py-8 lg:py-12">
+        <div class="max-w-2xl mx-auto px-2 sm:px-6 lg:px-8">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-xl sm:rounded-lg">
+                <div class="p-3.5 sm:p-6 text-gray-900 dark:text-gray-100">
+                    <h3 class="text-base sm:text-lg font-bold mb-4 sm:mb-6">Record New Expense</h3>
 
                     @if ($errors->any())
                         <div

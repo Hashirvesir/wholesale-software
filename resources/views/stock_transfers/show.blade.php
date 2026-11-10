@@ -1,51 +1,51 @@
 <x-app-layout>
-    <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-4 sm:py-8 lg:py-12">
+        <div class="max-w-4xl mx-auto px-2 sm:px-6 lg:px-8">
             <div
                 class="bg-white dark:bg-gray-800 overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-200 dark:border-gray-700">
-                <div class="p-8">
-                    <div class="flex justify-between items-start mb-8 border-b dark:border-gray-700 pb-6">
+                <div class="p-4 sm:p-8">
+                    <div class="flex justify-between items-start mb-6 border-b dark:border-gray-700 pb-4">
                         <div>
-                            <h2 class="text-3xl font-black text-gray-900 dark:text-gray-100 tracking-tight uppercase">
+                            <h2 class="text-xl sm:text-3xl font-black text-gray-900 dark:text-gray-100 tracking-tight uppercase">
                                 Stock Transfer</h2>
-                            <p class="text-sm text-gray-500 font-bold italic">Reference #{{ $stockTransfer->id }}</p>
+                            <p class="text-xs sm:text-sm text-gray-500 font-bold italic">Reference #{{ $stockTransfer->id }}</p>
                         </div>
                         <div class="text-right">
-                            <div class="font-black uppercase text-gray-400 mb-1 tracking-widest text-xs">Transfer
+                            <div class="font-black uppercase text-gray-400 mb-0.5 tracking-widest text-[10px]">Transfer
                                 Date</div>
-                            <div class="text-lg font-bold text-primary-600">{{ $stockTransfer->date }}</div>
+                            <div class="text-sm sm:text-lg font-bold text-primary-600">{{ $stockTransfer->date }}</div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 mb-6 sm:mb-8">
                         <div
-                            class="bg-red-50 dark:bg-red-950/20 p-6 rounded-2xl border border-red-100 dark:border-red-900/30">
+                            class="bg-red-50 dark:bg-red-950/20 p-4 sm:p-6 rounded-2xl border border-red-100 dark:border-red-900/30">
                             <h4
-                                class="text-xs font-black uppercase tracking-widest text-red-600 dark:text-red-400 mb-4 flex items-center">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                class="text-xs font-black uppercase tracking-widest text-red-600 dark:text-red-400 mb-2 flex items-center">
+                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                                 Source (From)
                             </h4>
-                            <div class="text-xl font-black text-gray-800 dark:text-gray-200">
+                            <div class="text-base sm:text-xl font-black text-gray-800 dark:text-gray-200">
                                 {{ $stockTransfer->fromWarehouse->name }}</div>
-                            <div class="text-sm text-gray-500 mt-1">{{ $stockTransfer->fromWarehouse->address }}</div>
+                            <div class="text-xs text-gray-500 mt-0.5">{{ $stockTransfer->fromWarehouse->address }}</div>
                         </div>
 
                         <div
-                            class="bg-green-50 dark:bg-green-950/20 p-6 rounded-2xl border border-green-100 dark:border-green-900/30">
+                            class="bg-green-50 dark:bg-green-950/20 p-4 sm:p-6 rounded-2xl border border-green-100 dark:border-green-900/30">
                             <h4
-                                class="text-xs font-black uppercase tracking-widest text-green-600 dark:text-green-400 mb-4 flex items-center">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                class="text-xs font-black uppercase tracking-widest text-green-600 dark:text-green-400 mb-2 flex items-center">
+                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                                 Destination (To)
                             </h4>
-                            <div class="text-xl font-black text-gray-800 dark:text-gray-200">
+                            <div class="text-base sm:text-xl font-black text-gray-800 dark:text-gray-200">
                                 {{ $stockTransfer->toWarehouse->name }}</div>
-                            <div class="text-sm text-gray-500 mt-1">{{ $stockTransfer->toWarehouse->address }}</div>
+                            <div class="text-xs text-gray-500 mt-0.5">{{ $stockTransfer->toWarehouse->address }}</div>
                         </div>
                     </div>
 

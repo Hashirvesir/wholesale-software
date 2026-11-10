@@ -60,7 +60,7 @@ body {
     }
     
     /* Ensure containers have breathing room without wasting phone width */
-    .max-w-7xl, .max-w-\[1750px\] {
+    .max-w-7xl, .max-w-5xl, .max-w-4xl, .max-w-3xl, .max-w-2xl, .max-w-\[1750px\] {
         padding-left: 0.5rem !important;
         padding-right: 0.5rem !important;
     }

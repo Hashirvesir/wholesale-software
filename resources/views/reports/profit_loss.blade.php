@@ -1,20 +1,20 @@
 <x-app-layout>
-    <div class="py-12">
-        <div class="max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <div class="py-4 sm:py-8 lg:py-12">
+        <div class="max-w-[1750px] mx-auto px-2 sm:px-6 lg:px-8 space-y-4 sm:space-y-8">
 
             <!-- Filter Header Card -->
-            <div class="bg-white dark:bg-gray-800 shadow-xl rounded-3xl border border-gray-100 dark:border-gray-700 p-6 md:p-8">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b dark:border-gray-700 pb-6">
+            <div class="bg-white dark:bg-gray-800 shadow-xl rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-gray-700 p-3.5 sm:p-6 md:p-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b dark:border-gray-700 pb-4 sm:pb-6">
                     <div>
                         <div class="flex items-center gap-3">
-                            <span class="p-2.5 rounded-2xl bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 font-bold text-lg">
+                            <span class="p-2 sm:p-2.5 rounded-2xl bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 font-bold text-lg">
                                 📊
                             </span>
                             <div>
-                                <h2 class="text-2xl font-black text-gray-800 dark:text-white tracking-tight uppercase italic">
+                                <h2 class="text-xl sm:text-2xl font-black text-gray-800 dark:text-white tracking-tight uppercase italic">
                                     Profit & Loss Statement
                                 </h2>
-                                <p class="text-xs text-gray-400 font-bold tracking-wider uppercase mt-0.5">
+                                <p class="text-[11px] sm:text-xs text-gray-400 font-bold tracking-wider uppercase mt-0.5">
                                     Trading & Operating Performance for {{ \Carbon\Carbon::parse($startDate)->format('d M Y') }} to {{ \Carbon\Carbon::parse($endDate)->format('d M Y') }}
                                 </p>
                             </div>
@@ -108,10 +108,10 @@
             </div>
 
             <!-- Main Breakdown Sections -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
 
                 <!-- Left Column: Trading Account (Revenue & Cost of Goods Sold) -->
-                <div class="bg-white dark:bg-gray-800 shadow-xl rounded-3xl border border-gray-100 dark:border-gray-700 p-8">
+                <div class="bg-white dark:bg-gray-800 shadow-xl rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-gray-700 p-4 sm:p-8">
                     <div class="flex justify-between items-center mb-6 pb-3 border-b dark:border-gray-700">
                         <h3 class="text-base font-black text-gray-800 dark:text-white uppercase tracking-wider flex items-center gap-2">
                             <span class="p-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600">📦</span>
@@ -215,7 +215,7 @@
                 </div>
 
                 <!-- Right Column: Operating Expenses & Other Income -->
-                <div class="bg-white dark:bg-gray-800 shadow-xl rounded-3xl border border-gray-100 dark:border-gray-700 p-8 flex flex-col justify-between">
+                <div class="bg-white dark:bg-gray-800 shadow-xl rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-gray-700 p-4 sm:p-8 flex flex-col justify-between">
                     <div>
                         <div class="flex justify-between items-center mb-6 pb-3 border-b dark:border-gray-700">
                             <h3 class="text-base font-black text-gray-800 dark:text-white uppercase tracking-wider flex items-center gap-2">
@@ -265,7 +265,7 @@
                     </div>
 
                     <!-- Final Result Card at Bottom of Right Column -->
-                    <div class="mt-8 p-6 rounded-2xl {{ $netProfit >= 0 ? 'bg-gradient-to-r from-emerald-500/10 to-green-500/15 border-2 border-emerald-300 dark:border-emerald-600/50' : 'bg-gradient-to-r from-red-500/10 to-rose-500/15 border-2 border-red-300 dark:border-red-600/50' }}">
+                    <div class="mt-8 p-4 sm:p-6 rounded-2xl {{ $netProfit >= 0 ? 'bg-gradient-to-r from-emerald-500/10 to-green-500/15 border-2 border-emerald-300 dark:border-emerald-600/50' : 'bg-gradient-to-r from-red-500/10 to-rose-500/15 border-2 border-red-300 dark:border-red-600/50' }}">
                         <div class="flex justify-between items-center">
                             <div>
                                 <span class="text-[10px] font-black uppercase tracking-[0.2em] {{ $netProfit >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300' }}">

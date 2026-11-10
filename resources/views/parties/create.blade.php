@@ -1,17 +1,17 @@
 <x-app-layout>
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-4 sm:py-8 lg:py-12">
+        <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
             <div
-                class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg border border-gray-200 dark:border-gray-700">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
+                class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl rounded-xl sm:rounded-lg border border-gray-200 dark:border-gray-700">
+                <div class="p-3.5 sm:p-6 text-gray-900 dark:text-gray-100">
                     <h3
-                        class="text-lg font-medium mb-6 text-gray-800 dark:text-gray-200 border-b dark:border-gray-700 pb-4">
+                        class="text-base sm:text-lg font-bold mb-4 sm:mb-6 text-gray-800 dark:text-gray-200 border-b dark:border-gray-700 pb-3 sm:pb-4">
                         {{ __('Create New Party') }}</h3>
 
                     <form action="{{ route('parties.store') }}" method="POST" x-data="{ partyType: '{{ old('type', 'customer') }}' }">
                         @csrf
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
                             <!-- Name -->
                             <div>
                                 <x-input-label for="name" :value="__('Party Name')" />

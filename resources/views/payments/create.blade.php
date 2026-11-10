@@ -1,14 +1,14 @@
 <x-app-layout>
-    <div class="py-12" x-data="paymentForm()">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-2xl border border-gray-200 dark:border-gray-700">
-                <div class="p-6 md:p-8 text-gray-900 dark:text-gray-100">
+    <div class="py-4 sm:py-8 lg:py-12" x-data="paymentForm()">
+        <div class="max-w-5xl mx-auto px-2 sm:px-6 lg:px-8">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl rounded-xl sm:rounded-2xl border border-gray-200 dark:border-gray-700">
+                <div class="p-3.5 sm:p-6 md:p-8 text-gray-900 dark:text-gray-100">
 
                     <!-- Header -->
-                    <div class="flex justify-between items-center mb-6 border-b dark:border-gray-700 pb-4">
+                    <div class="flex justify-between items-center mb-4 sm:mb-6 border-b dark:border-gray-700 pb-3 sm:pb-4">
                         <div>
-                            <h3 class="text-xl font-black text-gray-800 dark:text-gray-100 tracking-wide uppercase flex items-center gap-2">
-                                <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <h3 class="text-base sm:text-xl font-black text-gray-800 dark:text-gray-100 tracking-wide uppercase flex items-center gap-2">
+                                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                                 </svg>
                                 <span>{{ __('Record Payment Voucher') }}</span>

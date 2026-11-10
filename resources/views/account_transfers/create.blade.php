@@ -1,15 +1,15 @@
 <x-app-layout>
-    <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-4 sm:py-8 lg:py-12">
+        <div class="max-w-3xl mx-auto px-2 sm:px-6 lg:px-8">
             <div
-                class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg border border-gray-200 dark:border-gray-700">
-                <div class="p-8 text-gray-900 dark:text-gray-100">
-                    <div class="flex items-center justify-between mb-8 border-b dark:border-gray-700 pb-4">
+                class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl rounded-xl sm:rounded-lg border border-gray-200 dark:border-gray-700">
+                <div class="p-4 sm:p-8 text-gray-900 dark:text-gray-100">
+                    <div class="flex items-center justify-between mb-4 sm:mb-8 border-b dark:border-gray-700 pb-3 sm:pb-4">
                         <h3
-                            class="text-2xl font-black text-gray-800 dark:text-gray-200 italic tracking-tighter uppercase">
+                            class="text-lg sm:text-2xl font-black text-gray-800 dark:text-gray-200 italic tracking-tighter uppercase">
                             Transfer Money</h3>
                         <a href="{{ route('account-transfers.index') }}"
-                            class="text-sm font-bold text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition uppercase tracking-widest italic">Back
+                            class="text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition uppercase tracking-widest italic">Back
                             to List</a>
                     </div>
 
@@ -34,7 +34,7 @@
                     <form action="{{ route('account-transfers.store') }}" method="POST">
                         @csrf
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 mb-6 sm:mb-8">
                             <!-- Date -->
                             <div class="md:col-span-2">
                                 <x-input-label for="date" :value="__('Transaction Date')"
@@ -112,7 +112,7 @@
 
                         <div class="flex items-center justify-end mt-4">
                             <x-primary-button
-                                class="!rounded-2xl !px-12 !py-4 shadow-2xl border-0 bg-indigo-600 hover:bg-indigo-700 transform transition hover:scale-105 active:scale-95 text-sm font-bold uppercase tracking-widest">
+                                class="!rounded-2xl w-full sm:w-auto justify-center !px-6 sm:!px-12 !py-3 sm:!py-4 shadow-xl border-0 bg-indigo-600 hover:bg-indigo-700 transform transition hover:scale-105 active:scale-95 text-xs sm:text-sm font-bold uppercase tracking-widest">
                                 {{ __('Confirm Transfer') }}
                             </x-primary-button>
                         </div>

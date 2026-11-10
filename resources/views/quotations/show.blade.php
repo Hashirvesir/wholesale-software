@@ -194,8 +194,8 @@
                         </div>
                     </div>
 
-                    <!-- Items Table -->
-                    <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden mb-6">
+                    <!-- Desktop Items Table -->
+                    <div class="hidden md:block border border-gray-200 dark:border-gray-700 rounded-xl overflow-x-auto mb-6">
                         <table class="w-full text-left text-xs">
                             <thead class="bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 uppercase text-[10px] tracking-wider">
                                 <tr>
@@ -234,6 +234,32 @@
                                 @endforeach
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Mobile Items Cards View -->
+                    <div class="block md:hidden space-y-2.5 mb-6">
+                        @foreach ($quotation->items as $index => $item)
+                            <div class="bg-gray-50 dark:bg-gray-900/60 p-3 rounded-xl border border-gray-200 dark:border-gray-700 space-y-2">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 flex items-center justify-center text-[10px] font-black">
+                                            {{ $index + 1 }}
+                                        </span>
+                                        <div>
+                                            <h4 class="text-xs font-bold text-gray-900 dark:text-gray-100">{{ $item->product->name ?? 'Deleted Product' }}</h4>
+                                            <span class="text-[10px] text-gray-400 font-mono">{{ $item->product->sku ?? '-' }}</span>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs font-black font-mono text-gray-900 dark:text-gray-100">
+                                        {{ $settings->currency_symbol ?? 'Rs' }} {{ number_format($item->line_total, 2) }}
+                                    </span>
+                                </div>
+                                <div class="flex items-center justify-between text-[11px] text-gray-500 pt-1 border-t border-gray-200/60 dark:border-gray-700/60">
+                                    <span>Qty: <strong class="text-gray-800 dark:text-gray-200">{{ number_format($item->qty, 2) }} {{ $item->product->unit->short_name ?? '' }}</strong></span>
+                                    <span>Rate: <strong class="text-gray-800 dark:text-gray-200">{{ number_format($item->unit_price, 2) }}</strong></span>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
 
                     <!-- Financial Summary -->

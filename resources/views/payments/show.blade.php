@@ -1,6 +1,6 @@
 <x-app-layout>
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-4 sm:py-8 lg:py-12">
+        <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
 
             <!-- Flash Messages -->
             @if (session('success'))
@@ -15,14 +15,14 @@
             @endif
 
             <!-- Main Payment Card -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-2xl border border-gray-200 dark:border-gray-700">
-                <div class="p-6 md:p-8 text-gray-900 dark:text-gray-100">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl rounded-xl sm:rounded-2xl border border-gray-200 dark:border-gray-700">
+                <div class="p-3.5 sm:p-6 md:p-8 text-gray-900 dark:text-gray-100">
 
                     <!-- Header & Top Actions -->
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 sm:pb-6 border-b border-gray-200 dark:border-gray-700">
                         <div>
-                            <div class="flex items-center gap-3">
-                                <h2 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
+                            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                                <h2 class="text-lg sm:text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
                                     Payment Voucher #{{ $payment->id }}
                                 </h2>
                                 @if ($payment->payment_type === 'received')
@@ -181,18 +181,18 @@
                     </div>
 
                     <!-- Payment Amount Highlight Banner -->
-                    <div class="p-6 rounded-2xl border mb-6
+                    <div class="p-4 sm:p-6 rounded-xl sm:rounded-2xl border mb-6
                         @if ($payment->payment_type === 'received')
                             bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800
                         @else
                             bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800
-                        @endif flex flex-col md:flex-row justify-between items-center gap-4">
+                        @endif flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <span class="text-xs font-black uppercase tracking-wider
                                 @if ($payment->payment_type === 'received') text-emerald-700 dark:text-emerald-400 @else text-rose-700 dark:text-rose-400 @endif">
                                 Total Transacted Amount
                             </span>
-                            <div class="text-3xl md:text-4xl font-black font-mono mt-1
+                            <div class="text-2xl sm:text-3xl md:text-4xl font-black font-mono mt-1
                                 @if ($payment->payment_type === 'received') text-emerald-600 dark:text-emerald-300 @else text-rose-600 dark:text-rose-300 @endif">
                                 {{ $settings->currency_symbol ?? 'Rs' }} {{ number_format($payment->amount, 2) }}
                             </div>

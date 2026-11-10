@@ -224,6 +224,62 @@
                 </style>
             </div>
 
+            <!-- Quick Actions Bar (Top Shortcuts) -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xs border border-gray-200/80 dark:border-gray-700/80 p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-[#252ebf]"></span>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">Quick Actions & Shortcuts</h3>
+                    </div>
+                    <span class="text-[11px] font-medium text-gray-400">Instant access to common workflows</span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <a href="{{ route('sales.create') }}"
+                        class="p-3.5 rounded-xl bg-gray-50/80 dark:bg-gray-900/40 hover:bg-blue-50/70 dark:hover:bg-blue-950/30 border border-gray-200/70 dark:border-gray-700/70 hover:border-[#252ebf]/40 dark:hover:border-[#252ebf]/50 transition group flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#252ebf] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        </div>
+                        <div class="truncate">
+                            <div class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-[#252ebf] transition-colors truncate">Create Sale</div>
+                            <div class="text-[11px] text-gray-500 dark:text-gray-400 truncate">New customer invoice</div>
+                        </div>
+                    </a>
+
+                    <a href="{{ route('purchases.create') }}"
+                        class="p-3.5 rounded-xl bg-gray-50/80 dark:bg-gray-900/40 hover:bg-amber-50/70 dark:hover:bg-amber-950/30 border border-gray-200/70 dark:border-gray-700/70 hover:border-amber-400/40 dark:hover:border-amber-400/50 transition group flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m-8-4V7m8 4v10M4 7l8 4"/></svg>
+                        </div>
+                        <div class="truncate">
+                            <div class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-amber-600 transition-colors truncate">Add Stock</div>
+                            <div class="text-[11px] text-gray-500 dark:text-gray-400 truncate">New supplier purchase</div>
+                        </div>
+                    </a>
+
+                    <a href="{{ route('payments.create') }}"
+                        class="p-3.5 rounded-xl bg-gray-50/80 dark:bg-gray-900/40 hover:bg-emerald-50/70 dark:hover:bg-emerald-950/30 border border-gray-200/70 dark:border-gray-700/70 hover:border-emerald-400/40 dark:hover:border-emerald-400/50 transition group flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        </div>
+                        <div class="truncate">
+                            <div class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors truncate">Payment In</div>
+                            <div class="text-[11px] text-gray-500 dark:text-gray-400 truncate">Record customer receipt</div>
+                        </div>
+                    </a>
+
+                    <a href="{{ route('reports.party-ledger') }}"
+                        class="p-3.5 rounded-xl bg-gray-50/80 dark:bg-gray-900/40 hover:bg-purple-50/70 dark:hover:bg-purple-950/30 border border-gray-200/70 dark:border-gray-700/70 hover:border-purple-400/40 dark:hover:border-purple-400/50 transition group flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                        <div class="truncate">
+                            <div class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-purple-600 transition-colors truncate">Party Ledger</div>
+                            <div class="text-[11px] text-gray-500 dark:text-gray-400 truncate">Customer / vendor ledger</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
             <!-- Filter Bar -->
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xs border border-gray-200/80 dark:border-gray-700/80 p-4">
                 <div class="flex flex-wrap items-end gap-3">
@@ -581,40 +637,27 @@
                         </div>
                     </div>
 
-                    <!-- Quick Command -->
+                    <!-- Fast Reports Widget -->
                     <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-xs border border-gray-200/80 dark:border-gray-700/80">
-                        <div class="flex items-center justify-between mb-3.5">
-                            <h3 class="text-sm font-bold text-gray-900 dark:text-white">Quick Actions</h3>
-                            <span class="text-[10px] font-bold text-[#252ebf] dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-900/50 px-2 py-0.5 rounded-md">Shortcuts</span>
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-bold text-gray-900 dark:text-white">Key Financial Ledgers</h3>
+                            <span class="text-[10px] font-bold text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded">Fast Reports</span>
                         </div>
-                        <div class="grid grid-cols-2 gap-2.5">
-                            <a href="{{ route('sales.create') }}"
-                                class="p-3 rounded-xl bg-gray-50/80 dark:bg-gray-900/40 hover:bg-blue-50/60 dark:hover:bg-blue-950/30 border border-gray-200/70 dark:border-gray-700/70 hover:border-[#252ebf]/30 dark:hover:border-[#252ebf]/50 transition group flex flex-col justify-between">
-                                <div class="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-[#252ebf] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                </div>
-                                <div class="text-xs font-bold text-gray-800 dark:text-gray-200 group-hover:text-[#252ebf] transition-colors">Create Sale</div>
-                            </a>
-                            <a href="{{ route('purchases.create') }}"
-                                class="p-3 rounded-xl bg-gray-50/80 dark:bg-gray-900/40 hover:bg-blue-50/60 dark:hover:bg-blue-950/30 border border-gray-200/70 dark:border-gray-700/70 hover:border-[#252ebf]/30 dark:hover:border-[#252ebf]/50 transition group flex flex-col justify-between">
-                                <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m-8-4V7m8 4v10M4 7l8 4"/></svg>
-                                </div>
-                                <div class="text-xs font-bold text-gray-800 dark:text-gray-200 group-hover:text-[#252ebf] transition-colors">Add Stock</div>
-                            </a>
-                            <a href="{{ route('payments.create') }}"
-                                class="p-3 rounded-xl bg-gray-50/80 dark:bg-gray-900/40 hover:bg-blue-50/60 dark:hover:bg-blue-950/30 border border-gray-200/70 dark:border-gray-700/70 hover:border-[#252ebf]/30 dark:hover:border-[#252ebf]/50 transition group flex flex-col justify-between">
-                                <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                </div>
-                                <div class="text-xs font-bold text-gray-800 dark:text-gray-200 group-hover:text-[#252ebf] transition-colors">Payment In</div>
-                            </a>
+                        <div class="space-y-2">
                             <a href="{{ route('reports.party-ledger') }}"
-                                class="p-3 rounded-xl bg-gray-50/80 dark:bg-gray-900/40 hover:bg-blue-50/60 dark:hover:bg-blue-950/30 border border-gray-200/70 dark:border-gray-700/70 hover:border-[#252ebf]/30 dark:hover:border-[#252ebf]/50 transition group flex flex-col justify-between">
-                                <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                </div>
-                                <div class="text-xs font-bold text-gray-800 dark:text-gray-200 group-hover:text-[#252ebf] transition-colors">Party Ledger</div>
+                                class="flex items-center justify-between p-2.5 rounded-xl bg-gray-50 dark:bg-gray-900/40 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 border border-gray-200/70 dark:border-gray-700/70 transition group">
+                                <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 group-hover:text-[#252ebf] transition-colors">Party Ledger</span>
+                                <span class="text-gray-400 text-xs">&rarr;</span>
+                            </a>
+                            <a href="{{ route('reports.account-ledger') }}"
+                                class="flex items-center justify-between p-2.5 rounded-xl bg-gray-50 dark:bg-gray-900/40 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 border border-gray-200/70 dark:border-gray-700/70 transition group">
+                                <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 group-hover:text-[#252ebf] transition-colors">Bank & Cash Ledger</span>
+                                <span class="text-gray-400 text-xs">&rarr;</span>
+                            </a>
+                            <a href="{{ route('reports.trial-balance') }}"
+                                class="flex items-center justify-between p-2.5 rounded-xl bg-gray-50 dark:bg-gray-900/40 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 border border-gray-200/70 dark:border-gray-700/70 transition group">
+                                <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 group-hover:text-[#252ebf] transition-colors">Trial Balance</span>
+                                <span class="text-gray-400 text-xs">&rarr;</span>
                             </a>
                         </div>
                     </div>
