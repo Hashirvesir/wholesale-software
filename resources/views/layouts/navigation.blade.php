@@ -62,9 +62,9 @@
                         </a>
                     @endcan
 
-                    <!-- Quick View Modal Trigger -->
+                    <!-- Quick Financial Snapshot Trigger -->
                     <div x-data="{
-                        open: false,
+                        showSnapshot: false,
                         loading: false,
                         stats: null,
                         warehouse_id: '',
@@ -91,161 +91,170 @@
                                 });
                         }
                     }">
-                        <button @click="open = true; fetchStats()"
+                        <button type="button" @click="showSnapshot = true; fetchStats()"
                             class="p-1.5 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/60 border border-gray-200/80 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all cursor-pointer"
-                            title="Quick View Live Stats">
+                            title="Quick Financial Snapshot">
                             <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                             </svg>
                         </button>
 
-                        <!-- Quick View Modal -->
-                        <div x-show="open" x-transition:enter="transition ease-out duration-200"
-                            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                            x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
-                            x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 overflow-y-auto"
-                            style="display: none;">
-                            <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-xs transition-opacity"
-                                @click="open = false"></div>
+                        <!-- Quick Financial Snapshot Modal (Teleported to Body) -->
+                        <template x-teleport="body">
+                            <div x-show="showSnapshot" x-cloak
+                                @keydown.escape.window="showSnapshot = false"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0"
+                                x-transition:enter-end="opacity-100"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-100"
+                                x-transition:leave-end="opacity-0"
+                                class="fixed inset-0 z-[9999] overflow-y-auto"
+                                style="display: none;">
 
-                            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-                                <div
-                                    class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-4xl border border-gray-200 dark:border-gray-700">
+                                <!-- Backdrop -->
+                                <div class="fixed inset-0 bg-gray-900/70 backdrop-blur-xs transition-opacity"
+                                    @click="showSnapshot = false"></div>
 
-                                    <!-- Modal Header -->
-                                    <div class="bg-[#252ebf] px-6 py-4 flex justify-between items-center text-white">
-                                        <h3 class="text-base font-bold tracking-tight flex items-center gap-2">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                            </svg>
-                                            <span x-text="start_date === end_date ? 'Quick Financial Snapshot — ' + start_date : 'Snapshot — ' + start_date + ' to ' + end_date"></span>
-                                        </h3>
-                                        <button @click="open = false" class="text-white/80 hover:text-white text-xl font-bold cursor-pointer">&times;</button>
-                                    </div>
+                                <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
+                                    <div class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-4xl border border-gray-200 dark:border-gray-700 z-10"
+                                        @click.stop>
 
-                                    <!-- Filter Controls -->
-                                    <div class="px-6 py-3.5 bg-gray-50/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700">
-                                        <div class="flex flex-wrap gap-3 items-end">
-                                            <div class="flex flex-col gap-1">
-                                                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Start Date</label>
-                                                <input type="date" x-model="start_date" @change="fetchStats()"
-                                                    class="rounded-xl border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 shadow-2xs focus:border-[#252ebf] focus:ring-[#252ebf] text-xs py-1.5">
+                                        <!-- Modal Header -->
+                                        <div class="bg-[#252ebf] px-6 py-4 flex justify-between items-center text-white">
+                                            <h3 class="text-base font-bold tracking-tight flex items-center gap-2">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                </svg>
+                                                <span x-text="start_date === end_date ? 'Quick Financial Snapshot — ' + start_date : 'Snapshot — ' + start_date + ' to ' + end_date"></span>
+                                            </h3>
+                                            <button type="button" @click="showSnapshot = false" class="text-white/80 hover:text-white text-2xl font-bold leading-none p-1 cursor-pointer">&times;</button>
+                                        </div>
+
+                                        <!-- Filter Controls -->
+                                        <div class="px-6 py-3.5 bg-gray-50/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700">
+                                            <div class="flex flex-wrap gap-3 items-end">
+                                                <div class="flex flex-col gap-1">
+                                                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Start Date</label>
+                                                    <input type="date" x-model="start_date" @change="fetchStats()"
+                                                        class="rounded-xl border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 shadow-2xs focus:border-[#252ebf] focus:ring-[#252ebf] text-xs py-1.5">
+                                                </div>
+                                                <div class="flex flex-col gap-1">
+                                                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">End Date</label>
+                                                    <input type="date" x-model="end_date" @change="fetchStats()"
+                                                        class="rounded-xl border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 shadow-2xs focus:border-[#252ebf] focus:ring-[#252ebf] text-xs py-1.5">
+                                                </div>
+                                                <div class="flex flex-col gap-1">
+                                                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Warehouse</label>
+                                                    <select x-model="warehouse_id" @change="fetchStats()"
+                                                        class="rounded-xl border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 shadow-2xs focus:border-[#252ebf] focus:ring-[#252ebf] text-xs py-1.5">
+                                                        <option value="">All Warehouses</option>
+                                                        @foreach (\App\Models\Warehouse::all() as $w)
+                                                            <option value="{{ $w->id }}">{{ $w->name }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <button type="button" @click="start_date = new Date().toISOString().split('T')[0]; end_date = new Date().toISOString().split('T')[0]; fetchStats()"
+                                                    class="px-3 py-1.5 text-xs font-semibold bg-blue-50 dark:bg-blue-950/50 text-[#252ebf] dark:text-blue-300 rounded-xl hover:bg-blue-100 border border-blue-200 dark:border-blue-900/60 transition cursor-pointer">
+                                                    Today
+                                                </button>
                                             </div>
-                                            <div class="flex flex-col gap-1">
-                                                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">End Date</label>
-                                                <input type="date" x-model="end_date" @change="fetchStats()"
-                                                    class="rounded-xl border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 shadow-2xs focus:border-[#252ebf] focus:ring-[#252ebf] text-xs py-1.5">
+                                        </div>
+
+                                        <!-- Modal Content -->
+                                        <div class="px-6 py-5 max-h-[70vh] overflow-y-auto">
+                                            <div x-show="loading" class="flex justify-center items-center py-12">
+                                                <svg class="animate-spin h-8 w-8 text-[#252ebf]" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                                </svg>
                                             </div>
-                                            <div class="flex flex-col gap-1">
-                                                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Warehouse</label>
-                                                <select x-model="warehouse_id" @change="fetchStats()"
-                                                    class="rounded-xl border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 shadow-2xs focus:border-[#252ebf] focus:ring-[#252ebf] text-xs py-1.5">
-                                                    <option value="">All Warehouses</option>
-                                                    @foreach (\App\Models\Warehouse::all() as $w)
-                                                        <option value="{{ $w->id }}">{{ $w->name }}</option>
-                                                    @endforeach
-                                                </select>
+
+                                            <div x-show="!loading && stats" style="display: none;">
+                                                <!-- Top KPIs -->
+                                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                                                    <div class="bg-gray-50 dark:bg-gray-900/60 p-3.5 rounded-xl border border-gray-200/80 dark:border-gray-700">
+                                                        <div class="text-[11px] font-bold text-gray-500 uppercase">Sales</div>
+                                                        <div class="text-lg font-black text-gray-900 dark:text-white mt-0.5">
+                                                            <span class="text-xs mr-0.5">Rs</span>
+                                                            <span x-text="new Intl.NumberFormat().format(stats?.sales || 0)"></span>
+                                                        </div>
+                                                        <div class="text-[11px] text-[#252ebf] font-semibold mt-0.5">
+                                                            <span x-text="stats?.sales_count || 0"></span> Invoices
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="bg-gray-50 dark:bg-gray-900/60 p-3.5 rounded-xl border border-gray-200/80 dark:border-gray-700">
+                                                        <div class="text-[11px] font-bold text-gray-500 uppercase">Received</div>
+                                                        <div class="text-lg font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+                                                            <span class="text-xs mr-0.5">Rs</span>
+                                                            <span x-text="new Intl.NumberFormat().format(stats?.total_received || 0)"></span>
+                                                        </div>
+                                                        <div class="text-[11px] text-gray-400 font-medium mt-0.5">Cash Inflow</div>
+                                                    </div>
+
+                                                    <div class="bg-gray-50 dark:bg-gray-900/60 p-3.5 rounded-xl border border-gray-200/80 dark:border-gray-700">
+                                                        <div class="text-[11px] font-bold text-gray-500 uppercase">Paid Out</div>
+                                                        <div class="text-lg font-black text-rose-600 dark:text-rose-400 mt-0.5">
+                                                            <span class="text-xs mr-0.5">Rs</span>
+                                                            <span x-text="new Intl.NumberFormat().format(stats?.total_paid || 0)"></span>
+                                                        </div>
+                                                        <div class="text-[11px] text-gray-400 font-medium mt-0.5">Purchases/Exp</div>
+                                                    </div>
+
+                                                    <div class="bg-gray-50 dark:bg-gray-900/60 p-3.5 rounded-xl border border-gray-200/80 dark:border-gray-700">
+                                                        <div class="text-[11px] font-bold text-gray-500 uppercase">Net Flow</div>
+                                                        <div class="text-lg font-black mt-0.5" :class="(stats?.total_received - stats?.total_paid) >= 0 ? 'text-emerald-600' : 'text-rose-600'">
+                                                            <span x-text="(stats?.total_received - stats?.total_paid) >= 0 ? '+' : ''"></span>
+                                                            <span class="text-xs mr-0.5">Rs</span>
+                                                            <span x-text="new Intl.NumberFormat().format(Math.abs((stats?.total_received || 0) - (stats?.total_paid || 0)))"></span>
+                                                        </div>
+                                                        <div class="text-[11px] text-gray-400 font-medium mt-0.5">Balance Delta</div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Bank/Cash Accounts -->
+                                                <div>
+                                                    <h4 class="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
+                                                        Bank & Cash Movement
+                                                    </h4>
+                                                    <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                                                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-xs">
+                                                            <thead class="bg-gray-50 dark:bg-gray-900/80">
+                                                                <tr>
+                                                                    <th class="px-3.5 py-2 text-left font-bold text-gray-500 uppercase">Account</th>
+                                                                    <th class="px-3.5 py-2 text-right font-bold text-emerald-600 uppercase">In</th>
+                                                                    <th class="px-3.5 py-2 text-right font-bold text-rose-600 uppercase">Out</th>
+                                                                    <th class="px-3.5 py-2 text-right font-bold text-gray-700 dark:text-gray-300 uppercase">Net</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody class="divide-y divide-gray-100 dark:divide-gray-700 bg-white dark:bg-gray-800">
+                                                                <template x-for="(details, account) in stats?.bank_cash_details" :key="account">
+                                                                    <tr>
+                                                                        <td class="px-3.5 py-2 font-medium text-gray-900 dark:text-white" x-text="account"></td>
+                                                                        <td class="px-3.5 py-2 text-right text-emerald-600 font-bold" x-text="new Intl.NumberFormat().format(details.in)"></td>
+                                                                        <td class="px-3.5 py-2 text-right text-rose-600 font-bold" x-text="new Intl.NumberFormat().format(details.out)"></td>
+                                                                        <td class="px-3.5 py-2 text-right font-black" :class="details.net >= 0 ? 'text-[#252ebf]' : 'text-rose-600'" x-text="new Intl.NumberFormat().format(details.net)"></td>
+                                                                    </tr>
+                                                                </template>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <button @click="start_date = new Date().toISOString().split('T')[0]; end_date = new Date().toISOString().split('T')[0]; fetchStats()"
-                                                class="px-3 py-1.5 text-xs font-semibold bg-blue-50 dark:bg-blue-950/50 text-[#252ebf] dark:text-blue-300 rounded-xl hover:bg-blue-100 border border-blue-200 dark:border-blue-900/60 transition cursor-pointer">
-                                                Today
+                                        </div>
+
+                                        <!-- Modal Footer -->
+                                        <div class="bg-gray-50 dark:bg-gray-900 px-6 py-3 flex justify-end border-t border-gray-200 dark:border-gray-700">
+                                            <button type="button" @click="showSnapshot = false"
+                                                class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-xl text-xs font-semibold cursor-pointer">
+                                                Close
                                             </button>
                                         </div>
                                     </div>
-
-                                    <!-- Modal Content -->
-                                    <div class="px-6 py-5 max-h-[70vh] overflow-y-auto">
-                                        <div x-show="loading" class="flex justify-center items-center py-12">
-                                            <svg class="animate-spin h-8 w-8 text-[#252ebf]" fill="none" viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                            </svg>
-                                        </div>
-
-                                        <div x-show="!loading && stats" style="display: none;">
-                                            <!-- Top KPIs -->
-                                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                                                <div class="bg-gray-50 dark:bg-gray-900/60 p-3.5 rounded-xl border border-gray-200/80 dark:border-gray-700">
-                                                    <div class="text-[11px] font-bold text-gray-500 uppercase">Sales</div>
-                                                    <div class="text-lg font-black text-gray-900 dark:text-white mt-0.5">
-                                                        <span class="text-xs mr-0.5">Rs</span>
-                                                        <span x-text="new Intl.NumberFormat().format(stats?.sales || 0)"></span>
-                                                    </div>
-                                                    <div class="text-[11px] text-[#252ebf] font-semibold mt-0.5">
-                                                        <span x-text="stats?.sales_count || 0"></span> Invoices
-                                                    </div>
-                                                </div>
-
-                                                <div class="bg-gray-50 dark:bg-gray-900/60 p-3.5 rounded-xl border border-gray-200/80 dark:border-gray-700">
-                                                    <div class="text-[11px] font-bold text-gray-500 uppercase">Received</div>
-                                                    <div class="text-lg font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
-                                                        <span class="text-xs mr-0.5">Rs</span>
-                                                        <span x-text="new Intl.NumberFormat().format(stats?.total_received || 0)"></span>
-                                                    </div>
-                                                    <div class="text-[11px] text-gray-400 font-medium mt-0.5">Cash Inflow</div>
-                                                </div>
-
-                                                <div class="bg-gray-50 dark:bg-gray-900/60 p-3.5 rounded-xl border border-gray-200/80 dark:border-gray-700">
-                                                    <div class="text-[11px] font-bold text-gray-500 uppercase">Paid Out</div>
-                                                    <div class="text-lg font-black text-rose-600 dark:text-rose-400 mt-0.5">
-                                                        <span class="text-xs mr-0.5">Rs</span>
-                                                        <span x-text="new Intl.NumberFormat().format(stats?.total_paid || 0)"></span>
-                                                    </div>
-                                                    <div class="text-[11px] text-gray-400 font-medium mt-0.5">Purchases/Exp</div>
-                                                </div>
-
-                                                <div class="bg-gray-50 dark:bg-gray-900/60 p-3.5 rounded-xl border border-gray-200/80 dark:border-gray-700">
-                                                    <div class="text-[11px] font-bold text-gray-500 uppercase">Net Flow</div>
-                                                    <div class="text-lg font-black mt-0.5" :class="(stats?.total_received - stats?.total_paid) >= 0 ? 'text-emerald-600' : 'text-rose-600'">
-                                                        <span x-text="(stats?.total_received - stats?.total_paid) >= 0 ? '+' : ''"></span>
-                                                        <span class="text-xs mr-0.5">Rs</span>
-                                                        <span x-text="new Intl.NumberFormat().format(Math.abs((stats?.total_received || 0) - (stats?.total_paid || 0)))"></span>
-                                                    </div>
-                                                    <div class="text-[11px] text-gray-400 font-medium mt-0.5">Balance Delta</div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Bank/Cash Accounts -->
-                                            <div>
-                                                <h4 class="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
-                                                    Bank & Cash Movement
-                                                </h4>
-                                                <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
-                                                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-xs">
-                                                        <thead class="bg-gray-50 dark:bg-gray-900/80">
-                                                            <tr>
-                                                                <th class="px-3.5 py-2 text-left font-bold text-gray-500 uppercase">Account</th>
-                                                                <th class="px-3.5 py-2 text-right font-bold text-emerald-600 uppercase">In</th>
-                                                                <th class="px-3.5 py-2 text-right font-bold text-rose-600 uppercase">Out</th>
-                                                                <th class="px-3.5 py-2 text-right font-bold text-gray-700 dark:text-gray-300 uppercase">Net</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700 bg-white dark:bg-gray-800">
-                                                            <template x-for="(details, account) in stats?.bank_cash_details" :key="account">
-                                                                <tr>
-                                                                    <td class="px-3.5 py-2 font-medium text-gray-900 dark:text-white" x-text="account"></td>
-                                                                    <td class="px-3.5 py-2 text-right text-emerald-600 font-bold" x-text="new Intl.NumberFormat().format(details.in)"></td>
-                                                                    <td class="px-3.5 py-2 text-right text-rose-600 font-bold" x-text="new Intl.NumberFormat().format(details.out)"></td>
-                                                                    <td class="px-3.5 py-2 text-right font-black" :class="details.net >= 0 ? 'text-[#252ebf]' : 'text-rose-600'" x-text="new Intl.NumberFormat().format(details.net)"></td>
-                                                                </tr>
-                                                            </template>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Modal Footer -->
-                                    <div class="bg-gray-50 dark:bg-gray-900 px-6 py-3 flex justify-end border-t border-gray-200 dark:border-gray-700">
-                                        <button type="button" @click="open = false"
-                                            class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-xl text-xs font-semibold cursor-pointer">
-                                            Close
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </template>
                     </div>
                 </div>
 
@@ -638,6 +647,15 @@
                     class="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/60 rounded-xl transition border border-gray-200/80 dark:border-gray-700 cursor-pointer"
                     title="Search (⌘K)">
                     <span class="text-xs font-mono font-bold">⌘K</span>
+                </button>
+
+                <!-- Mobile AI Copilot -->
+                <button type="button" @click="$dispatch('toggle-ai-copilot')"
+                    class="p-2 text-[#252ebf] dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-gray-700/60 rounded-xl transition border border-blue-200/80 dark:border-gray-700 cursor-pointer"
+                    title="Invenco AI (Alt + A)">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                    </svg>
                 </button>
 
                 <!-- Mobile Dark Mode -->

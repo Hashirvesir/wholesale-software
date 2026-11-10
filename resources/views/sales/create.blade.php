@@ -542,7 +542,7 @@
                         </div>
                 </div>
 
-                <div class="flex items-center justify-end mt-12 border-t dark:border-gray-700 pt-8">
+                <div class="flex items-center justify-end mt-8 sm:mt-12 border-t dark:border-gray-700 pt-6 sm:pt-8 pb-20 md:pb-0">
                     <a href="{{ route('sales.index') }}"
                         class="mr-6 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 font-bold transition italic tracking-widest uppercase">Discard</a>
                     <x-primary-button class="!px-12 !py-4 !text-sm !rounded-xl !shadow-2xl" ::disabled="isSubmitting">
@@ -552,7 +552,7 @@
                 </div>
 
                 <!-- Mobile Sticky Bottom Action Bar -->
-                <div class="md:hidden fixed bottom-16 inset-x-0 z-30 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-700 px-4 py-2.5 shadow-2xl flex items-center justify-between">
+                <div class="md:hidden fixed bottom-16 inset-x-0 z-40 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-700 px-4 py-2.5 shadow-2xl flex items-center justify-between">
                     <div>
                         <span class="block text-[10px] font-black uppercase tracking-wider text-gray-400">Total Bill</span>
                         <span class="text-base font-black font-mono text-primary-600 dark:text-primary-400"

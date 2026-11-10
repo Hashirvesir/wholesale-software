@@ -6,7 +6,7 @@
 
     <!-- Floating AI Button (Desktop & Tablet) -->
     <button type="button" @click="open = true"
-        class="fixed bottom-20 xl:bottom-6 right-4 sm:right-6 z-40 h-11 px-4 rounded-full bg-[#252ebf] hover:bg-[#1e2599] text-white shadow-lg shadow-[#252ebf]/25 hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-150 flex items-center gap-2 cursor-pointer border border-white/10"
+        class="@if(request()->routeIs(['sales.create', 'sales.edit', 'purchases.create', 'purchases.edit', 'pos.*'])) hidden md:flex @else hidden sm:flex @endif fixed bottom-6 right-6 z-40 h-11 px-4 rounded-full bg-[#252ebf] hover:bg-[#1e2599] text-white shadow-lg shadow-[#252ebf]/25 hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-150 items-center gap-2 cursor-pointer border border-white/10"
         title="Invenco AI (Alt + A)">
         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
