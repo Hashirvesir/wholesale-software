@@ -139,39 +139,89 @@
                     }
                 }
             }" x-init="loadBriefing()" x-show="!dismissed" x-cloak
-                class="rounded-2xl p-5 bg-gray-900/90 dark:bg-black/80 border border-[#252ebf]/40 backdrop-blur-md shadow-xl text-white relative overflow-hidden transition-all">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
+                class="rounded-2xl p-5 bg-white dark:bg-gray-800 border-2 border-blue-100 dark:border-gray-700 shadow-sm relative overflow-hidden transition-all">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100 dark:border-gray-700">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-xl bg-[#252ebf] text-white flex items-center justify-center shadow-inner font-bold text-xs tracking-wider">
+                        <div class="w-8 h-8 rounded-xl bg-[#252ebf] text-white flex items-center justify-center shadow-sm font-black text-xs tracking-wider">
                             IN
                         </div>
                         <div>
-                            <h4 class="font-black text-xs sm:text-sm tracking-wide uppercase flex items-center gap-2">
+                            <h4 class="font-black text-xs sm:text-sm tracking-wide uppercase flex items-center gap-2 text-gray-900 dark:text-gray-100">
                                 <span>Invenco AI Morning Executive Briefing</span>
-                                <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[9px] font-black uppercase tracking-wider border border-emerald-400/30">Auto Generated</span>
+                                <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 text-[10px] font-black uppercase tracking-wider border border-emerald-200 dark:border-emerald-800">Auto Generated</span>
                             </h4>
-                            <p class="text-[10px] text-gray-300">Live operational & cash flow intelligence for today</p>
+                            <p class="text-[10px] text-gray-500 dark:text-gray-400">Live operational & cash flow intelligence for today</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
                         <button type="button" @click="loadBriefing(true)" :disabled="loading"
-                            class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
+                            class="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-[#252ebf] dark:text-blue-300 text-[11px] font-bold transition flex items-center gap-1.5 border border-blue-200 dark:border-gray-600 cursor-pointer">
                             <svg class="w-3.5 h-3.5" :class="loading ? 'animate-spin' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                             <span x-text="loading ? 'Analyzing...' : 'Refresh AI'"></span>
                         </button>
-                        <button type="button" @click="dismissed = true" class="text-gray-400 hover:text-white text-lg font-bold p-1 leading-none cursor-pointer">&times;</button>
+                        <button type="button" @click="dismissed = true" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl font-bold p-1 leading-none cursor-pointer">&times;</button>
                     </div>
                 </div>
 
-                <div class="pt-3 text-xs sm:text-sm text-gray-200 leading-relaxed">
+                <div class="mt-3 p-4 rounded-xl bg-blue-50/50 dark:bg-gray-900/50 border border-blue-100 dark:border-gray-700">
                     <template x-if="loading && !briefing">
-                        <div class="flex items-center gap-2 py-3 text-violet-300 animate-pulse text-xs font-semibold">
+                        <div class="flex items-center gap-2 py-2 text-[#252ebf] animate-pulse text-xs font-semibold">
                             <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                             <span>Analyzing live database figures, pending receivables & stock burn rates...</span>
                         </div>
                     </template>
-                    <div class="ai-rendered-content font-medium text-xs sm:text-sm text-gray-100" x-html="window.renderMarkdown ? window.renderMarkdown(briefing) : briefing"></div>
+                    <div class="ai-briefing-content font-medium text-xs sm:text-sm text-gray-800 dark:text-gray-200 leading-relaxed" x-html="window.renderMarkdown ? window.renderMarkdown(briefing) : briefing"></div>
                 </div>
+
+                <style>
+                    .ai-briefing-content ul {
+                        list-style-type: none;
+                        padding-left: 0;
+                        margin-top: 0.25rem;
+                        margin-bottom: 0.25rem;
+                    }
+                    .ai-briefing-content li {
+                        position: relative;
+                        padding-left: 1.35rem;
+                        margin-bottom: 0.45rem;
+                        line-height: 1.5;
+                        color: #374151;
+                    }
+                    .dark .ai-briefing-content li {
+                        color: #e5e7eb;
+                    }
+                    .ai-briefing-content li::before {
+                        content: "•";
+                        color: #252ebf;
+                        font-size: 1.35rem;
+                        position: absolute;
+                        left: 0.2rem;
+                        top: -0.15rem;
+                        font-weight: 900;
+                    }
+                    .ai-briefing-content strong {
+                        font-weight: 700;
+                        color: #0f172a;
+                    }
+                    .dark .ai-briefing-content strong {
+                        color: #f8fafc;
+                    }
+                    .ai-briefing-content h1, .ai-briefing-content h2, .ai-briefing-content h3, .ai-briefing-content h4 {
+                        color: #252ebf;
+                        font-weight: 800;
+                        margin-top: 0.4rem;
+                        margin-bottom: 0.2rem;
+                    }
+                    .dark .ai-briefing-content h1, .dark .ai-briefing-content h2, .dark .ai-briefing-content h3, .dark .ai-briefing-content h4 {
+                        color: #60a5fa;
+                    }
+                    .ai-briefing-content p {
+                        margin-bottom: 0.35rem;
+                    }
+                    .ai-briefing-content p:last-child {
+                        margin-bottom: 0;
+                    }
+                </style>
             </div>
 
             <!-- Filter Bar -->
