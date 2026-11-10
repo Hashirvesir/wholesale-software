@@ -6,7 +6,13 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Unit;
+use App\Models\Warehouse;
+use App\Models\Stock;
+use App\Models\OpeningStock;
+use App\Models\ChartOfAccount;
+use App\Models\LedgerEntry;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Traits\TracksActivity;
 
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -78,7 +84,8 @@ class ProductController extends Controller implements HasMiddleware
         $categories = Category::all();
         $brands = Brand::all();
         $units = Unit::all();
-        return view('products.create', compact('categories', 'brands', 'units'));
+        $warehouses = Warehouse::all();
+        return view('products.create', compact('categories', 'brands', 'units', 'warehouses'));
     }
 
     public function store(Request $request)
@@ -96,13 +103,112 @@ class ProductController extends Controller implements HasMiddleware
             'dealer_price' => 'nullable|numeric|min:0',
             'alert_quantity' => 'required|numeric|min:0',
             'status' => 'required|boolean',
+            'has_opening_stock' => 'nullable|boolean',
+            'opening_stock_qty' => 'nullable|numeric|min:0',
+            'opening_stock_warehouse_id' => 'nullable|exists:warehouses,id',
+            'opening_stock_rate' => 'nullable|numeric|min:0',
+            'opening_stock_date' => 'nullable|date',
+            'opening_stock_note' => 'nullable|string|max:500',
         ]);
 
-        $product = Product::create($request->all());
+        $product = DB::transaction(function () use ($request) {
+            $productData = $request->only([
+                'name', 'sku', 'barcode', 'category_id', 'brand_id', 'unit_id',
+                'sale_price', 'wholesale_price', 'retail_price', 'dealer_price',
+                'alert_quantity', 'status'
+            ]);
+
+            $product = Product::create($productData);
+
+            $hasOpening = $request->boolean('has_opening_stock') || ($request->filled('opening_stock_qty') && (float) $request->opening_stock_qty > 0);
+            $qty = (float) $request->input('opening_stock_qty', 0);
+
+            if ($hasOpening && $qty > 0) {
+                $warehouseId = $request->input('opening_stock_warehouse_id') ?: (Warehouse::first()->id ?? 1);
+                $rate = (float) $request->input('opening_stock_rate', 0);
+                $date = $request->input('opening_stock_date', now()->toDateString());
+                $note = $request->input('opening_stock_note') ?: "Initial Opening Stock on product creation";
+                $total = round($qty * $rate, 2);
+
+                // 1. Create OpeningStock record
+                $openingStock = OpeningStock::create([
+                    'product_id' => $product->id,
+                    'warehouse_id' => $warehouseId,
+                    'qty' => $qty,
+                    'rate' => $rate,
+                    'cargo_amount' => 0,
+                    'total' => $total,
+                    'date' => $date,
+                    'note' => $note,
+                ]);
+
+                // 2. Create or update Stock record
+                $stock = Stock::where('product_id', $product->id)
+                              ->where('warehouse_id', $warehouseId)
+                              ->first();
+
+                if ($stock) {
+                    $currentQty = $stock->qty;
+                    $currentAvgCost = $stock->avg_cost;
+                    $newQty = $currentQty + $qty;
+                    $newAvgCost = $newQty > 0 ? (($currentQty * $currentAvgCost) + ($qty * $rate)) / $newQty : $rate;
+
+                    $stock->update([
+                        'qty' => $newQty,
+                        'avg_cost' => round($newAvgCost, 2)
+                    ]);
+                } else {
+                    Stock::create([
+                        'product_id' => $product->id,
+                        'warehouse_id' => $warehouseId,
+                        'qty' => $qty,
+                        'avg_cost' => $rate
+                    ]);
+                }
+
+                // 3. Accounting Ledger Entries (Double-Entry: Debit Inventory, Credit Opening Balance Equity)
+                if ($total > 0) {
+                    $inventoryAcc = ChartOfAccount::where('name', 'Inventory')->first();
+                    $equityAcc = ChartOfAccount::firstOrCreate(
+                        ['name' => 'Opening Balance Equity'],
+                        ['type' => 'Equity', 'status' => true]
+                    );
+
+                    if ($inventoryAcc) {
+                        LedgerEntry::create([
+                            'account_id' => $inventoryAcc->id,
+                            'party_id' => null,
+                            'warehouse_id' => $warehouseId,
+                            'debit' => $total,
+                            'credit' => 0,
+                            'date' => $date,
+                            'reference_type' => 'opening_stock',
+                            'reference_id' => $openingStock->id,
+                            'note' => "Opening Stock for {$product->name}",
+                        ]);
+                    }
+
+                    LedgerEntry::create([
+                        'account_id' => $equityAcc->id,
+                        'party_id' => null,
+                        'warehouse_id' => $warehouseId,
+                        'debit' => 0,
+                        'credit' => $total,
+                        'date' => $date,
+                        'reference_type' => 'opening_stock',
+                        'reference_id' => $openingStock->id,
+                        'note' => "Opening Stock for {$product->name}",
+                    ]);
+                }
+            }
+
+            return $product;
+        });
 
         $this->logActivity('Created Product', 'Products', $product->id, null, $product->toArray());
 
-        return redirect()->route('products.index')->with('success', 'Product created successfully.');
+        $hasStockMsg = $request->filled('opening_stock_qty') && (float) $request->opening_stock_qty > 0 ? ' with initial opening stock.' : '.';
+        return redirect()->route('products.index')->with('success', 'Product created successfully' . $hasStockMsg);
     }
 
     public function edit(Product $product)

@@ -184,8 +184,8 @@
                             </div>
                         </div>
 
-                        <!-- Items Table -->
-                        <div class="mb-6 overflow-x-auto pb-48">
+                        <!-- Desktop Items Table -->
+                        <div class="hidden md:block mb-6 overflow-x-auto pb-48">
                             <table
                                 class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 border dark:border-gray-700">
                                 <thead class="bg-gray-50 dark:bg-gray-700">
@@ -334,6 +334,78 @@
                             </div>
                         </div>
 
+                        <!-- Mobile Items Cards View (Touch & Phone Friendly) -->
+                        <div class="block md:hidden space-y-3 mb-6">
+                            <template x-for="(item, index) in items" :key="index">
+                                <div class="bg-gray-50 dark:bg-gray-900/60 p-3.5 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm space-y-3 relative">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-black uppercase text-primary-600 dark:text-primary-400 font-mono tracking-wider">
+                                            Item #<span x-text="index + 1"></span>
+                                        </span>
+                                        <button type="button" @click="removeItem(index)" x-show="items.length > 1"
+                                            class="p-1 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        </button>
+                                    </div>
+
+                                    <!-- Product Search -->
+                                    <div class="relative" @click.away="item.open = false">
+                                        <label class="block text-[10px] font-black uppercase tracking-wider text-gray-500 mb-1">Product *</label>
+                                        <input type="text" x-model="item.search" @focus="item.open = true"
+                                            @input="item.open = true"
+                                            class="block w-full text-xs font-bold border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-xl shadow-sm focus:ring-primary-500 focus:border-primary-500"
+                                            placeholder="Search product..." autocomplete="off">
+
+                                        <div x-show="item.open && getFilteredProducts(item.search).length > 0"
+                                            class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 shadow-2xl max-h-48 rounded-xl py-1 text-xs ring-1 ring-black ring-opacity-5 overflow-auto border dark:border-gray-700">
+                                            <template x-for="(product, pIdx) in getFilteredProducts(item.search)" :key="product.id">
+                                                <div @click="selectProduct(index, product)"
+                                                    class="cursor-pointer py-2 px-3 border-b last:border-0 dark:border-gray-700 hover:bg-primary-50 dark:hover:bg-primary-950/40 transition">
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="font-bold text-gray-900 dark:text-gray-100" x-text="product.name"></span>
+                                                        <span class="text-[10px] font-mono text-indigo-500" x-text="'Stock: ' + (product.warehouse_stocks && product.warehouse_stocks[warehouse_id] ? product.warehouse_stocks[warehouse_id] : 0)"></span>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <!-- Stock & Cost Preview -->
+                                    <div class="flex items-center justify-between text-xs px-2.5 py-1 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700/60">
+                                        <span class="text-gray-400">Stock: <strong class="text-indigo-600 dark:text-indigo-400" x-text="getItemStock(index)"></strong></span>
+                                        <span x-show="showCosts" class="text-rose-500 font-mono text-[11px]">Cost: <span x-text="currency + ' ' + getItemCost(index)"></span></span>
+                                    </div>
+
+                                    <!-- Qty & Price -->
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <div>
+                                            <label class="block text-[10px] font-black uppercase text-gray-400 tracking-wider mb-1">Qty</label>
+                                            <input type="number" x-model.number="item.qty" inputmode="decimal"
+                                                class="block w-full text-xs font-bold border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-xl"
+                                                step="0.01" min="0.01" required>
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-black uppercase text-gray-400 tracking-wider mb-1">Price</label>
+                                            <input type="number" x-model.number="item.price" inputmode="decimal"
+                                                class="block w-full text-xs font-bold border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-xl"
+                                                step="0.01" min="0" required>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="block text-[10px] font-black uppercase text-gray-400 tracking-wider mb-1">Total</span>
+                                            <span class="text-xs font-black font-mono text-gray-900 dark:text-gray-100 block pt-2"
+                                                x-text="currency + ' ' + formatNumber(item.qty * item.price)"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <button type="button" @click="addItem"
+                                class="w-full py-2.5 bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 border border-primary-300 dark:border-primary-800 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                + Add Another Product
+                            </button>
+                        </div>
+
                         <!-- Notes, Payment and Grand Total -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 border-t dark:border-gray-700 pt-6">
                             <div class="space-y-6">
@@ -476,6 +548,19 @@
                     <x-primary-button class="!px-12 !py-4 !text-sm !rounded-xl !shadow-2xl" ::disabled="isSubmitting">
                         <span x-show="!isSubmitting">{{ __('Finalize Sale Invoice') }}</span>
                         <span x-show="isSubmitting">{{ __('Processing...') }}</span>
+                    </x-primary-button>
+                </div>
+
+                <!-- Mobile Sticky Bottom Action Bar -->
+                <div class="md:hidden fixed bottom-16 inset-x-0 z-30 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-700 px-4 py-2.5 shadow-2xl flex items-center justify-between">
+                    <div>
+                        <span class="block text-[10px] font-black uppercase tracking-wider text-gray-400">Total Bill</span>
+                        <span class="text-base font-black font-mono text-primary-600 dark:text-primary-400"
+                            x-text="currency + ' ' + formatNumber(calculateGrandTotal())"></span>
+                    </div>
+                    <x-primary-button class="!px-6 !py-2.5 !text-xs !rounded-xl !shadow-lg" ::disabled="isSubmitting">
+                        <span x-show="!isSubmitting">{{ __('Finalize Sale') }}</span>
+                        <span x-show="isSubmitting">{{ __('Saving...') }}</span>
                     </x-primary-button>
                 </div>
                 </form>

@@ -165,6 +165,91 @@
                                 </select>
                                 <x-input-error :messages="$errors->get('status')" class="mt-2" />
                             </div>
+
+                            <!-- Opening Stock Card (Product Creation Ke Sath Opening Stock) -->
+                            <div class="col-span-1 md:col-span-2 mt-2 bg-gradient-to-br from-indigo-50/70 via-purple-50/40 to-slate-50 dark:from-gray-900/70 dark:via-gray-850 dark:to-gray-900 rounded-2xl p-5 border border-indigo-100 dark:border-gray-700 space-y-4 shadow-xs">
+                                <div class="flex items-center justify-between border-b border-indigo-100 dark:border-gray-700 pb-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-600 text-white flex items-center justify-center text-base shadow">
+                                            📦
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-black text-gray-800 dark:text-gray-100 uppercase tracking-wide flex items-center gap-2">
+                                                <span>{{ __('Initial Opening Stock') }}</span>
+                                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 font-bold">Optional</span>
+                                            </h4>
+                                            <p class="text-[11px] text-gray-500 dark:text-gray-400">
+                                                Naya product banate waqt initial godown stock, warehouse aur purchase cost yahin darj karein
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                                        <input type="checkbox" name="has_opening_stock" value="1" x-model="hasOpeningStock"
+                                            class="rounded border-gray-300 dark:border-gray-700 text-primary-600 shadow-sm focus:ring-primary-500 w-4 h-4 cursor-pointer" />
+                                        <span class="text-xs font-bold text-gray-700 dark:text-gray-300">Add Opening Stock</span>
+                                    </label>
+                                </div>
+
+                                <!-- Opening Stock Inputs (Shown when toggled or qty entered) -->
+                                <div x-show="hasOpeningStock" x-transition class="space-y-4 pt-1">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                                        <!-- Quantity -->
+                                        <div>
+                                            <x-input-label for="opening_stock_qty" :value="__('Opening Quantity')" />
+                                            <x-text-input id="opening_stock_qty" class="block mt-1 w-full font-mono font-bold text-sm" type="number" step="any"
+                                                name="opening_stock_qty" x-model.number="openingQty" placeholder="0" />
+                                            <x-input-error :messages="$errors->get('opening_stock_qty')" class="mt-1" />
+                                        </div>
+
+                                        <!-- Warehouse Select -->
+                                        <div>
+                                            <x-input-label for="opening_stock_warehouse_id" :value="__('Warehouse / Godown')" />
+                                            <select id="opening_stock_warehouse_id" name="opening_stock_warehouse_id"
+                                                class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 focus:ring-primary-500 rounded-md shadow-sm text-xs py-2">
+                                                @foreach ($warehouses as $wh)
+                                                    <option value="{{ $wh->id }}" {{ old('opening_stock_warehouse_id') == $wh->id ? 'selected' : '' }}>
+                                                        {{ $wh->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <x-input-error :messages="$errors->get('opening_stock_warehouse_id')" class="mt-1" />
+                                        </div>
+
+                                        <!-- Purchase Cost Rate -->
+                                        <div>
+                                            <x-input-label for="opening_stock_rate" :value="__('Cost Rate / Unit (Rs.)')" />
+                                            <x-text-input id="opening_stock_rate" class="block mt-1 w-full font-mono text-sm" type="number" step="0.01"
+                                                name="opening_stock_rate" x-model.number="openingRate" placeholder="0.00" />
+                                            <x-input-error :messages="$errors->get('opening_stock_rate')" class="mt-1" />
+                                        </div>
+
+                                        <!-- Total Valuation Preview -->
+                                        <div>
+                                            <x-input-label :value="__('Total Stock Value')" />
+                                            <div class="mt-1 h-[42px] px-3.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 flex items-center font-mono font-black text-sm text-emerald-600 dark:text-emerald-400">
+                                                Rs. <span x-text="((openingQty || 0) * (openingRate || 0)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                                        <!-- Date -->
+                                        <div>
+                                            <x-input-label for="opening_stock_date" :value="__('Stock Date')" />
+                                            <x-text-input id="opening_stock_date" class="block mt-1 w-full text-xs" type="date"
+                                                name="opening_stock_date" value="{{ old('opening_stock_date', now()->toDateString()) }}" />
+                                        </div>
+
+                                        <!-- Note -->
+                                        <div>
+                                            <x-input-label for="opening_stock_note" :value="__('Remarks / Note (Optional)')" />
+                                            <x-text-input id="opening_stock_note" class="block mt-1 w-full text-xs" type="text"
+                                                name="opening_stock_note" placeholder="e.g. Initial inventory balance on launch" value="{{ old('opening_stock_note') }}" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="flex items-center justify-end mt-8 border-t dark:border-gray-700 pt-6">
@@ -237,6 +322,9 @@
                 modalType: '',
                 quickName: '',
                 modalError: '',
+                hasOpeningStock: {{ old('has_opening_stock') || old('opening_stock_qty') ? 'true' : 'false' }},
+                openingQty: {{ old('opening_stock_qty') ? (float) old('opening_stock_qty') : "''" }},
+                openingRate: {{ old('opening_stock_rate') ? (float) old('opening_stock_rate') : "''" }},
 
                 openModal(type) {
                     this.modalType = type;
