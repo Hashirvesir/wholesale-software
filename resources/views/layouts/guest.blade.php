@@ -25,6 +25,10 @@
     </script>
 
     <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
         body {
             font-family: 'Outfit', sans-serif;
         }

@@ -20,6 +20,10 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="/js/offline-sync.js"></script>
     <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
         .keyboard-nav:focus {
             outline: 2px solid #2563eb !important;
             outline-offset: -2px !important;
