@@ -241,6 +241,22 @@
                                                     @endcan
 
                                                     @can('view sales')
+                                                        @php
+                                                            $idxSignedUrl = \Illuminate\Support\Facades\URL::signedRoute('sales.public-pdf', ['sale' => $sale->id]);
+                                                            $idxSaleText = "Invoice #" . ($sale->invoice_number ?? $sale->id) . "\nCustomer: {$sale->party->name}\nTotal: Rs " . number_format($sale->total_amount, 2) . "\nPDF Link: {$idxSignedUrl}";
+                                                        @endphp
+                                                        <button type="button"
+                                                            onclick="window.shareDoc({
+                                                                title: 'Invoice #{{ $sale->invoice_number ?? $sale->id }} - {{ addslashes($sale->party->name) }}',
+                                                                text: '{{ addslashes(str_replace("\n", '\n', $idxSaleText)) }}',
+                                                                url: '{{ $idxSignedUrl }}'
+                                                            })"
+                                                            class="w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center cursor-pointer">
+                                                            <svg class="w-4 h-4 mr-2 text-[#252ebf]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                                            </svg>
+                                                            {{ __('Share Invoice') }}
+                                                        </button>
                                                         <x-dropdown-link :href="route('sales.pdf', $sale)" class="flex items-center">
                                                             <svg class="w-4 h-4 mr-2 text-gray-500" fill="none"
                                                                 stroke="currentColor" viewBox="0 0 24 24">

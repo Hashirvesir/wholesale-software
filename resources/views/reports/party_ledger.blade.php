@@ -219,35 +219,40 @@
                                     ]);
                                     $whatsappMessage .= "\n\nDeveloped by Invenco | Tel: +92 324 3980274";
                                 @endphp
-                                @if ($whatsappPhone)
-                                    <a href="https://wa.me/{{ $whatsappPhone }}?text={{ urlencode($whatsappMessage) }}"
-                                        target="_blank" rel="noopener"
-                                        class="group p-3 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-[#25D366] hover:text-white transition-all text-gray-500 flex items-center shadow-inner">
-                                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
-                                            <path
-                                                d="M12.001 2C6.478 2 2 6.477 2 12c0 1.905.529 3.686 1.446 5.202L2.05 22l4.926-1.362A9.951 9.951 0 0012.001 22c5.523 0 10-4.477 10-10S17.524 2 12.001 2zm0 18.099a8.075 8.075 0 01-4.116-1.126l-.295-.176-3.001.83.822-2.965-.192-.304A8.076 8.076 0 013.9 12c0-4.472 3.627-8.099 8.1-8.099 4.472 0 8.099 3.627 8.099 8.1 0 4.472-3.627 8.098-8.099 8.098z" />
-                                        </svg>
-                                        <span class="text-xs font-black uppercase tracking-widest">Send on WhatsApp</span>
-                                    </a>
 
-                                    @if ($finalBalance > 0)
-                                        <button type="button" @click="$dispatch('open-ai-recovery', { partyId: {{ $selectedPartyId }} })"
-                                            class="p-3 rounded-xl bg-[#252ebf] hover:bg-[#1e2599] text-white transition-all flex items-center shadow-md active:scale-95 cursor-pointer">
-                                            <svg class="w-5 h-5 mr-1.5 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                            <span class="text-xs font-black uppercase tracking-widest">AI Recovery</span>
-                                        </button>
-                                    @endif
-                                @else
-                                    <span class="p-3 rounded-xl bg-gray-100 dark:bg-gray-900 text-gray-400 flex items-center shadow-inner cursor-not-allowed"
-                                        title="Party's phone number is not set">
-                                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                d="M12.001 2C6.478 2 2 6.477 2 12c0 1.905.529 3.686 1.446 5.202L2.05 22l4.926-1.362A9.951 9.951 0 0012.001 22c5.523 0 10-4.477 10-10S17.524 2 12.001 2zm0 18.099a8.075 8.075 0 01-4.116-1.126l-.295-.176-3.001.83.822-2.965-.192-.304A8.076 8.076 0 013.9 12c0-4.472 3.627-8.099 8.1-8.099 4.472 0 8.099 3.627 8.099 8.1 0 4.472-3.627 8.098-8.099 8.098z" />
-                                        </svg>
-                                        <span class="text-xs font-black uppercase tracking-widest">No Phone</span>
-                                    </span>
+                                <button type="button"
+                                    onclick="window.shareDoc({
+                                        title: 'Party Ledger - {{ addslashes($ledgerParty->name) }}',
+                                        text: '{{ addslashes(str_replace("\n", '\n', $whatsappMessage)) }}',
+                                        url: '{{ $ledgerPdfUrl }}'
+                                    })"
+                                    class="group p-3 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-[#252ebf] hover:text-white transition-all text-gray-500 flex items-center shadow-inner cursor-pointer"
+                                    title="Share Statement via System Share / WhatsApp / Apps">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                    </svg>
+                                    <span class="text-xs font-black uppercase tracking-widest">Share</span>
+                                </button>
+
+                                <a href="{{ $whatsappPhone ? 'https://wa.me/' . $whatsappPhone . '?text=' . urlencode($whatsappMessage) : 'https://api.whatsapp.com/send?text=' . urlencode($whatsappMessage) }}"
+                                    target="_blank" rel="noopener"
+                                    class="group p-3 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-[#25D366] hover:text-white transition-all text-gray-500 flex items-center shadow-inner"
+                                    title="{{ $whatsappPhone ? 'Send to ' . $whatsappPhone : 'Share to any WhatsApp contact' }}">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+                                        <path
+                                            d="M12.001 2C6.478 2 2 6.477 2 12c0 1.905.529 3.686 1.446 5.202L2.05 22l4.926-1.362A9.951 9.951 0 0012.001 22c5.523 0 10-4.477 10-10S17.524 2 12.001 2zm0 18.099a8.075 8.075 0 01-4.116-1.126l-.295-.176-3.001.83.822-2.965-.192-.304A8.076 8.076 0 013.9 12c0-4.472 3.627-8.099 8.1-8.099 4.472 0 8.099 3.627 8.099 8.1 0 4.472-3.627 8.098-8.099 8.098z" />
+                                    </svg>
+                                    <span class="text-xs font-black uppercase tracking-widest">WhatsApp</span>
+                                </a>
+
+                                @if ($finalBalance > 0)
+                                    <button type="button" @click="$dispatch('open-ai-recovery', { partyId: {{ $selectedPartyId }} })"
+                                        class="p-3 rounded-xl bg-[#252ebf] hover:bg-[#1e2599] text-white transition-all flex items-center shadow-md active:scale-95 cursor-pointer">
+                                        <svg class="w-5 h-5 mr-1.5 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                        <span class="text-xs font-black uppercase tracking-widest">AI Recovery</span>
+                                    </button>
                                 @endif
                             </div>
                         </div>

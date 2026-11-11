@@ -123,6 +123,37 @@
             }
         };
 
+        // Global Document Share Helper (Web Share API for Android/Mobile with WhatsApp/Clipboard fallback)
+        window.shareDoc = async function(data) {
+            const title = data.title || 'Invenco Document';
+            const text = data.text || '';
+            const url = data.url || window.location.href;
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: title,
+                        text: text,
+                        url: url
+                    });
+                    return;
+                } catch (err) {
+                    if (err.name === 'AbortError') return; // User closed share sheet
+                }
+            }
+
+            // Fallback for desktop or unsupported browsers: WhatsApp & Clipboard
+            const fullText = (text ? text + "\n\n" : "") + (url ? "PDF Document: " + url : "");
+            if (navigator.clipboard && url) {
+                try {
+                    await navigator.clipboard.writeText(url);
+                } catch(e) {}
+            }
+
+            const waUrl = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(fullText);
+            window.open(waUrl, '_blank');
+        };
+
         // Autofocus first input on page load
         document.addEventListener('DOMContentLoaded', function() {
             // Find the first visible, non-hidden input/select/textarea

@@ -107,15 +107,28 @@
                                 ]);
                             @endphp
 
-                            @if ($whatsappPhone)
-                                <a href="https://wa.me/{{ $whatsappPhone }}?text={{ urlencode($whatsappMessage) }}" target="_blank"
-                                    class="inline-flex items-center gap-1.5 px-3 py-2 bg-[#25D366] hover:bg-[#1ebe5b] text-white text-xs font-bold rounded-xl shadow transition">
-                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
-                                    </svg>
-                                    WhatsApp
-                                </a>
-                            @endif
+                            <button type="button"
+                                onclick="window.shareDoc({
+                                    title: 'Purchase Invoice #{{ $settings->invoice_prefix }}{{ $purchase->id }} - {{ addslashes($purchase->party->name) }}',
+                                    text: '{{ addslashes(str_replace("\n", '\n', $whatsappMessage)) }}',
+                                    url: '{{ $publicPdfUrl }}'
+                                })"
+                                class="inline-flex items-center gap-1.5 px-3 py-2 bg-[#252ebf] hover:bg-[#1e2599] text-white text-xs font-bold rounded-xl shadow transition cursor-pointer"
+                                title="Share Purchase Invoice via Android/System Share">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                </svg>
+                                Share
+                            </button>
+
+                            <a href="{{ $whatsappPhone ? 'https://wa.me/' . $whatsappPhone . '?text=' . urlencode($whatsappMessage) : 'https://api.whatsapp.com/send?text=' . urlencode($whatsappMessage) }}" target="_blank"
+                                class="inline-flex items-center gap-1.5 px-3 py-2 bg-[#25D366] hover:bg-[#1ebe5b] text-white text-xs font-bold rounded-xl shadow transition"
+                                title="{{ $whatsappPhone ? 'Send to ' . $whatsappPhone : 'Share to any WhatsApp contact' }}">
+                                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
+                                </svg>
+                                WhatsApp
+                            </a>
 
                             <button type="button" onclick="window.print()"
                                 class="inline-flex items-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition">

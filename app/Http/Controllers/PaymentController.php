@@ -215,6 +215,11 @@ class PaymentController extends Controller implements HasMiddleware
         return $pdf->download('payment-receipt-' . $payment->id . '.pdf');
     }
 
+    public function publicPdf(Payment $payment)
+    {
+        return $this->downloadPdf($payment);
+    }
+
     public function thermalPrint(Payment $payment)
     {
         $payment->load(['party', 'account', 'warehouse']);

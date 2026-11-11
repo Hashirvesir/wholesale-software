@@ -156,6 +156,7 @@ Route::middleware('auth')->group(function () {
 // Meant to be shared with customers/vendors directly (e.g. via WhatsApp).
 Route::get('/public/sales/{sale}/pdf', [SaleController::class, 'publicPdf'])->name('sales.public-pdf')->middleware('signed');
 Route::get('/public/purchases/{purchase}/pdf', [PurchaseController::class, 'publicPdf'])->name('purchases.public-pdf')->middleware('signed');
+Route::get('/public/payments/{payment}/pdf', [PaymentController::class, 'publicPdf'])->name('payments.public-pdf')->middleware('signed');
 Route::get('/public/quotations/{quotation}/pdf', [QuotationController::class, 'publicPdf'])->name('quotations.public-pdf')->middleware('signed');
 Route::get('/public/party-ledger/pdf', [ReportController::class, 'publicPartyLedgerPdf'])->name('reports.party-ledger.public-pdf')->middleware('signed');
 
