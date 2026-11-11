@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Invenco Mobile POS</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background: linear-gradient(135deg, #090d16 0%, #1e1b4b 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: calc(env(safe-area-inset-top) + 24px) 24px calc(env(safe-area-inset-bottom) + 24px);
+        }
+        .header {
+            text-align: center;
+            margin-top: 32px;
+        }
+        .logo {
+            width: 72px;
+            height: 72px;
+            background: #252ebf;
+            border-radius: 22px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 900;
+            box-shadow: 0 12px 30px rgba(37, 46, 191, 0.45);
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+        p {
+            color: #94a3b8;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .card {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+        .input-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            display: block;
+        }
+        input {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 16px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            outline: none;
+            transition: all 0.2s;
+        }
+        input:focus {
+            border-color: #252ebf;
+            box-shadow: 0 0 0 3px rgba(37, 46, 191, 0.3);
+        }
+        .hint {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 8px;
+            margin-bottom: 20px;
+        }
+        button.btn-primary {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            border: none;
+            background: #252ebf;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(37, 46, 191, 0.35);
+            transition: all 0.2s;
+        }
+        button.btn-primary:active {
+            transform: scale(0.98);
+            background: #1e2599;
+        }
+        .btn-outline {
+            width: 100%;
+            padding: 12px;
+            margin-top: 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: transparent;
+            color: #cbd5e1;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-outline:active {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .splash {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+        }
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid rgba(255, 255, 255, 0.12);
+            border-radius: 50%;
+            border-top-color: #252ebf;
+            animation: spin 0.8s linear infinite;
+            margin: 24px 0;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .recent-box {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Splash / Connecting View -->
+    <div id="splashView" class="splash" style="display: none;">
+        <div class="logo">IN</div>
+        <h1>Invenco Wholesaler</h1>
+        <p id="splashText">Connecting to your store...</p>
+        <div class="spinner"></div>
+
+        <button type="button" class="btn-outline" style="max-width: 240px; margin-top: 20px;" onclick="cancelAndReset()">
+            Change Store Domain
+        </button>
+    </div>
+
+    <!-- Setup View -->
+    <div id="setupView">
+        <div class="header">
+            <div class="logo">IN</div>
+            <h1>Connect Your Store</h1>
+            <p>Enter your store domain or server IP to launch mobile POS & Inventory.</p>
+        </div>
+
+        <div class="card" style="margin-top: 28px;">
+            <div id="recentBox" class="recent-box" style="display: none;">
+                <div>
+                    <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 700;">Saved Store</div>
+                    <div id="savedDomainText" style="font-size: 13px; font-weight: 600; color: #fff;"></div>
+                </div>
+                <button type="button" onclick="connectSaved()" style="padding: 6px 12px; background: #252ebf; color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">
+                    Open
+                </button>
+            </div>
+
+            <label class="input-label" for="storeUrl">Store Domain or Server URL</label>
+            <input type="text" id="storeUrl" placeholder="pos.yourdomain.com" autocomplete="off" autocapitalize="none">
+            <div class="hint">Examples: <code>pos.invenco.app</code>, <code>demo.com</code> or <code>192.168.1.10:8000</code></div>
+
+            <button type="button" class="btn-primary" id="connectBtn" onclick="saveAndConnect()">
+                Connect & Open Store
+            </button>
+        </div>
+
+        <div style="text-align: center; color: #475569; font-size: 11px; margin-top: 24px;">
+            Invenco Systems &bull; Mobile Client v1.1
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'invenco_mobile_store_url';
+        const setupView = document.getElementById('setupView');
+        const splashView = document.getElementById('splashView');
+        const splashText = document.getElementById('splashText');
+        const urlInput = document.getElementById('storeUrl');
+        const recentBox = document.getElementById('recentBox');
+        const savedDomainText = document.getElementById('savedDomainText');
+
+        // Check for ?reset=1 query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('reset') === '1') {
+            localStorage.removeItem(STORAGE_KEY);
+        }
+
+        const savedUrl = localStorage.getItem(STORAGE_KEY);
+
+        if (savedUrl) {
+            recentBox.style.display = 'flex';
+            savedDomainText.textContent = savedUrl.replace('https://', '').replace('http://', '');
+            urlInput.value = savedUrl.replace('https://', '').replace('http://', '');
+
+            // Auto-redirect if not explicitly reset
+            if (urlParams.get('setup') !== '1') {
+                setupView.style.display = 'none';
+                splashView.style.display = 'flex';
+                splashText.textContent = 'Connecting to ' + savedDomainText.textContent + '...';
+
+                setTimeout(() => {
+                    window.location.replace(savedUrl);
+                }, 400);
+            }
+        }
+
+        function formatUrl(raw) {
+            let val = (raw || '').trim();
+            if (!val) return '';
+
+            if (val.startsWith('http://') || val.startsWith('https://')) {
+                return val;
+            }
+
+            // If local IP or localhost or port, use http://
+            const isLocal = val.startsWith('localhost') ||
+                            val.startsWith('127.0.0.1') ||
+                            val.startsWith('192.168.') ||
+                            val.startsWith('10.') ||
+                            val.startsWith('172.') ||
+                            val.includes(':8000') ||
+                            val.includes(':8080');
+
+            return (isLocal ? 'http://' : 'https://') + val;
+        }
+
+        function saveAndConnect() {
+            const raw = urlInput.value.trim();
+            if (!raw) {
+                alert('Please enter your store domain or server address.');
+                return;
+            }
+
+            const targetUrl = formatUrl(raw);
+            localStorage.setItem(STORAGE_KEY, targetUrl);
+
+            setupView.style.display = 'none';
+            splashView.style.display = 'flex';
+            splashText.textContent = 'Opening ' + targetUrl + '...';
+
+            setTimeout(() => {
+                window.location.replace(targetUrl);
+            }, 300);
+        }
+
+        function connectSaved() {
+            if (savedUrl) {
+                setupView.style.display = 'none';
+                splashView.style.display = 'flex';
+                splashText.textContent = 'Opening ' + savedUrl + '...';
+                setTimeout(() => {
+                    window.location.replace(savedUrl);
+                }, 200);
+            }
+        }
+
+        function cancelAndReset() {
+            localStorage.removeItem(STORAGE_KEY);
+            splashView.style.display = 'none';
+            setupView.style.display = 'block';
+            if (recentBox) recentBox.style.display = 'none';
+            urlInput.value = '';
+        }
+    </script>
+</body>
+</html>

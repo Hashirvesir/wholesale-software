@@ -24,7 +24,10 @@ Thumbs.db
 /desktop/node_modules
 /desktop/dist
 /mobile/node_modules
-/mobile/android
-/mobile/dist
+/mobile/android/.gradle
+/mobile/android/build
+/mobile/android/app/build
+/mobile/android/local.properties
+/mobile/android/capacitor-cordova-android-plugins
 /public/downloads/*
 !/public/downloads/README.txt

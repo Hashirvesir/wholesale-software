@@ -5,7 +5,10 @@
   "bundledWebRuntime": false,
   "server": {
     "cleartext": true,
-    "androidScheme": "https"
+    "androidScheme": "https",
+    "allowNavigation": [
+      "*"
+    ]
   },
   "android": {
     "allowMixedContent": true,

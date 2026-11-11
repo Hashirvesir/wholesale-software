@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Invenco Wholesaler</string>
+    <string name="title_activity_main">Invenco Wholesaler</string>
+    <string name="package_name">com.invenco.wholesaler</string>
+    <string name="custom_url_scheme">com.invenco.wholesaler</string>
+</resources>
