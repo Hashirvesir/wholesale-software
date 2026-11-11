@@ -21,6 +21,8 @@ class AiFeaturesTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        config(['services.openai.key' => 'sk-test-key-12345']);
+        $this->app->singleton(OpenAiService::class, fn () => new OpenAiService());
         $this->user = User::factory()->create();
     }
 
@@ -251,9 +253,106 @@ class AiFeaturesTest extends TestCase
                 [
                     'raw_name' => 'Brand New Camera Glass 16',
                     'is_new' => true,
-                    'auto_create' => true,
                 ]
             ]
         ]);
+    }
+
+    public function test_ai_chat_records_usage_and_returns_usage_stats(): void
+    {
+        Http::fake([
+            'https://api.openai.com/v1/chat/completions' => Http::response([
+                'choices' => [
+                    [
+                        'message' => [
+                            'role' => 'assistant',
+                            'content' => 'Ji janab!',
+                        ]
+                    ]
+                ]
+            ], 200)
+        ]);
+
+        $response = $this->actingAs($this->user)->postJson(route('ai.chat'), [
+            'prompt' => 'Hello AI',
+        ]);
+
+        $response->assertOk();
+        $this->assertDatabaseHas('ai_usage_logs', [
+            'user_id' => $this->user->id,
+            'action' => 'chat',
+            'year_month' => now()->format('Y-m'),
+        ]);
+
+        $response->assertJsonStructure([
+            'success',
+            'reply',
+            'usage' => [
+                'limit',
+                'used',
+                'remaining',
+                'is_unlimited',
+                'has_reached_limit',
+                'percentage',
+                'year_month',
+            ],
+        ]);
+    }
+
+    public function test_ai_blocks_requests_when_monthly_limit_exceeded(): void
+    {
+        config(['services.openai.monthly_limit' => 1]);
+
+        \App\Models\AiUsageLog::create([
+            'user_id' => $this->user->id,
+            'action' => 'chat',
+            'year_month' => now()->format('Y-m'),
+            'tokens' => 10,
+        ]);
+
+        $response = $this->actingAs($this->user)->postJson(route('ai.chat'), [
+            'prompt' => 'Limit test',
+        ]);
+
+        $response->assertStatus(429);
+        $response->assertJson([
+            'success' => false,
+            'limit_reached' => true,
+        ]);
+        $this->assertStringContainsString('Mahana AI limit', $response->json('error'));
+    }
+
+    public function test_ai_usage_stats_endpoint(): void
+    {
+        config(['services.openai.monthly_limit' => 250]);
+
+        $response = $this->actingAs($this->user)->getJson(route('ai.usage-stats'));
+
+        $response->assertOk();
+        $response->assertJson([
+            'success' => true,
+            'usage' => [
+                'limit' => 250,
+                'has_reached_limit' => false,
+            ]
+        ]);
+    }
+
+    public function test_ai_unlimited_when_limit_is_zero(): void
+    {
+        config(['services.openai.monthly_limit' => 0]);
+
+        // Insert multiple usages
+        for ($i = 0; $i < 5; $i++) {
+            \App\Models\AiUsageLog::create([
+                'user_id' => $this->user->id,
+                'action' => 'chat',
+                'year_month' => now()->format('Y-m'),
+            ]);
+        }
+
+        $usageService = app(\App\Services\AiUsageService::class);
+        $this->assertTrue($usageService->isUnlimited());
+        $this->assertFalse($usageService->hasReachedLimit());
     }
 }

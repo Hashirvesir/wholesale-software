@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invenco Wholesaler - Connect Store</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        .logo-badge {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            background: #252ebf;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 900;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 25px rgba(37, 46, 191, 0.4);
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+        p {
+            color: #94a3b8;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 28px;
+        }
+        .form-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+        .input-group {
+            position: relative;
+        }
+        input {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 14px;
+            padding: 14px 16px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            outline: none;
+            transition: all 0.2s;
+        }
+        input:focus {
+            border-color: #252ebf;
+            box-shadow: 0 0 0 3px rgba(37, 46, 191, 0.3);
+        }
+        .hint {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 6px;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            border: none;
+            background: #252ebf;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+            box-shadow: 0 10px 20px rgba(37, 46, 191, 0.3);
+        }
+        button:hover {
+            background: #1e2599;
+            transform: translateY(-1px);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .error-msg {
+            color: #f87171;
+            font-size: 12px;
+            margin-top: 12px;
+            display: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="logo-badge">IN</div>
+        <h1>Connect to Store</h1>
+        <p>Enter your store subdomain or domain URL to connect this desktop terminal.</p>
+
+        <form id="connectForm">
+            <div class="form-group">
+                <label for="storeUrl">Store Domain / URL</label>
+                <div class="input-group">
+                    <input type="text" id="storeUrl" placeholder="e.g. client1.yourdomain.com" required autocomplete="off" autofocus>
+                </div>
+                <div class="hint">Example: client1.yourdomain.com or https://client1.yourdomain.com</div>
+            </div>
+
+            <button type="submit" id="connectBtn">Connect & Save</button>
+            <div id="errorMsg" class="error-msg"></div>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('connectForm');
+        const input = document.getElementById('storeUrl');
+        const btn = document.getElementById('connectBtn');
+        const errorMsg = document.getElementById('errorMsg');
+
+        // Preload any existing config
+        if (window.desktopAPI && window.desktopAPI.getSavedStoreConfig) {
+            window.desktopAPI.getSavedStoreConfig().then(saved => {
+                if (saved) input.value = saved;
+            });
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let url = input.value.trim();
+            if (!url) return;
+
+            // Ensure protocol
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Connecting...';
+            errorMsg.style.display = 'none';
+
+            try {
+                // Send to main process to save and load
+                if (window.desktopAPI && window.desktopAPI.saveStoreConfig) {
+                    window.desktopAPI.saveStoreConfig(url);
+                }
+            } catch (err) {
+                errorMsg.textContent = 'Unable to connect: ' + err.message;
+                errorMsg.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Connect & Save';
+            }
+        });
+    </script>
+</body>
+</html>

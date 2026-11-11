@@ -9,7 +9,9 @@ use App\Models\Product;
 use App\Models\Setting;
 use App\Models\Unit;
 use App\Services\AiContextProvider;
+use App\Services\AiUsageService;
 use App\Services\OpenAiService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -21,11 +23,16 @@ class AiController extends Controller
 {
     protected OpenAiService $aiService;
     protected AiContextProvider $contextProvider;
+    protected AiUsageService $usageService;
 
-    public function __construct(OpenAiService $aiService, AiContextProvider $contextProvider)
-    {
+    public function __construct(
+        OpenAiService $aiService,
+        AiContextProvider $contextProvider,
+        AiUsageService $usageService
+    ) {
         $this->aiService = $aiService;
         $this->contextProvider = $contextProvider;
+        $this->usageService = $usageService;
     }
 
     /**
@@ -37,6 +44,17 @@ class AiController extends Controller
             'prompt' => 'required|string|max:1500',
             'history' => 'nullable|array',
         ]);
+
+        if ($this->usageService->hasReachedLimit()) {
+            $stats = $this->usageService->getUsageStats();
+            return response()->json([
+                'success' => false,
+                'limit_reached' => true,
+                'reply' => "⚠️ Mahana AI limit ({$stats['limit']} requests) poori ho chuki hai. Mazeed requests ke liye barah-e-karam apna package upgrade karein.",
+                'error' => "⚠️ Mahana AI limit ({$stats['limit']} requests) poori ho chuki hai. Mazeed requests ke liye barah-e-karam apna package upgrade karein.",
+                'usage' => $stats,
+            ], 429);
+        }
 
         if (!$this->aiService->isConfigured()) {
             return response()->json([
@@ -51,9 +69,12 @@ class AiController extends Controller
         $businessContext = $this->contextProvider->getLiveContext($prompt);
         $reply = $this->aiService->chat($prompt, $history, $businessContext);
 
+        $this->usageService->recordUsage('chat', $request->user()?->id);
+
         return response()->json([
             'success' => true,
             'reply' => $reply,
+            'usage' => $this->usageService->getUsageStats(),
         ]);
     }
 
@@ -65,6 +86,17 @@ class AiController extends Controller
         $request->validate([
             'bill_image' => 'required|file|mimes:jpeg,png,jpg,webp,pdf|max:15360',
         ]);
+
+        if ($this->usageService->hasReachedLimit()) {
+            $stats = $this->usageService->getUsageStats();
+            return response()->json([
+                'success' => false,
+                'limit_reached' => true,
+                'message' => "⚠️ Mahana AI limit ({$stats['limit']} requests) poori ho chuki hai. Mazeed bill scans ke liye barah-e-karam apna package upgrade karein.",
+                'error' => "⚠️ Mahana AI limit ({$stats['limit']} requests) poori ho chuki hai. Mazeed bill scans ke liye barah-e-karam apna package upgrade karein.",
+                'usage' => $stats,
+            ], 429);
+        }
 
         if (!$this->aiService->isConfigured()) {
             return response()->json([
@@ -112,6 +144,8 @@ class AiController extends Controller
             ], 422);
         }
 
+        $this->usageService->recordUsage('scan_bill', $request->user()?->id);
+
         $data = $result['data'];
 
         // 1. Smart Supplier Matching
@@ -149,34 +183,26 @@ class AiController extends Controller
                         break;
                     }
 
-                    // Partial keyword match
-                    similar_text(mb_strtolower($prod->name), mb_strtolower($rawName), $percent);
-                    if ($percent > $bestScore && $percent >= 45) {
+                    // Partial token match
+                    similar_text(mb_strtolower($rawName), mb_strtolower($prod->name), $percent);
+                    if ($percent > 70 && $percent > $bestScore) {
                         $bestScore = $percent;
                         $bestMatch = $prod;
                     }
                 }
             }
 
-            $costPrice = (float) ($item['unit_price'] ?? 0);
-            $qty = (float) ($item['qty'] ?? 1);
-            $subtotal = (float) ($item['subtotal'] ?? ($qty * $costPrice));
             $isNew = ($bestMatch === null);
-            $suggestedSale = $costPrice > 0 ? round($costPrice * 1.25, 2) : 100.0;
 
             $matchedItems[] = [
                 'raw_name' => $rawName,
-                'qty' => $qty,
-                'unit_price' => $costPrice,
-                'subtotal' => $subtotal,
                 'matched_product_id' => $bestMatch ? $bestMatch->id : null,
                 'matched_product_name' => $bestMatch ? $bestMatch->name : null,
                 'matched_product_sku' => $bestMatch ? $bestMatch->sku : null,
-                'current_stock' => $bestMatch ? (float) $bestMatch->stocks->sum('qty') : 0,
-                'confidence' => $bestScore,
                 'is_new' => $isNew,
-                'auto_create' => $isNew,
-                'sale_price' => $isNew ? $suggestedSale : (float) ($bestMatch->sale_price ?? 0),
+                'qty' => (float) ($item['qty'] ?? 1),
+                'unit_price' => (float) ($item['unit_price'] ?? 0),
+                'subtotal' => (float) ($item['subtotal'] ?? 0),
                 'category_id' => $isNew ? $defaultCatId : ($bestMatch->category_id ?? $defaultCatId),
                 'unit_id' => $isNew ? $defaultUnitId : ($bestMatch->unit_id ?? $defaultUnitId),
             ];
@@ -198,6 +224,7 @@ class AiController extends Controller
             'items' => $matchedItems,
             'categories' => $categories,
             'units' => $units,
+            'usage' => $this->usageService->getUsageStats(),
         ]);
     }
 
@@ -241,33 +268,19 @@ class AiController extends Controller
                 }
 
                 $cost = (float) ($item['unit_price'] ?? 0);
-                $sale = !empty($item['sale_price']) && $item['sale_price'] > 0
+                $sale = !empty($item['sale_price']) && (float) $item['sale_price'] > 0
                     ? (float) $item['sale_price']
-                    : ($cost > 0 ? round($cost * 1.25, 2) : 100);
-
-                // Auto-generate clean unique SKU
-                $prefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $rawName), 0, 4));
-                if (strlen($prefix) < 3) $prefix = 'PRD';
-                $sku = $prefix . '-' . rand(1000, 9999);
-                while (Product::where('sku', $sku)->exists()) {
-                    $sku = $prefix . '-' . rand(10000, 99999);
-                }
-
-                $catId = !empty($item['category_id']) ? $item['category_id'] : ($defaultCategory->id ?? 1);
-                $brandId = $defaultBrand->id ?? 1;
-                $unitId = !empty($item['unit_id']) ? $item['unit_id'] : ($defaultUnit->id ?? 1);
+                    : ($cost > 0 ? round($cost * 1.20, 2) : 0);
 
                 $product = Product::create([
                     'name' => $rawName,
-                    'sku' => $sku,
-                    'category_id' => $catId,
-                    'brand_id' => $brandId,
-                    'unit_id' => $unitId,
+                    'sku' => Product::generateSku(),
+                    'barcode' => Product::generateSku(),
+                    'cost_price' => $cost,
                     'sale_price' => $sale,
-                    'wholesale_price' => $cost,
-                    'retail_price' => $sale,
-                    'dealer_price' => $sale,
-                    'alert_quantity' => 5,
+                    'category_id' => !empty($item['category_id']) ? $item['category_id'] : ($defaultCategory->id ?? 1),
+                    'brand_id' => $defaultBrand->id ?? null,
+                    'unit_id' => !empty($item['unit_id']) ? $item['unit_id'] : ($defaultUnit->id ?? 1),
                     'status' => true,
                 ]);
 
@@ -307,6 +320,16 @@ class AiController extends Controller
             'party_id' => 'required|exists:parties,id',
         ]);
 
+        if ($this->usageService->hasReachedLimit()) {
+            $stats = $this->usageService->getUsageStats();
+            return response()->json([
+                'success' => false,
+                'limit_reached' => true,
+                'message' => "Aapki is maah ki AI request limit ({$stats['limit']} requests) poori ho chuki hai. Mazeed recovery messages ke liye barah-e-karam apna package upgrade karein.",
+                'usage' => $stats,
+            ], 429);
+        }
+
         $party = Party::findOrFail($request->input('party_id'));
         $balance = $party->getCurrentBalance();
 
@@ -332,6 +355,7 @@ class AiController extends Controller
         ];
 
         $message = $this->aiService->generateRecoveryMessage($customerData);
+        $this->usageService->recordUsage('recovery_message', $request->user()?->id);
 
         // Format clean WhatsApp phone number
         $cleanPhone = preg_replace('/[^0-9]/', '', $party->phone ?? '');
@@ -349,6 +373,7 @@ class AiController extends Controller
             'balance' => $balance,
             'message' => $message,
             'whatsapp_url' => $whatsappUrl,
+            'usage' => $this->usageService->getUsageStats(),
         ]);
     }
 
@@ -368,14 +393,41 @@ class AiController extends Controller
         if ($request->boolean('refresh')) {
             Cache::forget($cacheKey);
         }
-        $briefing = Cache::remember($cacheKey, 1800, function () {
+
+        if (!Cache::has($cacheKey)) {
+            if ($this->usageService->hasReachedLimit()) {
+                $stats = $this->usageService->getUsageStats();
+                return response()->json([
+                    'success' => false,
+                    'limit_reached' => true,
+                    'briefing' => "Aapki is maah ki AI request limit ({$stats['limit']} requests) poori ho chuki hai. Mazeed requests ke liye barah-e-karam apna package upgrade karein.",
+                    'usage' => $stats,
+                ], 429);
+            }
+        }
+
+        $briefing = Cache::remember($cacheKey, 1800, function () use ($request) {
             $context = $this->contextProvider->getLiveContext();
-            return $this->aiService->generateDailyBriefing($context);
+            $result = $this->aiService->generateDailyBriefing($context);
+            $this->usageService->recordUsage('daily_briefing', $request->user()?->id);
+            return $result;
         });
 
         return response()->json([
             'success' => true,
             'briefing' => $briefing,
+            'usage' => $this->usageService->getUsageStats(),
+        ]);
+    }
+
+    /**
+     * Get real-time monthly AI usage stats.
+     */
+    public function usageStats(): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'usage' => $this->usageService->getUsageStats(),
         ]);
     }
 }

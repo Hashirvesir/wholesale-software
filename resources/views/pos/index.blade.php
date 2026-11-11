@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div x-data="posApp()" x-init="initPos()" @keydown.window="handleGlobalKey($event)" class="min-h-[calc(100vh-4rem)] bg-gray-100 dark:bg-gray-900 pb-12 select-none">
+    <div x-data="posApp()" x-init="initPos()" @keydown.window="handleGlobalKey($event)" @barcode-scanned.window="onCameraBarcodeScanned($event.detail)" class="min-h-[calc(100vh-4rem)] bg-gray-100 dark:bg-gray-900 pb-12 select-none">
 
         <!-- Top Status Bar & Shortcuts Banner -->
         <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-2.5 shadow-sm">
@@ -257,10 +257,18 @@
                                     <input type="text" x-ref="barcodeInput" x-model="productSearch"
                                         @input="onProductSearchInput()"
                                         @keydown="handleProductInputKey($event)"
-                                        class="w-full pl-10 pr-24 py-2.5 text-sm font-bold rounded-xl border-2 border-emerald-500/50 dark:border-emerald-600/50 dark:bg-gray-900 dark:text-gray-100 focus:border-emerald-600 focus:ring-emerald-500 shadow-sm transition"
+                                        class="w-full pl-10 pr-32 py-2.5 text-sm font-bold rounded-xl border-2 border-emerald-500/50 dark:border-emerald-600/50 dark:bg-gray-900 dark:text-gray-100 focus:border-emerald-600 focus:ring-emerald-500 shadow-sm transition"
                                         placeholder="Scan barcode or type product name / SKU (F1)..." autocomplete="off" />
 
-                                    <div class="absolute inset-y-0 right-0 pr-2 flex items-center gap-1">
+                                    <div class="absolute inset-y-0 right-0 pr-2 flex items-center gap-1.5">
+                                        <button type="button" @click="$dispatch('open-barcode-scanner', { target: 'pos' })"
+                                            class="p-1 rounded-lg text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-gray-800 transition cursor-pointer"
+                                            title="Open Camera Barcode Scanner">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            </svg>
+                                        </button>
                                         <span class="text-[10px] font-bold uppercase bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded">
                                             Scan Ready
                                         </span>
@@ -1246,6 +1254,13 @@
                         if (list.length) {
                             this.productHighlightedIndex = (this.productHighlightedIndex - 1 + list.length) % list.length;
                         }
+                    }
+                },
+
+                onCameraBarcodeScanned(detail) {
+                    if (detail && detail.barcode) {
+                        this.productSearch = detail.barcode;
+                        this.handleBarcodeScanOrSelect();
                     }
                 },
 

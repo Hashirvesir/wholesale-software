@@ -1,0 +1,15 @@
+{
+  "name": "invenco-mobile",
+  "version": "1.0.0",
+  "description": "Invenco Wholesaler Mobile Android App",
+  "main": "dist/index.html",
+  "author": "Invenco Systems",
+  "scripts": {
+    "build": "echo Mobile wrapper ready"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/cli": "^6.2.0",
+    "@capacitor/core": "^6.2.0"
+  }
+}

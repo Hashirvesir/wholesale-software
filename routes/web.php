@@ -27,6 +27,8 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+Route::get('/downloads/{platform}', [\App\Http\Controllers\AppDownloadController::class, 'download'])->name('downloads.app');
+
 Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 Route::get('/dashboard/quick-stats', [\App\Http\Controllers\DashboardController::class, 'quickStats'])->middleware(['auth', 'verified'])->name('dashboard.quick-stats');
 
@@ -145,6 +147,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/create-scanned-products', [\App\Http\Controllers\AiController::class, 'createScannedProducts'])->name('create-scanned-products');
         Route::post('/recovery-message', [\App\Http\Controllers\AiController::class, 'recoveryMessage'])->name('recovery-message');
         Route::get('/daily-briefing', [\App\Http\Controllers\AiController::class, 'dailyBriefing'])->name('daily-briefing');
+        Route::get('/usage-stats', [\App\Http\Controllers\AiController::class, 'usageStats'])->name('usage-stats');
     });
 });
 

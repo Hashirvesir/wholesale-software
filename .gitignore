@@ -21,3 +21,10 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+/desktop/node_modules
+/desktop/dist
+/mobile/node_modules
+/mobile/android
+/mobile/dist
+/public/downloads/*
+!/public/downloads/README.txt

@@ -47,11 +47,19 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-1">
-                <button type="button" @click="clearChat()" class="p-1.5 text-blue-100 hover:text-white rounded-lg hover:bg-white/10 transition" title="Clear Chat">
+            <div class="flex items-center gap-1.5">
+                <template x-if="usage">
+                    <div class="px-2 py-0.5 rounded-full bg-white/15 border border-white/20 text-[10px] font-mono tracking-tight text-white flex items-center gap-1 cursor-help"
+                        :title="usage.is_unlimited ? 'Unlimited Monthly AI Requests' : `${usage.used}/${usage.limit} requests used in ${usage.month}`">
+                        <span class="w-1.5 h-1.5 rounded-full" :class="usage.has_reached_limit ? 'bg-rose-400 animate-pulse' : (usage.remaining <= 25 ? 'bg-amber-300' : 'bg-emerald-300')"></span>
+                        <span x-text="usage.is_unlimited ? 'Unlimited' : `${usage.remaining}/${usage.limit}`"></span>
+                    </div>
+                </template>
+
+                <button type="button" @click="clearChat()" class="p-1.5 text-blue-100 hover:text-white rounded-lg hover:bg-white/10 transition cursor-pointer" title="Clear Chat">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
-                <button type="button" @click="open = false" class="p-1.5 text-blue-100 hover:text-white rounded-lg hover:bg-white/10 transition" title="Close">
+                <button type="button" @click="open = false" class="p-1.5 text-blue-100 hover:text-white rounded-lg hover:bg-white/10 transition cursor-pointer" title="Close">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
@@ -140,10 +148,18 @@
 
         <!-- Chat Input Form -->
         <div class="p-3 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 shrink-0">
+            <template x-if="usage && usage.has_reached_limit">
+                <div class="mb-2 p-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span>Is maah ki AI limit (<span x-text="usage.limit"></span> requests) poori ho chuki hai.</span>
+                </div>
+            </template>
+
             <form @submit.prevent="sendMessage()" class="flex items-center gap-2">
                 <!-- Voice Input Mic Button -->
                 <button type="button" @click="toggleVoice()"
-                    class="p-2.5 rounded-xl border transition-all duration-150 flex items-center justify-center cursor-pointer shrink-0"
+                    :disabled="loading || (usage && usage.has_reached_limit)"
+                    class="p-2.5 rounded-xl border transition-all duration-150 flex items-center justify-center cursor-pointer shrink-0 disabled:opacity-40"
                     :class="listening
                         ? 'bg-red-500 text-white border-red-600 ring-2 ring-red-400'
                         : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700'"
@@ -154,11 +170,11 @@
                 </button>
 
                 <input type="text" x-model="userInput" x-ref="chatInput"
-                    placeholder="Sawal likhein..."
-                    :disabled="loading"
-                    class="flex-1 text-xs sm:text-sm rounded-xl border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 focus:border-[#252ebf] focus:ring-[#252ebf] shadow-xs py-2 px-3.5" />
+                    :placeholder="(usage && usage.has_reached_limit) ? 'Monthly limit poori ho chuki hai...' : 'Sawal likhein...'"
+                    :disabled="loading || (usage && usage.has_reached_limit)"
+                    class="flex-1 text-xs sm:text-sm rounded-xl border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 focus:border-[#252ebf] focus:ring-[#252ebf] shadow-xs py-2 px-3.5 disabled:opacity-50" />
 
-                <button type="submit" :disabled="loading || !userInput.trim()"
+                <button type="submit" :disabled="loading || !userInput.trim() || (usage && usage.has_reached_limit)"
                     class="p-2.5 bg-[#252ebf] hover:bg-[#1e2599] text-white rounded-xl font-bold shadow-sm transition disabled:opacity-30 active:scale-95 flex items-center justify-center cursor-pointer shrink-0"
                     title="Send">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -178,6 +194,7 @@
             loading: false,
             userInput: '',
             messages: [],
+            usage: null,
             listening: false,
             recognition: null,
             voiceStatus: '',
@@ -190,6 +207,18 @@
                     const saved = localStorage.getItem('invenco_ai_chat_history');
                     if (saved) {
                         this.messages = JSON.parse(saved);
+                    }
+                } catch(e) {}
+
+                this.fetchUsage();
+            },
+
+            async fetchUsage() {
+                try {
+                    const res = await fetch("{{ route('ai.usage-stats') }}");
+                    const data = await res.json();
+                    if (data.success && data.usage) {
+                        this.usage = data.usage;
                     }
                 } catch(e) {}
             },
@@ -315,6 +344,20 @@
                     });
 
                     const data = await response.json();
+
+                    if (data.usage) {
+                        this.usage = data.usage;
+                    }
+
+                    if (!response.ok && data.error) {
+                        this.messages.push({
+                            role: 'assistant',
+                            content: '⚠️ ' + data.error,
+                            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                        });
+                        return;
+                    }
+
                     const reply = data.reply || 'Koi response nahi mila.';
 
                     this.messages.push({

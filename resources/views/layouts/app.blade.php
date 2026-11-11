@@ -71,6 +71,9 @@
     <!-- Mobile Bottom Navigation Bar (Visible on mobile/tablet) -->
     @include('layouts.mobile-bottom-nav')
 
+    <!-- Camera Barcode Scanner Modal -->
+    <x-barcode-camera-scanner />
+
     <!-- Invenco AI Copilot Widget & Drawer -->
     <x-ai-copilot />
 

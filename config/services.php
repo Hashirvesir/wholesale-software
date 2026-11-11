@@ -38,6 +38,7 @@ return [
     'openai' => [
         'key' => env('OPENAI_API_KEY'),
         'model' => env('OPENAI_MODEL', 'gpt-4o-mini'),
+        'monthly_limit' => (int) env('AI_MONTHLY_REQUEST_LIMIT', 250),
     ],
 
 ];

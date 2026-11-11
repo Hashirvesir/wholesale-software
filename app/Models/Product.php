@@ -98,4 +98,13 @@ class Product extends Model
         $barcode_value = $this->barcode ?? $this->sku;
         return $generator->getBarcode($barcode_value, $generator::TYPE_CODE_128);
     }
+
+    public static function generateSku(): string
+    {
+        do {
+            $sku = 'PRD-' . strtoupper(\Illuminate\Support\Str::random(6));
+        } while (static::where('sku', $sku)->exists());
+
+        return $sku;
+    }
 }
