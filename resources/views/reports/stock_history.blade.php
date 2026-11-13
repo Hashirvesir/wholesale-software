@@ -118,6 +118,8 @@
                                                         => 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200',
                                                     'Sale'
                                                         => 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200',
+                                                    'Repair Part'
+                                                        => 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-200',
                                                     'Sales Return'
                                                         => 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-200',
                                                     'Purchase Return'

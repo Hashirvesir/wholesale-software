@@ -214,6 +214,12 @@
                                                         </svg>
                                                         {{ __('View Ledger') }}
                                                     </x-dropdown-link>
+                                                    @if ($party->type === 'customer')
+                                                        <x-dropdown-link :href="route('repairs.index', ['search' => $party->name])" class="flex items-center">
+                                                            <svg class="w-4 h-4 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 002 2z"/></svg>
+                                                            {{ __('View Repairs') }}
+                                                        </x-dropdown-link>
+                                                    @endif
                                                     <x-dropdown-link :href="route('parties.edit', $party)" class="flex items-center">
                                                         <svg class="w-4 h-4 mr-2 text-yellow-500" fill="none"
                                                             stroke="currentColor" viewBox="0 0 24 24">

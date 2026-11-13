@@ -76,7 +76,11 @@ class ProductController extends Controller implements HasMiddleware
             ->with(['purchase' => fn($q) => $q->with('party', 'warehouse')])
             ->orderByDesc('id')
             ->get();
-        return view('products.show', compact('product', 'purchaseItems'));
+        $repairParts = \App\Models\RepairDevicePart::where('product_id', $product->id)
+            ->with(['device.repairOrder.customer', 'warehouse'])
+            ->orderByDesc('id')
+            ->get();
+        return view('products.show', compact('product', 'purchaseItems', 'repairParts'));
     }
 
     public function create()
@@ -253,7 +257,7 @@ class ProductController extends Controller implements HasMiddleware
 
     public function destroy(Product $product)
     {
-        if ($product->purchaseItems()->exists() || $product->saleItems()->exists()) {
+        if ($product->purchaseItems()->exists() || $product->saleItems()->exists() || $product->repairParts()->exists()) {
             return redirect()->route('products.index')->with('error', 'Cannot delete product with existing transactions.');
         }
         $oldData = $product->toArray();

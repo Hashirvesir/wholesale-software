@@ -129,7 +129,7 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span
-                                                class="px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter {{ $detail['type'] == 'Sale' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                                                class="px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter {{ $detail['type'] == 'Sale' ? 'bg-green-100 text-green-700' : ($detail['type'] == 'Repair' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' : 'bg-red-100 text-red-700') }}">
                                                 {{ $detail['type'] }}
                                             </span>
                                         </td>
@@ -137,6 +137,10 @@
                                             class="px-6 py-4 whitespace-nowrap font-bold text-gray-800 dark:text-gray-200">
                                             @if ($detail['type'] == 'Sale')
                                                 {{ $settings->invoice_prefix }}{{ $detail['sale_id'] }}
+                                            @elseif ($detail['type'] == 'Repair')
+                                                <a href="{{ route('repairs.show', $detail['sale_id']) }}" class="text-indigo-600 dark:text-indigo-400 hover:underline">
+                                                    {{ $detail['order_no'] ?? ('REP-' . $detail['sale_id']) }}
+                                                </a>
                                             @else
                                                 SR-{{ $detail['sale_id'] }}
                                             @endif

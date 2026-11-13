@@ -48,7 +48,7 @@
                             </label>
                             <div class="grid grid-cols-2 gap-4">
                                 <label class="cursor-pointer relative">
-                                    <input type="radio" name="payment_type" value="received" x-model="type" class="sr-only">
+                                    <input type="radio" name="payment_type" value="received" x-model="type" @change="fetchPendingInvoices()" class="sr-only">
                                     <div class="p-3.5 text-center rounded-xl border-2 transition flex items-center justify-center gap-2"
                                         :class="type === 'received' ?
                                             'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-black shadow-sm' :
@@ -61,7 +61,7 @@
                                 </label>
 
                                 <label class="cursor-pointer relative">
-                                    <input type="radio" name="payment_type" value="paid" x-model="type" class="sr-only">
+                                    <input type="radio" name="payment_type" value="paid" x-model="type" @change="fetchPendingInvoices()" class="sr-only">
                                     <div class="p-3.5 text-center rounded-xl border-2 transition flex items-center justify-center gap-2"
                                         :class="type === 'paid' ?
                                             'border-rose-500 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-black shadow-sm' :
@@ -195,10 +195,67 @@
                                 <label class="block text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
                                     Amount ({{ $settings->currency_symbol ?? 'Rs' }}) *
                                 </label>
-                                <input type="number" step="0.01" min="0.01" name="amount" x-model.number="amount" required
+                                <input type="number" step="0.01" min="0.01" name="amount" x-model.number="amount" @input="onAmountChange()" required
                                     class="w-full text-xs font-black rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500 shadow-sm font-mono"
                                     :class="{ 'border-rose-500 ring-1 ring-rose-500': errors.amount }"
                                     placeholder="0.00" />
+                            </div>
+                        </div>
+
+                        <!-- Pending Invoices / Repairs Settle Card -->
+                        <div x-show="party_id && pendingInvoices.length > 0" x-cloak class="mb-6 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+                            <div class="p-4 bg-gray-50 dark:bg-gray-900/60 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                <div>
+                                    <h4 class="text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                        </svg>
+                                        <span>Pending Dues / Bills to Settle</span>
+                                    </h4>
+                                    <p class="text-[11px] text-gray-500 mt-0.5">Payment will automatically deduct from these unpaid invoices in FIFO order, or you can adjust custom amounts below.</p>
+                                </div>
+                                <div class="text-xs font-bold text-gray-600 dark:text-gray-300">
+                                    Total Outstanding: <span class="text-rose-600 font-black">{{ $settings->currency_symbol ?? 'Rs' }} <span x-text="totalOutstanding.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})"></span></span>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs text-gray-600 dark:text-gray-300">
+                                    <thead class="bg-gray-50 dark:bg-gray-900/40 text-[10px] uppercase font-black tracking-wider text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                                        <tr>
+                                            <th class="px-4 py-2.5">Bill Type</th>
+                                            <th class="px-4 py-2.5">Invoice / Order #</th>
+                                            <th class="px-4 py-2.5">Date</th>
+                                            <th class="px-4 py-2.5 text-right">Total Bill</th>
+                                            <th class="px-4 py-2.5 text-right">Already Paid</th>
+                                            <th class="px-4 py-2.5 text-right">Remaining Due</th>
+                                            <th class="px-4 py-2.5 text-right w-36">Settle Now ({{ $settings->currency_symbol ?? 'Rs' }})</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700 font-medium">
+                                        <template x-for="(inv, idx) in pendingInvoices" :key="inv.type + '-' + inv.id">
+                                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/30">
+                                                <td class="px-4 py-3">
+                                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold"
+                                                        :class="inv.type === 'repair' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300' : (inv.type === 'sale' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300')"
+                                                        x-text="inv.type_label">
+                                                    </span>
+                                                </td>
+                                                <td class="px-4 py-3 font-bold text-gray-900 dark:text-gray-100" x-text="inv.reference_no"></td>
+                                                <td class="px-4 py-3 text-gray-500" x-text="inv.date"></td>
+                                                <td class="px-4 py-3 text-right" x-text="Number(inv.total_amount).toFixed(2)"></td>
+                                                <td class="px-4 py-3 text-right text-emerald-600" x-text="Number(inv.paid_amount).toFixed(2)"></td>
+                                                <td class="px-4 py-3 text-right font-black text-rose-600" x-text="Number(inv.balance_amount).toFixed(2)"></td>
+                                                <td class="px-4 py-3 text-right">
+                                                    <input type="number" step="0.01" min="0" :max="inv.balance_amount"
+                                                        :name="'allocations[' + inv.type + '][' + inv.id + ']'"
+                                                        x-model.number="inv.allocated"
+                                                        @input="onManualAllocationChange()"
+                                                        class="w-32 text-right text-xs font-black rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-emerald-500 focus:ring-emerald-500 py-1 font-mono text-emerald-600 dark:text-emerald-400">
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
 
@@ -270,10 +327,61 @@
                 note: '',
                 highlightedPartyIndex: -1,
                 highlightedAccountIndex: -1,
+                pendingInvoices: [],
+                loadingInvoices: false,
+                isManualAllocation: false,
                 errors: {
                     party_id: false,
                     from_account_id: false,
                     amount: false
+                },
+
+                get totalOutstanding() {
+                    return this.pendingInvoices.reduce((sum, inv) => sum + (parseFloat(inv.balance_amount) || 0), 0);
+                },
+
+                async fetchPendingInvoices() {
+                    if (!this.party_id) {
+                        this.pendingInvoices = [];
+                        return;
+                    }
+                    this.loadingInvoices = true;
+                    try {
+                        const res = await fetch(`{{ route('payments.party-pending-invoices') }}?party_id=${this.party_id}&payment_type=${this.type}`);
+                        const data = await res.json();
+                        this.pendingInvoices = (data.invoices || []).map(inv => ({
+                            ...inv,
+                            allocated: 0
+                        }));
+                        this.autoDistribute();
+                    } catch (err) {
+                        console.error('Failed to load pending invoices:', err);
+                    } finally {
+                        this.loadingInvoices = false;
+                    }
+                },
+
+                autoDistribute() {
+                    let remaining = parseFloat(this.amount) || 0;
+                    this.pendingInvoices.forEach(inv => {
+                        const due = parseFloat(inv.balance_amount) || 0;
+                        if (remaining > 0) {
+                            const alloc = Math.min(remaining, due);
+                            inv.allocated = Math.round(alloc * 100) / 100;
+                            remaining -= alloc;
+                        } else {
+                            inv.allocated = 0;
+                        }
+                    });
+                },
+
+                onAmountChange() {
+                    this.isManualAllocation = false;
+                    this.autoDistribute();
+                },
+
+                onManualAllocationChange() {
+                    this.isManualAllocation = true;
                 },
 
                 getFilteredParties() {
@@ -329,6 +437,7 @@
                     this.partySearchOpen = false;
                     this.errors.party_id = false;
                     this.highlightedPartyIndex = -1;
+                    this.fetchPendingInvoices();
                 },
 
                 selectAccount(a) {

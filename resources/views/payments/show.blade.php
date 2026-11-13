@@ -220,6 +220,84 @@
                         </div>
                     </div>
 
+                    <!-- Invoice / Order Settle Allocation Details -->
+                    @if($payment->allocations->count() > 0)
+                        <div class="mb-6 bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+                            <div class="p-4 bg-gray-50 dark:bg-gray-900/60 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                                <h4 class="text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                    </svg>
+                                    <span>Settled Invoices & Repair Dues (Allocations)</span>
+                                </h4>
+                                <span class="text-[11px] font-bold text-gray-500">
+                                    Total Settled: <strong class="text-emerald-600">{{ $settings->currency_symbol ?? 'Rs' }} {{ number_format($payment->allocations->sum('amount'), 2) }}</strong>
+                                </span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs text-gray-600 dark:text-gray-300">
+                                    <thead class="bg-gray-50 dark:bg-gray-900/40 text-[10px] uppercase font-black tracking-wider text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                                        <tr>
+                                            <th class="px-4 py-2.5">Type</th>
+                                            <th class="px-4 py-2.5">Reference / Order #</th>
+                                            <th class="px-4 py-2.5 text-right">Bill / Total</th>
+                                            <th class="px-4 py-2.5 text-right">Amount Settled</th>
+                                            <th class="px-4 py-2.5 text-right">Remaining Due</th>
+                                            <th class="px-4 py-2.5 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700 font-medium">
+                                        @foreach($payment->allocations as $alloc)
+                                            @php
+                                                $item = $alloc->allocatable;
+                                                $isRepair = $alloc->allocatable_type === \App\Models\RepairOrder::class;
+                                                $isSale = $alloc->allocatable_type === \App\Models\Sale::class;
+                                                $isPurchase = $alloc->allocatable_type === \App\Models\Purchase::class;
+                                                
+                                                $refNo = $isRepair ? ($item->order_no ?? 'REP #'.$alloc->allocatable_id) : ($isSale ? ('INV-'.str_pad($item->id ?? $alloc->allocatable_id, 5, '0', STR_PAD_LEFT)) : ('BILL-'.str_pad($item->id ?? $alloc->allocatable_id, 5, '0', STR_PAD_LEFT)));
+                                                $total = $isRepair ? ($item->total_amount ?? 0) : ($item ? ($item->total_amount - $item->discount_amount) : 0);
+                                                $remDue = $isRepair ? ($item->balance_amount ?? 0) : ($item ? max(0, ($item->total_amount - $item->discount_amount) - $item->paid_amount) : 0);
+                                                $viewUrl = $isRepair ? route('repairs.show', $alloc->allocatable_id) : ($isSale ? route('sales.show', $alloc->allocatable_id) : route('purchases.show', $alloc->allocatable_id));
+                                            @endphp
+                                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/30">
+                                                <td class="px-4 py-3">
+                                                    @if($isRepair)
+                                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">Mobile Repair</span>
+                                                    @elseif($isSale)
+                                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">Sale Invoice</span>
+                                                    @else
+                                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">Purchase Bill</span>
+                                                    @endif
+                                                </td>
+                                                <td class="px-4 py-3 font-bold text-gray-900 dark:text-gray-100">
+                                                    {{ $refNo }}
+                                                </td>
+                                                <td class="px-4 py-3 text-right">
+                                                    {{ $settings->currency_symbol ?? 'Rs' }} {{ number_format($total, 2) }}
+                                                </td>
+                                                <td class="px-4 py-3 text-right font-black text-emerald-600 dark:text-emerald-400">
+                                                    {{ $settings->currency_symbol ?? 'Rs' }} {{ number_format($alloc->amount, 2) }}
+                                                </td>
+                                                <td class="px-4 py-3 text-right font-bold {{ $remDue > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400' }}">
+                                                    {{ $settings->currency_symbol ?? 'Rs' }} {{ number_format($remDue, 2) }}
+                                                    @if($remDue <= 0)
+                                                        <span class="text-[10px] font-normal block text-emerald-600">✓ Fully Cleared</span>
+                                                    @endif
+                                                </td>
+                                                <td class="px-4 py-3 text-center">
+                                                    <a href="{{ $viewUrl }}" target="_blank"
+                                                       class="px-2.5 py-1 text-[11px] font-bold rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200">
+                                                        View Order &rarr;
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    @endif
+
                     <!-- Double-entry Accounting Ledger Notice -->
                     <div class="p-4 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-200 text-xs flex items-start gap-3">
                         <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

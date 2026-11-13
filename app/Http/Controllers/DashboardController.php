@@ -9,6 +9,8 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Party;
 use App\Models\Warehouse;
+use App\Models\RepairOrder;
+use App\Models\LedgerEntry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -20,22 +22,29 @@ class DashboardController extends Controller
         $thisMonth = now()->startOfMonth()->toDateString();
 
         // 1. Overview Stats (Total Lifetime)
+        $totalRepairsRevenue = RepairOrder::where('status', 'delivered')->sum('total_amount');
         $stats = [
-            'total_sales' => Sale::sum('total_amount'),
+            'total_sales' => Sale::sum('total_amount') + $totalRepairsRevenue,
             'total_purchases' => Purchase::sum('total_amount'),
             'total_expenses' => Expense::sum('amount'),
             'total_customers' => Party::where('type', 'customer')->count(),
             'total_vendors' => Party::where('type', 'vendor')->count(),
             'total_products' => Product::count(),
+            'total_repairs' => RepairOrder::sum('total_amount'),
+            'total_repairs_count' => RepairOrder::count(),
         ];
 
         // 2. Today's Summary
-        $stats['today_sales'] = Sale::where('date', $today)->sum('total_amount');
+        $todayRepairsRevenue = RepairOrder::whereDate('received_date', $today)->sum('total_amount');
+        $stats['today_sales'] = Sale::where('date', $today)->sum('total_amount') + $todayRepairsRevenue;
+        $stats['today_repairs'] = $todayRepairsRevenue;
+        $stats['today_repairs_count'] = RepairOrder::whereDate('received_date', $today)->count();
         $stats['today_purchases'] = Purchase::where('date', $today)->sum('total_amount');
         
         $standaloneReceived = Payment::where('date', $today)->where('payment_type', 'received')->sum('amount');
         $invoiceReceived = Sale::where('date', $today)->sum('paid_amount');
-        $stats['today_received'] = $standaloneReceived + $invoiceReceived;
+        $repairCashReceivedToday = LedgerEntry::where('reference_type', 'repair')->where('date', $today)->where('debit', '>', 0)->sum('debit');
+        $stats['today_received'] = $standaloneReceived + $invoiceReceived + $repairCashReceivedToday;
 
         $standalonePaid = Payment::where('date', $today)->where('payment_type', 'paid')->sum('amount');
         $invoicePaid = Purchase::where('date', $today)->sum('paid_amount');
@@ -120,6 +129,11 @@ class DashboardController extends Controller
         $salesToday = $salesQuery->sum('total_amount');
         $salesCount = $salesQuery->count();
 
+        // 1b. Mobile Repairs
+        $repairsQuery = RepairOrder::whereBetween(DB::raw('DATE(received_date)'), [$startDate, $endDate]);
+        $repairsToday = (float) $repairsQuery->sum('total_amount');
+        $repairsCount = (int) $repairsQuery->count();
+
         // 2. Purchases
         $purchasesQuery = Purchase::whereBetween('date', [$startDate, $endDate]);
         if ($warehouseId) {
@@ -170,6 +184,8 @@ class DashboardController extends Controller
         return response()->json([
             'sales' => $salesToday,
             'sales_count' => $salesCount,
+            'repairs' => $repairsToday,
+            'repairs_count' => $repairsCount,
             'purchases' => $purchasesToday,
             'expenses' => $expensesToday,
             'total_received' => $totalReceivedToday,

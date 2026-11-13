@@ -329,6 +329,80 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Used in Mobile Repairs -->
+                    <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-sm font-black text-purple-600 dark:text-purple-400 uppercase tracking-widest flex items-center gap-2">
+                                    <span>🔧 Used in Mobile Repairs</span>
+                                </h4>
+                                <span class="text-xs bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-300 font-bold px-2.5 py-1 rounded-lg border border-purple-200 dark:border-purple-800">
+                                    {{ isset($repairParts) ? $repairParts->count() : 0 }} Order(s)
+                                </span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-xs">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-left text-xs font-black text-gray-500 uppercase tracking-widest py-3 pr-4">Date</th>
+                                            <th class="text-left text-xs font-black text-gray-500 uppercase tracking-widest py-3 pr-4">Order #</th>
+                                            <th class="text-left text-xs font-black text-gray-500 uppercase tracking-widest py-3 pr-4">Device & Problem</th>
+                                            <th class="text-left text-xs font-black text-gray-500 uppercase tracking-widest py-3 pr-4">Customer</th>
+                                            <th class="text-left text-xs font-black text-gray-500 uppercase tracking-widest py-3 pr-4">Warehouse</th>
+                                            <th class="text-right text-xs font-black text-gray-500 uppercase tracking-widest py-3 pr-4">Qty</th>
+                                            <th class="text-right text-xs font-black text-gray-500 uppercase tracking-widest py-3 pr-4">Unit Price</th>
+                                            <th class="text-right text-xs font-black text-gray-500 uppercase tracking-widest py-3">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                                        @forelse($repairParts ?? [] as $rp)
+                                            @php
+                                                $order = $rp->device->repairOrder ?? null;
+                                            @endphp
+                                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                                <td class="py-3 pr-4 text-gray-600 dark:text-gray-400">
+                                                    {{ $order && $order->received_date ? \Carbon\Carbon::parse($order->received_date)->format('d M, Y') : $rp->created_at->format('d M, Y') }}
+                                                </td>
+                                                <td class="py-3 pr-4">
+                                                    @if($order)
+                                                        <a href="{{ route('repairs.show', $order->id) }}" class="text-purple-600 hover:underline font-bold">
+                                                            {{ $order->order_no }}
+                                                        </a>
+                                                    @else
+                                                        #{{ $rp->id }}
+                                                    @endif
+                                                </td>
+                                                <td class="py-3 pr-4 text-gray-700 dark:text-gray-300">
+                                                    <span class="font-bold">{{ $rp->device->brand }} {{ $rp->device->model }}</span>
+                                                    <div class="text-[10px] text-gray-400 italic">{{ Str::limit($rp->device->problem_description, 25) }}</div>
+                                                </td>
+                                                <td class="py-3 pr-4 text-gray-600 dark:text-gray-400">
+                                                    {{ $order->customer_name ?? ($order->customer->name ?? 'Walk-in') }}
+                                                </td>
+                                                <td class="py-3 pr-4 text-gray-600 dark:text-gray-400">
+                                                    {{ $rp->warehouse->name ?? 'Default' }}
+                                                </td>
+                                                <td class="py-3 pr-4 text-right font-bold text-purple-600">
+                                                    {{ number_format($rp->quantity, 2) }}
+                                                </td>
+                                                <td class="py-3 pr-4 text-right font-mono text-gray-600 dark:text-gray-400">
+                                                    Rs. {{ number_format($rp->unit_price, 2) }}
+                                                </td>
+                                                <td class="py-3 text-right font-black font-mono text-gray-900 dark:text-gray-100">
+                                                    Rs. {{ number_format($rp->subtotal, 2) }}
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="8" class="py-6 text-center text-sm text-gray-400 italic uppercase">Not yet used as spare part in any repair.</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Summary Card -->

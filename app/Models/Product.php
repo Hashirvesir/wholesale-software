@@ -56,6 +56,11 @@ class Product extends Model
         return $this->hasMany(SaleItem::class);
     }
 
+    public function repairParts()
+    {
+        return $this->hasMany(RepairDevicePart::class);
+    }
+
     public function getCurrentStock($warehouseId = null)
     {
         $query = $this->stocks();

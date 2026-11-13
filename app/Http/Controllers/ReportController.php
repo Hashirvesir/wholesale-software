@@ -438,6 +438,13 @@ class ReportController extends Controller
         $netMarginPercent = $netSales > 0 ? round(($netProfit / $netSales) * 100, 1) : 0;
 
         $settings = Setting::first();
+
+        // Mobile Repairing Metrics for Period
+        $repairJobsCount = \App\Models\RepairOrder::whereBetween(DB::raw('DATE(received_date)'), [$startDate, $endDate])->count();
+        $repairTotalBilled = (float) \App\Models\RepairOrder::whereBetween(DB::raw('DATE(received_date)'), [$startDate, $endDate])->sum('total_amount');
+        $repairPartsCost = (float) \App\Models\RepairOrder::whereBetween(DB::raw('DATE(received_date)'), [$startDate, $endDate])->sum('total_parts_cost');
+        $repairLaborIncome = (float) \App\Models\RepairOrder::whereBetween(DB::raw('DATE(received_date)'), [$startDate, $endDate])->sum('total_labor_cost');
+
         $data = compact(
             'incomeData', 'expenseData', 'totalSales', 'totalSalesReturn', 'netSales',
             'grossPurchases', 'totalPurchaseDiscount', 'totalCargoCharges',
@@ -446,6 +453,7 @@ class ReportController extends Controller
             'cogs', 'inventoryVariance', 'grossProfit', 'grossMarginPercent',
             'totalOtherIncome', 'totalOtherExpenses', 'totalIncome', 'totalExpense',
             'netProfit', 'netMarginPercent',
+            'repairJobsCount', 'repairTotalBilled', 'repairPartsCost', 'repairLaborIncome',
             'startDate', 'endDate', 'warehouses', 'warehouseId', 'settings'
         );
 
@@ -624,6 +632,26 @@ class ReportController extends Controller
                 'qty_in' => 0,
                 'qty_out' => (float)$pri->qty, // Goes out of stock
                 'rate' => (float)$pri->cost,
+                'rate_rmb' => 0,
+            ]);
+        }
+
+        // 3.3 Repair Parts Consumed (Qty Out)
+        $repairParts = \App\Models\RepairDevicePart::where('product_id', $product->id)
+            ->where('is_deducted', true)
+            ->with(['device.repairOrder.customer'])
+            ->get();
+        foreach ($repairParts as $rp) {
+            $order = $rp->device->repairOrder ?? null;
+            $movements->push([
+                'date' => $order && $order->received_date ? \Carbon\Carbon::parse($order->received_date)->toDateString() : $rp->created_at->toDateString(),
+                'created_at' => $rp->created_at,
+                'type' => 'Repair Part',
+                'reference' => $order ? $order->order_no : 'REP-' . $rp->id,
+                'party' => $order->customer_name ?? ($order->customer->name ?? 'Walk-in Customer'),
+                'qty_in' => 0,
+                'qty_out' => (float)$rp->quantity,
+                'rate' => (float)$rp->unit_price,
                 'rate_rmb' => 0,
             ]);
         }
@@ -895,6 +923,29 @@ class ReportController extends Controller
             }
         }
 
+        // 7. Repair Parts Consumed in Delivered Repairs
+        $rpQuery = \App\Models\RepairDevicePart::where('product_id', $product->id)
+            ->where('is_deducted', true)
+            ->with(['device.repairOrder']);
+        if ($warehouseId) {
+            $rpQuery->where('warehouse_id', $warehouseId);
+        }
+        foreach ($rpQuery->get() as $rp) {
+            $order = $rp->device->repairOrder ?? null;
+            $movements->push([
+                'date' => $order && $order->received_date ? \Carbon\Carbon::parse($order->received_date)->toDateString() : $rp->created_at->toDateString(),
+                'created_at' => $rp->created_at,
+                'type' => 'Repair Part',
+                'id' => $order ? $order->id : $rp->id,
+                'order_no' => $order ? $order->order_no : 'REP-' . $rp->id,
+                'party' => $order->customer_name ?? 'Walk-in Customer',
+                'qty_in' => 0,
+                'qty_out' => (float)$rp->quantity,
+                'price' => (float)$rp->unit_price,
+                'revenue' => (float)$rp->subtotal,
+            ]);
+        }
+
         // Sort for WAC calculation
         $movements = $movements->sort(function ($a, $b) {
             if ($a['date'] === $b['date']) {
@@ -939,7 +990,7 @@ class ReportController extends Controller
                         'profit' => round($itemProfit, 2),
                     ];
                 }
-            } elseif ($m['type'] === 'Sale') {
+            } elseif ($m['type'] === 'Sale' || $m['type'] === 'Repair Part') {
                 $itemCost = $m['qty_out'] * $runningAvgCost;
                 $itemProfit = $m['revenue'] - $itemCost;
 
@@ -948,8 +999,9 @@ class ReportController extends Controller
                 if ((!$startDate || $m['date'] >= $startDate) && (!$endDate || $m['date'] <= $endDate)) {
                     $profitLossDetails[] = [
                         'date' => $m['date'],
-                        'type' => 'Sale',
+                        'type' => $m['type'] === 'Repair Part' ? 'Repair' : 'Sale',
                         'sale_id' => $m['id'],
+                        'order_no' => $m['order_no'] ?? null,
                         'party' => $m['party'],
                         'qty' => $m['qty_out'],
                         'sale_price' => $m['price'],
@@ -992,6 +1044,10 @@ class ReportController extends Controller
                 $query->whereHas('sale', function ($q) use ($thresholdDate) {
                     $q->where('date', '>=', $thresholdDate);
                 });
+            })
+            ->whereDoesntHave('repairParts', function ($query) use ($thresholdDate) {
+                $query->where('is_deducted', true)
+                      ->where('created_at', '>=', $thresholdDate);
             })
             ->with(['category', 'brand', 'unit', 'stocks'])
             ->get();
@@ -1159,6 +1215,13 @@ class ReportController extends Controller
         })->with('stockAdjustment');
         $saGrouped = $saQuery->get()->groupBy('product_id');
 
+        $rpQuery = \App\Models\RepairDevicePart::where('is_deducted', true)
+            ->whereHas('device.repairOrder', function($q) use ($date) {
+                $q->where(DB::raw('DATE(received_date)'), '<', $date);
+            })->with('device.repairOrder');
+        if ($warehouseId) $rpQuery->where('warehouse_id', $warehouseId);
+        $rpGrouped = $rpQuery->get()->groupBy('product_id');
+
         foreach ($products as $product) {
             $movements = collect();
 
@@ -1263,6 +1326,21 @@ class ReportController extends Controller
                 }
             }
 
+            // 7. Repair Parts Consumption
+            if (isset($rpGrouped[$product->id])) {
+                foreach ($rpGrouped[$product->id] as $rp) {
+                    $order = $rp->device->repairOrder ?? null;
+                    $movements->push([
+                        'date' => $order && $order->received_date ? \Carbon\Carbon::parse($order->received_date)->toDateString() : $rp->created_at->toDateString(),
+                        'created_at' => $rp->created_at,
+                        'type' => 'Repair Part',
+                        'qty_in' => 0,
+                        'qty_out' => (float)$rp->quantity,
+                        'rate' => 0,
+                    ]);
+                }
+            }
+
             if ($movements->isEmpty()) continue;
 
             // Sort chronologically
@@ -1289,7 +1367,7 @@ class ReportController extends Controller
                     $runningQty += $m['qty_in'];
                 } elseif ($m['type'] === 'Sales Return' || $m['type'] === 'Stock Adjustment Add') {
                     $runningQty += $m['qty_in'];
-                } elseif ($m['type'] === 'Sale' || $m['type'] === 'Purchase Return' || $m['type'] === 'Stock Adjustment Sub') {
+                } elseif ($m['type'] === 'Sale' || $m['type'] === 'Purchase Return' || $m['type'] === 'Stock Adjustment Sub' || $m['type'] === 'Repair Part') {
                     $runningQty -= $m['qty_out'];
                 }
             }
@@ -1344,7 +1422,13 @@ class ReportController extends Controller
                     $q->whereBetween('date', [$startDate, $endDate]);
                 })->sum('qty');
 
-            $product->qty_out = $sales + $purchaseReturns;
+            $repairPartsOut = \App\Models\RepairDevicePart::where('product_id', $product->id)
+                ->where('is_deducted', true)
+                ->whereHas('device.repairOrder', function($q) use ($startDate, $endDate) {
+                    $q->whereBetween(DB::raw('DATE(received_date)'), [$startDate, $endDate]);
+                })->sum('quantity');
+
+            $product->qty_out = $sales + $purchaseReturns + $repairPartsOut;
 
             // Current Totals (Current Status)
             $product->current_stock = $product->stocks->sum('qty');

@@ -73,6 +73,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/quotations/{quotation}/pdf', [QuotationController::class, 'downloadPdf'])->name('quotations.pdf');
     Route::resource('quotations', QuotationController::class);
     Route::resource('cargo-charges', CargoChargeController::class)->middleware('permission:view cargo charges');
+    Route::get('/payments/party-pending-invoices', [PaymentController::class, 'partyPendingInvoices'])->name('payments.party-pending-invoices');
     Route::resource('payments', PaymentController::class)->middleware('permission:view payments');
     Route::post('cheques/{cheque}/deposit', [\App\Http\Controllers\ChequeController::class, 'deposit'])->name('cheques.deposit');
     Route::post('cheques/{cheque}/clear', [\App\Http\Controllers\ChequeController::class, 'clear'])->name('cheques.clear');
@@ -86,6 +87,15 @@ Route::middleware('auth')->group(function () {
     Route::resource('expenses', \App\Http\Controllers\ExpenseController::class)->middleware('permission:view expenses');
     Route::resource('expense-categories', \App\Http\Controllers\ExpenseCategoryController::class)->middleware('permission:view expenses');
     Route::resource('activity-logs', \App\Http\Controllers\ActivityLogController::class)->only(['index', 'show'])->middleware('permission:view activity logs');
+
+    // Mobile Repair Management
+    Route::get('/repairs/{repair}/print-combo', [\App\Http\Controllers\RepairController::class, 'printCombo'])->name('repairs.print-combo');
+    Route::get('/repairs/{repair}/stickers', [\App\Http\Controllers\RepairController::class, 'printStickers'])->name('repairs.stickers');
+    Route::get('/repairs/{repair}/receipt', [\App\Http\Controllers\RepairController::class, 'printReceipt'])->name('repairs.receipt');
+    Route::get('/repairs/{repair}/invoice', [\App\Http\Controllers\RepairController::class, 'printInvoice'])->name('repairs.invoice');
+    Route::post('/repairs/devices/{device}/status', [\App\Http\Controllers\RepairController::class, 'updateDeviceStatus'])->name('repairs.devices.status');
+    Route::post('/repairs/{repair}/deliver', [\App\Http\Controllers\RepairController::class, 'deliver'])->name('repairs.deliver');
+    Route::resource('repairs', \App\Http\Controllers\RepairController::class);
 
 
     // PDF Routes

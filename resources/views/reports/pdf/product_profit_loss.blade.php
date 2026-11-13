@@ -41,11 +41,11 @@
                 <tr>
                     <td>{{ date('d-m-Y', strtotime($detail['date'])) }}</td>
                     <td>
-                        <span style="font-weight: bold; color: {{ $detail['type'] == 'Sale' ? '#059669' : '#dc2626' }}">
+                        <span style="font-weight: bold; color: {{ $detail['type'] == 'Sale' ? '#059669' : ($detail['type'] == 'Repair' ? '#7c3aed' : '#dc2626') }}">
                             {{ $detail['type'] }}
                         </span>
                     </td>
-                    <td>{{ $settings->invoice_prefix }}{{ $detail['sale_id'] }}</td>
+                    <td>{{ $detail['type'] == 'Sale' ? $settings->invoice_prefix . $detail['sale_id'] : ($detail['type'] == 'Repair' ? ($detail['order_no'] ?? ('REP-' . $detail['sale_id'])) : 'SR-' . $detail['sale_id']) }}</td>
                     <td>{{ $detail['party'] }}</td>
                     <td class="text-right">{{ number_format($detail['qty'], 2) }}</td>
                     <td class="text-right">{{ number_format($detail['sale_price'], 2) }}</td>

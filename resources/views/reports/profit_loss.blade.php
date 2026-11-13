@@ -262,6 +262,28 @@
                                 </div>
                             </div>
                         @endif
+
+                        @if ($repairJobsCount > 0 || $repairTotalBilled > 0)
+                            <div class="pt-5 mt-5 border-t border-gray-100 dark:border-gray-700">
+                                <h4 class="text-[10px] font-black uppercase text-indigo-500 tracking-widest mb-2 flex items-center gap-1.5">
+                                    <span>📱</span> Mobile Repairing Performance ({{ $repairJobsCount }} Jobs)
+                                </h4>
+                                <div class="bg-indigo-50/50 dark:bg-indigo-950/30 p-3 rounded-2xl border border-indigo-200/60 dark:border-indigo-800/60 space-y-1.5 text-xs">
+                                    <div class="flex justify-between items-center text-gray-700 dark:text-gray-300 font-medium">
+                                        <span>Total Repair Billed:</span>
+                                        <span class="font-bold text-gray-900 dark:text-white">{{ $settings->currency_symbol }} {{ number_format($repairTotalBilled, 2) }}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-gray-500">
+                                        <span>Spare Parts Deducted:</span>
+                                        <span class="font-bold">{{ $settings->currency_symbol }} {{ number_format($repairPartsCost, 2) }}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-indigo-700 dark:text-indigo-300 font-bold border-t border-indigo-200/50 dark:border-indigo-800/50 pt-1.5">
+                                        <span>Labor / Service Margin:</span>
+                                        <span class="font-black text-sm">{{ $settings->currency_symbol }} {{ number_format($repairLaborIncome, 2) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     </div>
 
                     <!-- Final Result Card at Bottom of Right Column -->

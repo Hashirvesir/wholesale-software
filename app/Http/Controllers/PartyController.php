@@ -93,7 +93,7 @@ class PartyController extends Controller implements HasMiddleware
 
     public function destroy(Party $party)
     {
-        if ($party->sales()->exists() || $party->purchases()->exists() || \App\Models\LedgerEntry::where('party_id', $party->id)->exists()) {
+        if ($party->sales()->exists() || $party->purchases()->exists() || $party->repairOrders()->exists() || \App\Models\LedgerEntry::where('party_id', $party->id)->exists()) {
             return redirect()->route('parties.index')->with('error', 'Cannot delete party with existing transactions.');
         }
         $oldData = $party->toArray();

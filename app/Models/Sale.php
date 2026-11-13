@@ -48,4 +48,9 @@ class Sale extends Model
     {
         return $this->hasMany(PaymentSplit::class, 'reference_id')->where('reference_type', 'sale');
     }
+
+    public function paymentAllocations()
+    {
+        return $this->morphMany(PaymentAllocation::class, 'allocatable');
+    }
 }

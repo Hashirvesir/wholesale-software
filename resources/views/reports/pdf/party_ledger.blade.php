@@ -44,9 +44,9 @@
                 @php $currentBalance += ($entry->debit - $entry->credit); @endphp
                 <tr>
                     <td>{{ \Carbon\Carbon::parse($entry->date)->format('d-m-Y') }}</td>
-                    <td>{{ $entry->reference_type }}-{{ $entry->reference_id }}</td>
+                    <td>{{ $entry->reference_type == 'repair' ? 'REP-' . $entry->reference_id : $entry->reference_type . '-' . $entry->reference_id }}</td>
                     <td>
-                        {{ $entry->description ? $entry->description : $entry->contra_account_name }}
+                        {{ $entry->note ?: ($entry->description ?: $entry->contra_account_name) }}
                     </td>
                     <td class="text-right">{{ $entry->debit > 0 ? number_format($entry->debit, 2) : '-' }}</td>
                     <td class="text-right">{{ $entry->credit > 0 ? number_format($entry->credit, 2) : '-' }}</td>

@@ -41,6 +41,11 @@ class Party extends Model
         return $this->hasMany(CargoCharge::class, 'cargo_party_id');
     }
 
+    public function repairOrders()
+    {
+        return $this->hasMany(RepairOrder::class, 'party_id');
+    }
+
     public function getCurrentBalance()
     {
         // Calculate Net Balance (Positive = Debit/Receivable, Negative = Credit/Payable)

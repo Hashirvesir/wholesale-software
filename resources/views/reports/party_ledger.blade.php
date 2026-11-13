@@ -325,6 +325,9 @@
                                                             case 'transfer':
                                                                 $route = 'account-transfers.index';
                                                                 break;
+                                                            case 'repair':
+                                                                $route = 'repairs.show';
+                                                                break;
                                                         }
                                                     @endphp
 
@@ -335,6 +338,8 @@
                                                                 {{ $entry->reference_type }}
                                                                 @if (in_array(strtolower($entry->reference_type), ['sale', 'purchase']))
                                                                     {{ $settings->invoice_prefix }}{{ $entry->reference_id }}
+                                                                @elseif (strtolower($entry->reference_type) === 'repair')
+                                                                    Order #{{ $entry->reference_id }}
                                                                 @else
                                                                     #{{ $entry->reference_id }}
                                                                 @endif
@@ -342,7 +347,13 @@
                                                         @else
                                                             <span class="text-indigo-400">
                                                                 {{ $entry->reference_type }}
-                                                                #{{ $entry->reference_id }}
+                                                                @if (in_array(strtolower($entry->reference_type), ['sale', 'purchase']))
+                                                                    {{ $settings->invoice_prefix }}{{ $entry->reference_id }}
+                                                                @elseif (strtolower($entry->reference_type) === 'repair')
+                                                                    Order #{{ $entry->reference_id }}
+                                                                @else
+                                                                    #{{ $entry->reference_id }}
+                                                                @endif
                                                             </span>
                                                         @endif
                                                     </span>

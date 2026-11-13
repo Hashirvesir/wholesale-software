@@ -300,6 +300,10 @@
                                                         case 'transfer':
                                                             $route = 'account-transfers.index';
                                                             break;
+                                                        case 'repair':
+                                                            $route = 'repairs.show';
+                                                            $params = [$entry->reference_id];
+                                                            break;
                                                     }
                                                 @endphp
 
@@ -309,6 +313,8 @@
                                                         {{ $entry->reference_type }}
                                                         @if (in_array(strtolower($entry->reference_type), ['sale', 'purchase']))
                                                             {{ $settings->invoice_prefix }}{{ $entry->reference_id }}
+                                                        @elseif (strtolower($entry->reference_type) === 'repair')
+                                                            Order #{{ $entry->reference_id }}
                                                         @else
                                                             #{{ $entry->reference_id }}
                                                         @endif
@@ -317,6 +323,8 @@
                                                     {{ $entry->reference_type }}
                                                     @if (in_array(strtolower($entry->reference_type), ['sale', 'purchase']))
                                                         {{ $settings->invoice_prefix }}{{ $entry->reference_id }}
+                                                    @elseif (strtolower($entry->reference_type) === 'repair')
+                                                        Order #{{ $entry->reference_id }}
                                                     @else
                                                         #{{ $entry->reference_id }}
                                                     @endif

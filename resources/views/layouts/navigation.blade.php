@@ -62,6 +62,15 @@
                         </a>
                     @endcan
 
+                    <!-- Mobile Repairs Button -->
+                    <a href="{{ route('repairs.index') }}"
+                        class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:hover:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800 rounded-xl transition-all duration-150 shrink-0"
+                        title="Mobile Repairing Lab">
+                        <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 002 2z"/></svg>
+                        <span class="hidden 2xl:inline">Mobile Repairs</span>
+                        <span class="hidden xl:inline 2xl:hidden">Repairs</span>
+                    </a>
+
                     <!-- Quick Financial Snapshot Trigger -->
                     <div x-data="{
                         showSnapshot: false,
@@ -172,7 +181,7 @@
 
                                             <div x-show="!loading && stats" style="display: none;">
                                                 <!-- Top KPIs -->
-                                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                                                <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
                                                     <div class="bg-gray-50 dark:bg-gray-900/60 p-3.5 rounded-xl border border-gray-200/80 dark:border-gray-700">
                                                         <div class="text-[11px] font-bold text-gray-500 uppercase">Sales</div>
                                                         <div class="text-lg font-black text-gray-900 dark:text-white mt-0.5">
@@ -181,6 +190,17 @@
                                                         </div>
                                                         <div class="text-[11px] text-[#252ebf] font-semibold mt-0.5">
                                                             <span x-text="stats?.sales_count || 0"></span> Invoices
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="bg-indigo-50/50 dark:bg-indigo-950/30 p-3.5 rounded-xl border border-indigo-200/80 dark:border-indigo-800">
+                                                        <div class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase">Repairs</div>
+                                                        <div class="text-lg font-black text-indigo-900 dark:text-white mt-0.5">
+                                                            <span class="text-xs mr-0.5">Rs</span>
+                                                            <span x-text="new Intl.NumberFormat().format(stats?.repairs || 0)"></span>
+                                                        </div>
+                                                        <div class="text-[11px] text-indigo-500 font-semibold mt-0.5">
+                                                            <span x-text="stats?.repairs_count || 0"></span> Jobs
                                                         </div>
                                                     </div>
 
@@ -281,6 +301,10 @@
                                         <x-dropdown-link :href="route('pos.index')" class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                                             <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                                             {{ __('POS Counter') }}
+                                        </x-dropdown-link>
+                                        <x-dropdown-link :href="route('repairs.index')" class="font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                                            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 002 2z"/></svg>
+                                            {{ __('Mobile Repairs / Lab') }}
                                         </x-dropdown-link>
                                         <x-dropdown-link :href="route('sales.index')">{{ __('Sales Invoices') }}</x-dropdown-link>
                                         <x-dropdown-link :href="route('quotations.index')">{{ __('Quotations / Estimates') }}</x-dropdown-link>
@@ -730,6 +754,15 @@
                         <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#252ebf] text-white font-mono uppercase font-bold">Live</span>
                     </x-responsive-nav-link>
                 @endcan
+
+                <x-responsive-nav-link :href="route('repairs.index')" :active="request()->routeIs('repairs.*')"
+                    class="font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-900/50 flex items-center justify-between">
+                    <span class="flex items-center gap-2.5">
+                        <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 002 2z"/></svg>
+                        <span>{{ __('Mobile Repairs / Lab') }}</span>
+                    </span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-600 text-white font-mono uppercase font-bold">New</span>
+                </x-responsive-nav-link>
 
                 <button type="button" @click="$dispatch('toggle-ai-copilot'); open = false"
                     class="w-full text-start px-3.5 py-2 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition flex items-center gap-2.5 cursor-pointer">

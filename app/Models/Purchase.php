@@ -54,4 +54,9 @@ class Purchase extends Model
     {
         return $this->hasMany(PaymentSplit::class, 'reference_id')->where('reference_type', 'purchase');
     }
+
+    public function paymentAllocations()
+    {
+        return $this->morphMany(PaymentAllocation::class, 'allocatable');
+    }
 }

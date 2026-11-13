@@ -233,7 +233,18 @@
                     </div>
                     <span class="text-[11px] font-medium text-gray-400">Instant access to common workflows</span>
                 </div>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                    <a href="{{ route('repairs.index') }}"
+                        class="p-3.5 rounded-xl bg-gray-50/80 dark:bg-gray-900/40 hover:bg-indigo-50/70 dark:hover:bg-indigo-950/30 border border-gray-200/70 dark:border-gray-700/70 hover:border-indigo-500/40 dark:hover:border-indigo-500/50 transition group flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 002 2z"/></svg>
+                        </div>
+                        <div class="truncate">
+                            <div class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 transition-colors truncate">Mobile Repairs</div>
+                            <div class="text-[11px] text-gray-500 dark:text-gray-400 truncate">{{ $stats['today_repairs_count'] ?? 0 }} Today (Rs {{ number_format($stats['today_repairs'] ?? 0) }})</div>
+                        </div>
+                    </a>
+
                     <a href="{{ route('sales.create') }}"
                         class="p-3.5 rounded-xl bg-gray-50/80 dark:bg-gray-900/40 hover:bg-blue-50/70 dark:hover:bg-blue-950/30 border border-gray-200/70 dark:border-gray-700/70 hover:border-[#252ebf]/40 dark:hover:border-[#252ebf]/50 transition group flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#252ebf] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
