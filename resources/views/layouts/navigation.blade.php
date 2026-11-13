@@ -12,7 +12,7 @@
     }
 }" @toggle-mobile-menu.window="open = !open" @close-mobile-menu.window="open = false" @open-mobile-menu.window="open = true" class="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-b border-gray-200/80 dark:border-gray-700/80 sticky top-0 z-40">
     <!-- Primary Navigation Menu -->
-    <div class="max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1750px] mx-auto px-3 sm:px-4 lg:px-6 2xl:px-8">
         <div class="flex justify-between h-16">
             <div class="flex items-center">
                 <!-- Logo -->
@@ -22,9 +22,224 @@
                     </a>
                 </div>
 
-                <!-- Action Tools -->
-                <div class="hidden xl:flex xl:items-center xl:ml-5 space-x-2">
-                    <!-- Quick Search Button -->
+                <!-- Desktop Navigation Links -->
+                <div class="hidden xl:flex xl:items-center space-x-1 2xl:space-x-3 xl:-my-px xl:ms-3 2xl:ms-5 shrink-0">
+                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                        {{ __('Dashboard') }}
+                    </x-nav-link>
+
+                    <!-- Trading Dropdown -->
+                    @canany(['view sales', 'view purchases', 'view stock transfers', 'view stock adjustments', 'view cargo charges'])
+                        <div class="hidden xl:flex xl:items-center">
+                            <x-dropdown align="left" width="48">
+                                <x-slot name="trigger">
+                                    <button class="inline-flex items-center gap-1 px-1.5 pt-1 border-b-2 border-transparent text-xs font-semibold leading-5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none transition duration-150 ease-in-out h-16 uppercase tracking-wider cursor-pointer">
+                                        <div>{{ __('Trading') }}</div>
+                                        <svg class="h-3.5 w-3.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </x-slot>
+                                <x-slot name="content">
+                                    @can('view sales')
+                                        <x-dropdown-link :href="route('pos.index')" class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                                            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                            {{ __('POS Counter') }}
+                                        </x-dropdown-link>
+                                        <x-dropdown-link :href="route('repairs.index')" class="font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                                            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 002 2z"/></svg>
+                                            {{ __('Mobile Repairs / Lab') }}
+                                        </x-dropdown-link>
+                                        <x-dropdown-link :href="route('sales.index')">{{ __('Sales Invoices') }}</x-dropdown-link>
+                                        <x-dropdown-link :href="route('quotations.index')">{{ __('Quotations / Estimates') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view purchases')
+                                        <x-dropdown-link :href="route('purchase-orders.index')">{{ __('Purchase Orders (PO)') }}</x-dropdown-link>
+                                        <x-dropdown-link :href="route('purchases.index')">{{ __('Purchases') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view stock transfers')
+                                        <x-dropdown-link :href="route('stock-transfers.index')">{{ __('Stock Transfers') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view stock adjustments')
+                                        <x-dropdown-link :href="route('stock-adjustments.index')">{{ __('Stock Adjustments') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view cargo charges')
+                                        <x-dropdown-link :href="route('cargo-charges.index')">{{ __('Cargo Charges') }}</x-dropdown-link>
+                                    @endcan
+                                </x-slot>
+                            </x-dropdown>
+                        </div>
+                    @endcanany
+
+                    <!-- Finance Dropdown -->
+                    @canany(['view chart of accounts', 'view payments', 'view expenses', 'view account transfers'])
+                        <div class="hidden xl:flex xl:items-center">
+                            <x-dropdown align="left" width="48">
+                                <x-slot name="trigger">
+                                    <button class="inline-flex items-center gap-1 px-1.5 pt-1 border-b-2 border-transparent text-xs font-semibold leading-5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none transition duration-150 ease-in-out h-16 uppercase tracking-wider cursor-pointer">
+                                        <div>{{ __('Finance') }}</div>
+                                        <svg class="h-3.5 w-3.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </x-slot>
+                                <x-slot name="content">
+                                    @can('view chart of accounts')
+                                        <x-dropdown-link :href="route('chart-of-accounts.index')">{{ __('Chart of Accounts') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view payments')
+                                        <x-dropdown-link :href="route('payments.index')">{{ __('Payments') }}</x-dropdown-link>
+                                        <x-dropdown-link :href="route('cheques.index')">{{ __('Cheques / PDCs') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view expenses')
+                                        <x-dropdown-link :href="route('expenses.index')">{{ __('Expenses') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view account transfers')
+                                        <x-dropdown-link :href="route('account-transfers.index')">{{ __('Account Transfers') }}</x-dropdown-link>
+                                    @endcan
+                                </x-slot>
+                            </x-dropdown>
+                        </div>
+                    @endcanany
+
+                    <!-- Masters Dropdown -->
+                    @canany(['view products', 'view categories', 'view brands', 'view units', 'view warehouses', 'view parties', 'view opening stocks'])
+                        <div class="hidden xl:flex xl:items-center">
+                            <x-dropdown align="left" width="48">
+                                <x-slot name="trigger">
+                                    <button class="inline-flex items-center gap-1 px-1.5 pt-1 border-b-2 border-transparent text-xs font-semibold leading-5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none transition duration-150 ease-in-out h-16 uppercase tracking-wider cursor-pointer">
+                                        <div>{{ __('Masters') }}</div>
+                                        <svg class="h-3.5 w-3.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </x-slot>
+                                <x-slot name="content">
+                                    @can('view products')
+                                        <x-dropdown-link :href="route('products.index')">{{ __('Products Catalog') }}</x-dropdown-link>
+                                        <x-dropdown-link :href="route('products.print-labels')">{{ __('Print Barcodes') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view categories')
+                                        <x-dropdown-link :href="route('categories.index')">{{ __('Categories') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view brands')
+                                        <x-dropdown-link :href="route('brands.index')">{{ __('Brands') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view units')
+                                        <x-dropdown-link :href="route('units.index')">{{ __('Units') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view warehouses')
+                                        <x-dropdown-link :href="route('warehouses.index')">{{ __('Warehouses') }}</x-dropdown-link>
+                                    @endcan
+                                    <div class="border-t border-gray-100 dark:border-gray-700"></div>
+                                    @can('view parties')
+                                        <x-dropdown-link :href="route('parties.index')">{{ __('Parties') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view opening stocks')
+                                        <x-dropdown-link :href="route('opening-stocks.index')">{{ __('Opening Stock') }}</x-dropdown-link>
+                                    @endcan
+                                </x-slot>
+                            </x-dropdown>
+                        </div>
+                    @endcanany
+
+                    <!-- Reports Dropdown -->
+                    @canany(['view account ledger', 'view party ledger', 'view trial balance', 'view profit loss', 'view balance sheet', 'view dead stock', 'view stock alert', 'view products summary', 'view aging report', 'view daily collection report', 'view expense report', 'view sales analysis report', 'view returns summary', 'view cargo charges report', 'view activity logs'])
+                        <div class="hidden xl:flex xl:items-center">
+                            <x-dropdown align="left" width="48">
+                                <x-slot name="trigger">
+                                    <button class="inline-flex items-center gap-1 px-1.5 pt-1 border-b-2 border-transparent text-xs font-semibold leading-5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none transition duration-150 ease-in-out h-16 uppercase tracking-wider cursor-pointer">
+                                        <div>{{ __('Reports') }}</div>
+                                        <svg class="h-3.5 w-3.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </x-slot>
+                                <x-slot name="content">
+                                    @can('view account ledger')
+                                        <x-dropdown-link :href="route('reports.account-ledger')">{{ __('Account Ledger') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view party ledger')
+                                        <x-dropdown-link :href="route('reports.party-ledger')">{{ __('Party Ledger') }}</x-dropdown-link>
+                                    @endcan
+                                    <div class="border-t border-gray-100 dark:border-gray-700"></div>
+                                    @can('view trial balance')
+                                        <x-dropdown-link :href="route('reports.trial-balance')">{{ __('Trial Balance') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view profit loss')
+                                        <x-dropdown-link :href="route('reports.profit-loss')">{{ __('Profit & Loss') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view balance sheet')
+                                        <x-dropdown-link :href="route('reports.balance-sheet')">{{ __('Balance Sheet') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view dead stock')
+                                        <x-dropdown-link :href="route('reports.dead-stock')">{{ __('Dead Stock Report') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view products summary')
+                                        <x-dropdown-link :href="route('reports.products-summary')">{{ __('Product Ledger') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view stock alert')
+                                        <x-dropdown-link :href="route('reports.stock-alert')">{{ __('Stock Alert Report') }}</x-dropdown-link>
+                                    @endcan
+                                    <div class="border-t border-gray-100 dark:border-gray-700"></div>
+                                    @can('view aging report')
+                                        <x-dropdown-link :href="route('reports.aging')">{{ __('Aging Report') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view daily collection report')
+                                        <x-dropdown-link :href="route('reports.daily-collection')">{{ __('Daily Collection Report') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view expense report')
+                                        <x-dropdown-link :href="route('reports.expenses')">{{ __('Expense Report') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view sales analysis report')
+                                        <x-dropdown-link :href="route('reports.sales-analysis')">{{ __('Sales Analysis Report') }}</x-dropdown-link>
+                                        <x-dropdown-link :href="route('reports.salesman-performance')">{{ __('Salesman & Recovery Report') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view returns summary')
+                                        <x-dropdown-link :href="route('reports.returns-summary')">{{ __('Returns Summary') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view cargo charges report')
+                                        <x-dropdown-link :href="route('reports.cargo-charges')">{{ __('Cargo Charges Report') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view activity logs')
+                                        <div class="border-t border-gray-100 dark:border-gray-700"></div>
+                                        <x-dropdown-link :href="route('activity-logs.index')">{{ __('Audit Logs') }}</x-dropdown-link>
+                                    @endcan
+                                </x-slot>
+                            </x-dropdown>
+                        </div>
+                    @endcanany
+
+                    <!-- Access Control Dropdown -->
+                    @canany(['manage users', 'manage roles'])
+                        <div class="hidden xl:flex xl:items-center">
+                            <x-dropdown align="left" width="48">
+                                <x-slot name="trigger">
+                                    <button class="inline-flex items-center gap-1 px-1.5 pt-1 border-b-2 border-transparent text-xs font-semibold leading-5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none transition duration-150 ease-in-out h-16 uppercase tracking-wider cursor-pointer">
+                                        <div><span class="hidden 2xl:inline">{{ __('Access Control') }}</span><span class="xl:inline 2xl:hidden">{{ __('Access') }}</span></div>
+                                        <svg class="h-3.5 w-3.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </x-slot>
+                                <x-slot name="content">
+                                    @can('manage users')
+                                        <x-dropdown-link :href="route('users.index')">{{ __('Manage Users') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('manage roles')
+                                        <x-dropdown-link :href="route('roles.index')">{{ __('Manage Roles') }}</x-dropdown-link>
+                                    @endcan
+                                </x-slot>
+                            </x-dropdown>
+                        </div>
+                    @endcanany
+                </div>
+
+            </div>
+
+            <!-- Right Action Tools & User Controls (Desktop) -->
+            <div class="hidden xl:flex xl:items-center gap-1.5 2xl:gap-2.5 shrink-0">
+                <!-- Quick Search Button -->
                     <button type="button" @click="$dispatch('toggle-command-palette')"
                         class="flex items-center justify-center px-2 py-1 text-xs font-mono font-bold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white bg-gray-100/80 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 transition duration-150 cursor-pointer shadow-2xs active:scale-95"
                         title="Quick Search (⌘K or Ctrl+K)">
@@ -43,32 +258,32 @@
 
                     <!-- AI Copilot Button -->
                     <button type="button" @click="$dispatch('toggle-ai-copilot')"
-                        class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-[#252ebf] hover:bg-[#1e2599] rounded-xl transition-all duration-150 shrink-0 cursor-pointer shadow-xs active:scale-95"
+                        class="flex items-center gap-1.5 px-2 2xl:px-3 py-1.5 text-xs font-semibold text-white bg-[#252ebf] hover:bg-[#1e2599] rounded-xl transition-all duration-150 shrink-0 cursor-pointer shadow-xs active:scale-95"
                         title="Invenco AI (Alt + A)">
                         <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
                         </svg>
-                        <span>Ask AI</span>
+                        <span class="hidden 2xl:inline">Ask AI</span><span class="xl:inline 2xl:hidden">AI</span>
                     </button>
 
                     <!-- POS Counter Screen Button -->
                     @can('view sales')
                         <a href="{{ route('pos.index') }}"
-                            class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 rounded-xl transition-all duration-150 shrink-0"
+                            class="flex items-center gap-1.5 px-2 2xl:px-3 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 rounded-xl transition-all duration-150 shrink-0"
                             title="POS Counter Screen (F1)">
                             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                             <span class="hidden 2xl:inline">POS Counter</span>
-                            <span class="hidden xl:inline 2xl:hidden">POS</span>
+                            <span class="xl:inline 2xl:hidden">POS</span>
                         </a>
                     @endcan
 
                     <!-- Mobile Repairs Button -->
                     <a href="{{ route('repairs.index') }}"
-                        class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:hover:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800 rounded-xl transition-all duration-150 shrink-0"
+                        class="flex items-center gap-1.5 px-2 2xl:px-3 py-1.5 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:hover:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800 rounded-xl transition-all duration-150 shrink-0"
                         title="Mobile Repairing Lab">
                         <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 002 2z"/></svg>
                         <span class="hidden 2xl:inline">Mobile Repairs</span>
-                        <span class="hidden xl:inline 2xl:hidden">Repairs</span>
+                        <span class="xl:inline 2xl:hidden">Repairs</span>
                     </a>
 
                     <!-- Quick Financial Snapshot Trigger -->
@@ -276,224 +491,10 @@
                             </div>
                         </template>
                     </div>
-                </div>
 
-                <!-- Desktop Navigation Links -->
-                <div class="hidden xl:flex xl:items-center space-x-3 2xl:space-x-5 xl:-my-px xl:ms-6 shrink-0">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
+                <!-- Divider -->
+                <div class="h-5 w-px bg-gray-200 dark:bg-gray-700 mx-0.5"></div>
 
-                    <!-- Trading Dropdown -->
-                    @canany(['view sales', 'view purchases', 'view stock transfers', 'view stock adjustments', 'view cargo charges'])
-                        <div class="hidden xl:flex xl:items-center">
-                            <x-dropdown align="left" width="48">
-                                <x-slot name="trigger">
-                                    <button class="inline-flex items-center gap-1 px-1.5 pt-1 border-b-2 border-transparent text-xs font-semibold leading-5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none transition duration-150 ease-in-out h-16 uppercase tracking-wider cursor-pointer">
-                                        <div>{{ __('Trading') }}</div>
-                                        <svg class="h-3.5 w-3.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
-                                </x-slot>
-                                <x-slot name="content">
-                                    @can('view sales')
-                                        <x-dropdown-link :href="route('pos.index')" class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                                            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                            {{ __('POS Counter') }}
-                                        </x-dropdown-link>
-                                        <x-dropdown-link :href="route('repairs.index')" class="font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
-                                            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 002 2z"/></svg>
-                                            {{ __('Mobile Repairs / Lab') }}
-                                        </x-dropdown-link>
-                                        <x-dropdown-link :href="route('sales.index')">{{ __('Sales Invoices') }}</x-dropdown-link>
-                                        <x-dropdown-link :href="route('quotations.index')">{{ __('Quotations / Estimates') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view purchases')
-                                        <x-dropdown-link :href="route('purchase-orders.index')">{{ __('Purchase Orders (PO)') }}</x-dropdown-link>
-                                        <x-dropdown-link :href="route('purchases.index')">{{ __('Purchases') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view stock transfers')
-                                        <x-dropdown-link :href="route('stock-transfers.index')">{{ __('Stock Transfers') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view stock adjustments')
-                                        <x-dropdown-link :href="route('stock-adjustments.index')">{{ __('Stock Adjustments') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view cargo charges')
-                                        <x-dropdown-link :href="route('cargo-charges.index')">{{ __('Cargo Charges') }}</x-dropdown-link>
-                                    @endcan
-                                </x-slot>
-                            </x-dropdown>
-                        </div>
-                    @endcanany
-
-                    <!-- Finance Dropdown -->
-                    @canany(['view chart of accounts', 'view payments', 'view expenses', 'view account transfers'])
-                        <div class="hidden xl:flex xl:items-center">
-                            <x-dropdown align="left" width="48">
-                                <x-slot name="trigger">
-                                    <button class="inline-flex items-center gap-1 px-1.5 pt-1 border-b-2 border-transparent text-xs font-semibold leading-5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none transition duration-150 ease-in-out h-16 uppercase tracking-wider cursor-pointer">
-                                        <div>{{ __('Finance') }}</div>
-                                        <svg class="h-3.5 w-3.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
-                                </x-slot>
-                                <x-slot name="content">
-                                    @can('view chart of accounts')
-                                        <x-dropdown-link :href="route('chart-of-accounts.index')">{{ __('Chart of Accounts') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view payments')
-                                        <x-dropdown-link :href="route('payments.index')">{{ __('Payments') }}</x-dropdown-link>
-                                        <x-dropdown-link :href="route('cheques.index')">{{ __('Cheques / PDCs') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view expenses')
-                                        <x-dropdown-link :href="route('expenses.index')">{{ __('Expenses') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view account transfers')
-                                        <x-dropdown-link :href="route('account-transfers.index')">{{ __('Account Transfers') }}</x-dropdown-link>
-                                    @endcan
-                                </x-slot>
-                            </x-dropdown>
-                        </div>
-                    @endcanany
-
-                    <!-- Masters Dropdown -->
-                    @canany(['view products', 'view categories', 'view brands', 'view units', 'view warehouses', 'view parties', 'view opening stocks'])
-                        <div class="hidden xl:flex xl:items-center">
-                            <x-dropdown align="left" width="48">
-                                <x-slot name="trigger">
-                                    <button class="inline-flex items-center gap-1 px-1.5 pt-1 border-b-2 border-transparent text-xs font-semibold leading-5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none transition duration-150 ease-in-out h-16 uppercase tracking-wider cursor-pointer">
-                                        <div>{{ __('Masters') }}</div>
-                                        <svg class="h-3.5 w-3.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
-                                </x-slot>
-                                <x-slot name="content">
-                                    @can('view products')
-                                        <x-dropdown-link :href="route('products.index')">{{ __('Products Catalog') }}</x-dropdown-link>
-                                        <x-dropdown-link :href="route('products.print-labels')">{{ __('Print Barcodes') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view categories')
-                                        <x-dropdown-link :href="route('categories.index')">{{ __('Categories') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view brands')
-                                        <x-dropdown-link :href="route('brands.index')">{{ __('Brands') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view units')
-                                        <x-dropdown-link :href="route('units.index')">{{ __('Units') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view warehouses')
-                                        <x-dropdown-link :href="route('warehouses.index')">{{ __('Warehouses') }}</x-dropdown-link>
-                                    @endcan
-                                    <div class="border-t border-gray-100 dark:border-gray-700"></div>
-                                    @can('view parties')
-                                        <x-dropdown-link :href="route('parties.index')">{{ __('Parties') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view opening stocks')
-                                        <x-dropdown-link :href="route('opening-stocks.index')">{{ __('Opening Stock') }}</x-dropdown-link>
-                                    @endcan
-                                </x-slot>
-                            </x-dropdown>
-                        </div>
-                    @endcanany
-
-                    <!-- Reports Dropdown -->
-                    @canany(['view account ledger', 'view party ledger', 'view trial balance', 'view profit loss', 'view balance sheet', 'view dead stock', 'view stock alert', 'view products summary', 'view aging report', 'view daily collection report', 'view expense report', 'view sales analysis report', 'view returns summary', 'view cargo charges report', 'view activity logs'])
-                        <div class="hidden xl:flex xl:items-center">
-                            <x-dropdown align="left" width="48">
-                                <x-slot name="trigger">
-                                    <button class="inline-flex items-center gap-1 px-1.5 pt-1 border-b-2 border-transparent text-xs font-semibold leading-5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none transition duration-150 ease-in-out h-16 uppercase tracking-wider cursor-pointer">
-                                        <div>{{ __('Reports') }}</div>
-                                        <svg class="h-3.5 w-3.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
-                                </x-slot>
-                                <x-slot name="content">
-                                    @can('view account ledger')
-                                        <x-dropdown-link :href="route('reports.account-ledger')">{{ __('Account Ledger') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view party ledger')
-                                        <x-dropdown-link :href="route('reports.party-ledger')">{{ __('Party Ledger') }}</x-dropdown-link>
-                                    @endcan
-                                    <div class="border-t border-gray-100 dark:border-gray-700"></div>
-                                    @can('view trial balance')
-                                        <x-dropdown-link :href="route('reports.trial-balance')">{{ __('Trial Balance') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view profit loss')
-                                        <x-dropdown-link :href="route('reports.profit-loss')">{{ __('Profit & Loss') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view balance sheet')
-                                        <x-dropdown-link :href="route('reports.balance-sheet')">{{ __('Balance Sheet') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view dead stock')
-                                        <x-dropdown-link :href="route('reports.dead-stock')">{{ __('Dead Stock Report') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view products summary')
-                                        <x-dropdown-link :href="route('reports.products-summary')">{{ __('Product Ledger') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view stock alert')
-                                        <x-dropdown-link :href="route('reports.stock-alert')">{{ __('Stock Alert Report') }}</x-dropdown-link>
-                                    @endcan
-                                    <div class="border-t border-gray-100 dark:border-gray-700"></div>
-                                    @can('view aging report')
-                                        <x-dropdown-link :href="route('reports.aging')">{{ __('Aging Report') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view daily collection report')
-                                        <x-dropdown-link :href="route('reports.daily-collection')">{{ __('Daily Collection Report') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view expense report')
-                                        <x-dropdown-link :href="route('reports.expenses')">{{ __('Expense Report') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view sales analysis report')
-                                        <x-dropdown-link :href="route('reports.sales-analysis')">{{ __('Sales Analysis Report') }}</x-dropdown-link>
-                                        <x-dropdown-link :href="route('reports.salesman-performance')">{{ __('Salesman & Recovery Report') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view returns summary')
-                                        <x-dropdown-link :href="route('reports.returns-summary')">{{ __('Returns Summary') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view cargo charges report')
-                                        <x-dropdown-link :href="route('reports.cargo-charges')">{{ __('Cargo Charges Report') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('view activity logs')
-                                        <div class="border-t border-gray-100 dark:border-gray-700"></div>
-                                        <x-dropdown-link :href="route('activity-logs.index')">{{ __('Audit Logs') }}</x-dropdown-link>
-                                    @endcan
-                                </x-slot>
-                            </x-dropdown>
-                        </div>
-                    @endcanany
-
-                    <!-- Access Control Dropdown -->
-                    @canany(['manage users', 'manage roles'])
-                        <div class="hidden xl:flex xl:items-center">
-                            <x-dropdown align="left" width="48">
-                                <x-slot name="trigger">
-                                    <button class="inline-flex items-center gap-1 px-1.5 pt-1 border-b-2 border-transparent text-xs font-semibold leading-5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none transition duration-150 ease-in-out h-16 uppercase tracking-wider cursor-pointer">
-                                        <div>{{ __('Access Control') }}</div>
-                                        <svg class="h-3.5 w-3.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
-                                </x-slot>
-                                <x-slot name="content">
-                                    @can('manage users')
-                                        <x-dropdown-link :href="route('users.index')">{{ __('Manage Users') }}</x-dropdown-link>
-                                    @endcan
-                                    @can('manage roles')
-                                        <x-dropdown-link :href="route('roles.index')">{{ __('Manage Roles') }}</x-dropdown-link>
-                                    @endcan
-                                </x-slot>
-                            </x-dropdown>
-                        </div>
-                    @endcanany
-                </div>
-            </div>
-
-            <!-- Settings, Sync & User Controls (Desktop) -->
-            <div class="hidden xl:flex xl:items-center xl:ms-6 space-x-2.5">
                 <!-- Offline / Online Sync Indicator -->
                 <div x-data="{
                     open: false,
@@ -617,7 +618,7 @@
                             <div class="w-6 h-6 rounded-lg bg-[#252ebf] text-white flex items-center justify-center font-bold text-[10px]">
                                 {{ substr(Auth::user()->name, 0, 1) }}
                             </div>
-                            <span class="max-w-[120px] truncate">{{ Auth::user()->name }}</span>
+                            <span class="max-w-[70px] 2xl:max-w-[120px] truncate">{{ Auth::user()->name }}</span>
                             <svg class="h-3.5 w-3.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                             </svg>
