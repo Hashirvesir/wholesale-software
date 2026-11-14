@@ -209,9 +209,17 @@
         document.addEventListener("DOMContentLoaded", function () {
             JsBarcode(".barcode").init();
             setTimeout(function () {
+                window.focus();
                 window.print();
-            }, 600);
+            }, 400);
         });
+
+        // Auto close small popup window after printing or cancelling
+        window.onafterprint = function () {
+            setTimeout(function () {
+                window.close();
+            }, 300);
+        };
     </script>
 </body>
 </html>

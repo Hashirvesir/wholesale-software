@@ -29,7 +29,7 @@
                     </x-nav-link>
 
                     <!-- Trading Dropdown -->
-                    @canany(['view sales', 'view purchases', 'view stock transfers', 'view stock adjustments', 'view cargo charges'])
+                    @canany(['view sales', 'view pos', 'view repairs', 'view repair services', 'view repair brands', 'view quotations', 'view purchases', 'view purchase orders', 'view stock transfers', 'view stock adjustments', 'view cargo charges'])
                         <div class="hidden xl:flex xl:items-center">
                             <x-dropdown align="left" width="48">
                                 <x-slot name="trigger">
@@ -41,20 +41,37 @@
                                     </button>
                                 </x-slot>
                                 <x-slot name="content">
-                                    @can('view sales')
+                                    @can('view pos')
                                         <x-dropdown-link :href="route('pos.index')" class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                                             <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                                             {{ __('POS Counter') }}
                                         </x-dropdown-link>
-                                        <x-dropdown-link :href="route('repairs.index')" class="font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
-                                            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 002 2z"/></svg>
+                                    @endcan
+                                    @can('view repairs')
+                                        <x-dropdown-link :href="route('repairs.index')">
                                             {{ __('Mobile Repairs / Lab') }}
                                         </x-dropdown-link>
+                                    @endcan
+                                    @can('view repair services')
+                                        <x-dropdown-link :href="route('repair-services.index')">
+                                            {{ __('Repair Services & Rates') }}
+                                        </x-dropdown-link>
+                                    @endcan
+                                    @can('view repair brands')
+                                        <x-dropdown-link :href="route('repair-brands.index')">
+                                            {{ __('Repair Brands & Models') }}
+                                        </x-dropdown-link>
+                                    @endcan
+                                    @can('view sales')
                                         <x-dropdown-link :href="route('sales.index')">{{ __('Sales Invoices') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view quotations')
                                         <x-dropdown-link :href="route('quotations.index')">{{ __('Quotations / Estimates') }}</x-dropdown-link>
                                     @endcan
-                                    @can('view purchases')
+                                    @can('view purchase orders')
                                         <x-dropdown-link :href="route('purchase-orders.index')">{{ __('Purchase Orders (PO)') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view purchases')
                                         <x-dropdown-link :href="route('purchases.index')">{{ __('Purchases') }}</x-dropdown-link>
                                     @endcan
                                     @can('view stock transfers')
@@ -72,7 +89,7 @@
                     @endcanany
 
                     <!-- Finance Dropdown -->
-                    @canany(['view chart of accounts', 'view payments', 'view expenses', 'view account transfers'])
+                    @canany(['view chart of accounts', 'view payments', 'view cheques', 'view expenses', 'view account transfers'])
                         <div class="hidden xl:flex xl:items-center">
                             <x-dropdown align="left" width="48">
                                 <x-slot name="trigger">
@@ -89,6 +106,8 @@
                                     @endcan
                                     @can('view payments')
                                         <x-dropdown-link :href="route('payments.index')">{{ __('Payments') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('view cheques')
                                         <x-dropdown-link :href="route('cheques.index')">{{ __('Cheques / PDCs') }}</x-dropdown-link>
                                     @endcan
                                     @can('view expenses')
@@ -745,7 +764,7 @@
                     <span>{{ __('Dashboard') }}</span>
                 </x-responsive-nav-link>
 
-                @can('view sales')
+                @can('view pos')
                     <x-responsive-nav-link :href="route('pos.index')" :active="request()->routeIs('pos.*')"
                         class="font-bold text-[#252ebf] dark:text-blue-300 bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/50 flex items-center justify-between">
                         <span class="flex items-center gap-2.5">
@@ -756,24 +775,25 @@
                     </x-responsive-nav-link>
                 @endcan
 
-                <x-responsive-nav-link :href="route('repairs.index')" :active="request()->routeIs('repairs.*')"
-                    class="font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-900/50 flex items-center justify-between">
-                    <span class="flex items-center gap-2.5">
-                        <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 002 2z"/></svg>
+                @can('view repairs')
+                    <x-responsive-nav-link :href="route('repairs.index')" :active="request()->routeIs('repairs.*')"
+                        class="font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-900/50 flex items-center justify-between">
                         <span>{{ __('Mobile Repairs / Lab') }}</span>
-                    </span>
-                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-600 text-white font-mono uppercase font-bold">New</span>
-                </x-responsive-nav-link>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-600 text-white font-mono uppercase font-bold">New</span>
+                    </x-responsive-nav-link>
+                @endcan
 
-                <button type="button" @click="$dispatch('toggle-ai-copilot'); open = false"
-                    class="w-full text-start px-3.5 py-2 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition flex items-center gap-2.5 cursor-pointer">
-                    <svg class="w-4 h-4 text-[#252ebf]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-                    <span>Ask Invenco AI</span>
-                </button>
+                @can('access ai assistant')
+                    <button type="button" @click="$dispatch('toggle-ai-copilot'); open = false"
+                        class="w-full text-start px-3.5 py-2 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition flex items-center gap-2.5 cursor-pointer">
+                        <svg class="w-4 h-4 text-[#252ebf]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                        <span>Ask Invenco AI</span>
+                    </button>
+                @endcan
             </div>
 
             <!-- Accordion Section: Trading -->
-            @canany(['view sales', 'view purchases', 'view stock transfers', 'view stock adjustments', 'view cargo charges'])
+            @canany(['view sales', 'view quotations', 'view purchases', 'view purchase orders', 'view stock transfers', 'view stock adjustments', 'view cargo charges', 'view repair services', 'view repair brands'])
                 <div class="border-t border-gray-100 dark:border-gray-700/80">
                     <button @click="toggle('trading')" type="button"
                         class="w-full flex items-center justify-between px-4 py-3 text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition cursor-pointer">
@@ -784,17 +804,20 @@
                             <span>{{ __('Trading & Orders') }}</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-[10px] px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-500 font-mono font-bold">7</span>
                             <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="activeSection === 'trading' ? 'rotate-180 text-[#252ebf]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </div>
                     </button>
                     <div x-show="activeSection === 'trading'" x-cloak class="px-3 pb-2 space-y-1 bg-gray-50/40 dark:bg-gray-900/30">
                         @can('view sales')
                             <x-responsive-nav-link :href="route('sales.index')" :active="request()->routeIs('sales.*')">{{ __('Sales Invoices') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view quotations')
                             <x-responsive-nav-link :href="route('quotations.index')" :active="request()->routeIs('quotations.*')">{{ __('Quotations / Estimates') }}</x-responsive-nav-link>
                         @endcan
-                        @can('view purchases')
+                        @can('view purchase orders')
                             <x-responsive-nav-link :href="route('purchase-orders.index')" :active="request()->routeIs('purchase-orders.*')">{{ __('Purchase Orders (PO)') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view purchases')
                             <x-responsive-nav-link :href="route('purchases.index')" :active="request()->routeIs('purchases.*')">{{ __('Purchase Invoices') }}</x-responsive-nav-link>
                         @endcan
                         @can('view stock transfers')
@@ -806,12 +829,18 @@
                         @can('view cargo charges')
                             <x-responsive-nav-link :href="route('cargo-charges.index')" :active="request()->routeIs('cargo-charges.*')">{{ __('Cargo Charges') }}</x-responsive-nav-link>
                         @endcan
+                        @can('view repair services')
+                            <x-responsive-nav-link :href="route('repair-services.index')" :active="request()->routeIs('repair-services.*')">{{ __('Repair Services Master') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view repair brands')
+                            <x-responsive-nav-link :href="route('repair-brands.index')" :active="request()->routeIs('repair-brands.*')">{{ __('Repair Brands & Catalog') }}</x-responsive-nav-link>
+                        @endcan
                     </div>
                 </div>
             @endcanany
 
             <!-- Accordion Section: Finance -->
-            @canany(['view chart of accounts', 'view payments', 'view expenses', 'view account transfers'])
+            @canany(['view chart of accounts', 'view payments', 'view cheques', 'view expenses', 'view account transfers'])
                 <div class="border-t border-gray-100 dark:border-gray-700/80">
                     <button @click="toggle('finance')" type="button"
                         class="w-full flex items-center justify-between px-4 py-3 text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition cursor-pointer">
@@ -822,7 +851,6 @@
                             <span>{{ __('Finance & Accounts') }}</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-[10px] px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-500 font-mono font-bold">5</span>
                             <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="activeSection === 'finance' ? 'rotate-180 text-[#252ebf]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </div>
                     </button>
@@ -832,6 +860,8 @@
                         @endcan
                         @can('view payments')
                             <x-responsive-nav-link :href="route('payments.index')" :active="request()->routeIs('payments.*')">{{ __('Payment Vouchers') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('view cheques')
                             <x-responsive-nav-link :href="route('cheques.index')" :active="request()->routeIs('cheques.*')">{{ __('Cheques / PDCs Management') }}</x-responsive-nav-link>
                         @endcan
                         @can('view expenses')

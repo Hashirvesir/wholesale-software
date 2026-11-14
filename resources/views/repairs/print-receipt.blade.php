@@ -236,6 +236,14 @@
                     <div style="font-size: 10px;">IMEI: {{ $device->imei }}</div>
                 @endif
                 <div class="problem-text uppercase">FAULT: {{ $device->problem_description }}</div>
+                @if(!empty($device->services) && is_array($device->services) && count($device->services) > 0)
+                    <div style="font-size: 9.5px; margin: 2px 0;">
+                        <span class="bold">SERVICES:</span>
+                        @foreach($device->services as $srv)
+                            <span>&bull; {{ $srv['name'] ?? '' }} (Rs {{ number_format($srv['rate'] ?? 0, 0) }}) </span>
+                        @endforeach
+                    </div>
+                @endif
                 @if($device->warranty_days > 0)
                     <div style="font-size: 10px;" class="bold">CHECKING WARRANTY: {{ $device->warranty_days }} DAYS</div>
                 @endif
@@ -283,9 +291,17 @@
         document.addEventListener("DOMContentLoaded", function () {
             JsBarcode(".barcode").init();
             setTimeout(function () {
+                window.focus();
                 window.print();
-            }, 600);
+            }, 400);
         });
+
+        // Auto close small popup window after printing or cancelling
+        window.onafterprint = function () {
+            setTimeout(function () {
+                window.close();
+            }, 300);
+        };
     </script>
 </body>
 </html>

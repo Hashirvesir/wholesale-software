@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Party;
 use App\Models\Product;
+use App\Models\RepairBrand;
 use App\Models\RepairDevice;
 use App\Models\RepairDevicePart;
+use App\Models\RepairModel;
 use App\Models\RepairOrder;
+use App\Models\RepairService;
 use App\Models\Setting;
 use App\Models\Stock;
 use App\Models\User;
@@ -96,7 +99,14 @@ class RepairController extends Controller
         $technicians = User::orderBy('name')->get(['id', 'name']);
         $defaultWarehouse = $warehouses->first();
 
-        return view('repairs.create', compact('orderNo', 'customers', 'products', 'warehouses', 'technicians', 'defaultWarehouse'));
+        // Load catalog brands with models & catalog services with default rates
+        $brands = RepairBrand::where('status', 1)->with(['models' => function($q) {
+            $q->where('status', 1)->orderBy('series')->orderBy('sort_order')->orderBy('name');
+        }])->orderBy('sort_order')->orderBy('name')->get();
+
+        $services = RepairService::where('status', 1)->orderBy('sort_order')->orderBy('category')->get();
+
+        return view('repairs.create', compact('orderNo', 'customers', 'products', 'warehouses', 'technicians', 'defaultWarehouse', 'brands', 'services'));
     }
 
     /**
@@ -105,8 +115,8 @@ class RepairController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'customer_name' => 'required|string|max:255',
-            'customer_phone' => 'required|string|max:50',
+            'customer_name' => 'required|string|min:2|max:255',
+            'customer_phone' => 'required|string|min:7|max:50',
             'received_date' => 'nullable|date',
             'expected_delivery_date' => 'nullable|date',
             'advance_amount' => 'nullable|numeric|min:0',
@@ -115,16 +125,27 @@ class RepairController extends Controller
             'devices.*.model' => 'required|string|max:255',
             'devices.*.problem_description' => 'required|string',
             'devices.*.labor_cost' => 'nullable|numeric|min:0',
+            'devices.*.warranty_days' => 'nullable|integer|min:0|max:365',
+            'devices.*.parts.*.product_id' => 'nullable|exists:products,id',
+            'devices.*.parts.*.quantity' => 'nullable|integer|min:1',
+            'devices.*.parts.*.unit_price' => 'nullable|numeric|min:0',
         ], [
-            'customer_name.required' => 'Customer ka naam likhna lazmi hai (Customer name is required).',
-            'customer_phone.required' => 'Customer ka phone / WhatsApp number likhna lazmi hai.',
+            'customer_name.required' => 'Customer ka naam likhna lazmi hai.',
+            'customer_name.min' => 'Customer ka naam kam az kam 2 huroof ka hona chahiye.',
+            'customer_phone.required' => 'Customer ka mobile / WhatsApp number likhna lazmi hai.',
+            'customer_phone.min' => 'Customer ka phone number kam az kam 7 digits ka hona chahiye.',
             'devices.required' => 'Kam az kam 1 mobile add karna lazmi hai.',
+            'devices.min' => 'Kam az kam 1 mobile add karna lazmi hai.',
             'devices.*.model.required' => 'Har mobile ka Model likhna lazmi hai (e.g. Samsung A32, iPhone 11).',
-            'devices.*.problem_description.required' => 'Mobile ka masla / fault likhna lazmi hai.',
+            'devices.*.problem_description.required' => 'Mobile ka masla / fault likhna ya service select karna lazmi hai.',
+            'devices.*.labor_cost.numeric' => 'Labor charges sirf number hone chahiye.',
+            'devices.*.parts.*.quantity.min' => 'Spare part ki quantity kam az kam 1 honi chahiye.',
+            'devices.*.parts.*.unit_price.min' => 'Spare part ki price 0 ya is se zyada honi chahiye.',
         ]);
 
-        return DB::transaction(function () use ($request) {
-            // Find or link party
+        try {
+            return DB::transaction(function () use ($request) {
+                // Find or link party
             $partyId = $request->party_id;
             if (!$partyId && $request->filled('customer_phone')) {
                 $existingParty = Party::where('phone', $request->customer_phone)->first();
@@ -177,6 +198,7 @@ class RepairController extends Controller
                     'security_type' => $devData['security_type'] ?? 'none',
                     'security_code' => $devData['security_code'] ?? null,
                     'problem_description' => $devData['problem_description'],
+                    'services' => !empty($devData['services']) ? (is_array($devData['services']) ? $devData['services'] : json_decode($devData['services'], true)) : null,
                     'accessories_received' => $devData['accessories_received'] ?? null,
                     'condition_checklist' => is_array($checklist) ? $checklist : json_decode($checklist, true),
                     'technician_id' => !empty($devData['technician_id']) ? $devData['technician_id'] : null,
@@ -286,6 +308,12 @@ class RepairController extends Controller
 
             return $redirect;
         });
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Repair order store error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return back()->withInput()->with('error', 'Repair order save karte waqt masla pesh aya: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -336,6 +364,13 @@ class RepairController extends Controller
         $technicians = User::orderBy('name')->get(['id', 'name']);
         $defaultWarehouse = $warehouses->first();
 
+        // Load catalog brands with models & catalog services
+        $brands = RepairBrand::where('status', 1)->with(['models' => function($q) {
+            $q->where('status', 1)->orderBy('series')->orderBy('sort_order')->orderBy('name');
+        }])->orderBy('sort_order')->orderBy('name')->get();
+
+        $services = RepairService::where('status', 1)->orderBy('sort_order')->orderBy('category')->get();
+
         // Format initial devices for frontend Alpine.js
         $initialDevices = $repair->devices->map(function ($d) {
             return [
@@ -346,6 +381,7 @@ class RepairController extends Controller
                 'imei' => $d->imei ?? '',
                 'color' => $d->color ?? '',
                 'problem' => $d->problem_description,
+                'services' => is_array($d->services) ? $d->services : (json_decode($d->services, true) ?? []),
                 'securityType' => $d->security_type,
                 'securityCode' => $d->security_code ?? '',
                 'labor' => (float) $d->labor_cost,
@@ -366,7 +402,7 @@ class RepairController extends Controller
             ];
         })->values()->all();
 
-        return view('repairs.edit', compact('repair', 'customers', 'products', 'warehouses', 'technicians', 'defaultWarehouse', 'initialDevices'));
+        return view('repairs.edit', compact('repair', 'customers', 'products', 'warehouses', 'technicians', 'defaultWarehouse', 'initialDevices', 'brands', 'services'));
     }
 
     /**
@@ -375,8 +411,8 @@ class RepairController extends Controller
     public function update(Request $request, RepairOrder $repair)
     {
         $request->validate([
-            'customer_name' => 'required|string|max:255',
-            'customer_phone' => 'required|string|max:50',
+            'customer_name' => 'required|string|min:2|max:255',
+            'customer_phone' => 'required|string|min:7|max:50',
             'received_date' => 'nullable|date',
             'expected_delivery_date' => 'nullable|date',
             'advance_amount' => 'nullable|numeric|min:0',
@@ -385,15 +421,26 @@ class RepairController extends Controller
             'devices.*.model' => 'required|string|max:255',
             'devices.*.problem_description' => 'required|string',
             'devices.*.labor_cost' => 'nullable|numeric|min:0',
+            'devices.*.warranty_days' => 'nullable|integer|min:0|max:365',
+            'devices.*.parts.*.product_id' => 'nullable|exists:products,id',
+            'devices.*.parts.*.quantity' => 'nullable|integer|min:1',
+            'devices.*.parts.*.unit_price' => 'nullable|numeric|min:0',
         ], [
             'customer_name.required' => 'Customer ka naam likhna lazmi hai.',
-            'customer_phone.required' => 'Customer ka phone / WhatsApp number lazmi hai.',
+            'customer_name.min' => 'Customer ka naam kam az kam 2 huroof ka hona chahiye.',
+            'customer_phone.required' => 'Customer ka mobile / WhatsApp number lazmi hai.',
+            'customer_phone.min' => 'Customer ka phone number kam az kam 7 digits ka hona chahiye.',
             'devices.required' => 'Kam az kam 1 mobile hona lazmi hai.',
+            'devices.min' => 'Kam az kam 1 mobile hona lazmi hai.',
             'devices.*.model.required' => 'Mobile ka Model likhna lazmi hai.',
             'devices.*.problem_description.required' => 'Mobile ka masla / fault likhna lazmi hai.',
+            'devices.*.labor_cost.numeric' => 'Labor charges sirf number hone chahiye.',
+            'devices.*.parts.*.quantity.min' => 'Spare part ki quantity kam az kam 1 honi chahiye.',
+            'devices.*.parts.*.unit_price.min' => 'Spare part ki price 0 ya is se zyada honi chahiye.',
         ]);
 
-        return DB::transaction(function () use ($request, $repair) {
+        try {
+            return DB::transaction(function () use ($request, $repair) {
             $partyId = $request->party_id;
             if (!$partyId && $request->filled('customer_phone')) {
                 $existingParty = Party::where('phone', $request->customer_phone)->first();
@@ -437,6 +484,7 @@ class RepairController extends Controller
                         'security_type' => $devData['security_type'] ?? 'none',
                         'security_code' => $devData['security_code'] ?? null,
                         'problem_description' => $devData['problem_description'],
+                        'services' => !empty($devData['services']) ? (is_array($devData['services']) ? $devData['services'] : json_decode($devData['services'], true)) : null,
                         'condition_checklist' => is_array($checklist) ? $checklist : json_decode($checklist, true),
                         'technician_id' => !empty($devData['technician_id']) ? $devData['technician_id'] : null,
                         'labor_cost' => $labor,
@@ -454,6 +502,7 @@ class RepairController extends Controller
                         'security_type' => $devData['security_type'] ?? 'none',
                         'security_code' => $devData['security_code'] ?? null,
                         'problem_description' => $devData['problem_description'],
+                        'services' => !empty($devData['services']) ? (is_array($devData['services']) ? $devData['services'] : json_decode($devData['services'], true)) : null,
                         'accessories_received' => $devData['accessories_received'] ?? null,
                         'condition_checklist' => is_array($checklist) ? $checklist : json_decode($checklist, true),
                         'technician_id' => !empty($devData['technician_id']) ? $devData['technician_id'] : null,
@@ -591,6 +640,12 @@ class RepairController extends Controller
             return redirect()->route('repairs.show', $repair->id)
                 ->with('success', "Repair Order #{$repair->order_no} updated successfully! Parts, labor charges, and balance recalculations saved.");
         });
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Repair order update error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return back()->withInput()->with('error', 'Repair order update karte waqt masla pesh aya: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -844,6 +899,181 @@ class RepairController extends Controller
         $settings = Setting::first();
 
         return view('repairs.print-receipt', compact('repair', 'settings'));
+    }
+
+    /**
+     * Dedicated Repair Catalog Settings (Brands, Models & Services).
+     */
+    public function catalog(Request $request)
+    {
+        $brands = RepairBrand::withCount('models')
+            ->with(['models' => function ($q) {
+                $q->orderBy('series')->orderBy('name');
+            }])
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        $services = RepairService::orderBy('category')->orderBy('sort_order')->orderBy('name')->get();
+
+        $categories = RepairService::select('category')->distinct()->pluck('category')->filter()->values();
+        if ($categories->isEmpty()) {
+            $categories = collect(['Screen & Display', 'Battery & Charging', 'Camera & Audio', 'Board & Motherboard', 'Software & OS', 'Body & Housing', 'Other Services']);
+        }
+
+        return view('repairs.catalog', compact('brands', 'services', 'categories'));
+    }
+
+    /**
+     * Quick or Form store for new Repair Service.
+     */
+    public function storeService(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:150',
+            'category' => 'nullable|string|max:100',
+            'default_labor_cost' => 'nullable|numeric|min:0',
+            'description' => 'nullable|string|max:500',
+        ]);
+
+        $service = RepairService::firstOrCreate(
+            ['name' => trim($request->name)],
+            [
+                'category' => trim($request->category ?: 'General Repair'),
+                'default_labor_cost' => floatval($request->default_labor_cost ?? 0),
+                'description' => $request->description,
+                'status' => true,
+                'sort_order' => (RepairService::max('sort_order') ?? 0) + 1,
+            ]
+        );
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'service' => $service,
+                'message' => 'Nayi service kamiyabi se add ho gayi.'
+            ]);
+        }
+
+        return redirect()->route('repairs.catalog')->with('success', 'Nayi service "' . $service->name . '" shamil kar di gayi hai.');
+    }
+
+    /**
+     * Update existing Repair Service.
+     */
+    public function updateService(Request $request, RepairService $service)
+    {
+        $request->validate([
+            'name' => 'required|string|max:150',
+            'category' => 'nullable|string|max:100',
+            'default_labor_cost' => 'nullable|numeric|min:0',
+        ]);
+
+        $service->update([
+            'name' => trim($request->name),
+            'category' => trim($request->category ?: 'General Repair'),
+            'default_labor_cost' => floatval($request->default_labor_cost ?? 0),
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'service' => $service,
+                'message' => 'Service update ho gayi.'
+            ]);
+        }
+
+        return redirect()->route('repairs.catalog')->with('success', 'Service "' . $service->name . '" update ho gayi hai.');
+    }
+
+    /**
+     * Delete Repair Service.
+     */
+    public function destroyService(RepairService $service)
+    {
+        $name = $service->name;
+        $service->delete();
+        return redirect()->route('repairs.catalog')->with('success', 'Service "' . $name . '" delete kar di gayi hai.');
+    }
+
+    /**
+     * Quick AJAX or Form store for new Repair Brand.
+     */
+    public function storeBrand(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:100',
+        ]);
+
+        $name = trim($request->name);
+        $brand = RepairBrand::firstOrCreate(
+            ['name' => $name],
+            ['status' => true, 'sort_order' => (RepairBrand::max('sort_order') ?? 0) + 1]
+        );
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'brand' => $brand->load('models'),
+            ]);
+        }
+
+        return redirect()->route('repairs.catalog')->with('success', 'Brand "' . $brand->name . '" shamil kar diya gaya hai.');
+    }
+
+    /**
+     * Delete Repair Brand and its models.
+     */
+    public function destroyBrand(RepairBrand $brand)
+    {
+        $name = $brand->name;
+        $brand->models()->delete();
+        $brand->delete();
+        return redirect()->route('repairs.catalog')->with('success', 'Brand "' . $name . '" aur uske models delete kar diye gaye hain.');
+    }
+
+    /**
+     * Quick AJAX or Form store for new Repair Model under a Brand.
+     */
+    public function storeModel(Request $request)
+    {
+        $request->validate([
+            'repair_brand_id' => 'required|exists:repair_brands,id',
+            'name' => 'required|string|max:100',
+            'series' => 'nullable|string|max:100',
+        ]);
+
+        $name = trim($request->name);
+        $model = RepairModel::firstOrCreate(
+            [
+                'repair_brand_id' => $request->repair_brand_id,
+                'name' => $name,
+            ],
+            [
+                'series' => trim($request->series ?: 'Other Models'),
+                'status' => true,
+                'sort_order' => (RepairModel::where('repair_brand_id', $request->repair_brand_id)->max('sort_order') ?? 0) + 1,
+            ]
+        );
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'model' => $model,
+            ]);
+        }
+
+        return redirect()->route('repairs.catalog')->with('success', 'Model "' . $model->name . '" shamil kar diya gaya hai.');
+    }
+
+    /**
+     * Delete Repair Model.
+     */
+    public function destroyModel(RepairModel $model)
+    {
+        $name = $model->name;
+        $model->delete();
+        return redirect()->route('repairs.catalog')->with('success', 'Model "' . $name . '" delete kar diya gaya hai.');
     }
 
     /**

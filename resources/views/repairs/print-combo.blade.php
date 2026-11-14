@@ -507,6 +507,16 @@
                         FAULT: {{ $device->problem_description }}
                     </div>
 
+                    <!-- Selected Services itemization -->
+                    @if(!empty($device->services) && is_array($device->services) && count($device->services) > 0)
+                        <div style="margin-top: 3px; font-size: 9.5px; border-top: 1px dashed #000; padding-top: 2px;">
+                            <span class="bold">SERVICES / FAULTS:</span>
+                            @foreach($device->services as $srv)
+                                <div>&bull; {{ $srv['name'] ?? '' }} - Rs {{ number_format($srv['rate'] ?? 0, 0) }}</div>
+                            @endforeach
+                        </div>
+                    @endif
+
                     <!-- Spare Parts breakdown if selected -->
                     @if($device->parts->count() > 0)
                         <div style="margin-top: 3px; font-size: 9.5px; border-top: 1px dashed #000; padding-top: 2px;">
@@ -602,9 +612,17 @@
             }
             // Trigger print dialog automatically after slight render delay
             setTimeout(function () {
+                window.focus();
                 window.print();
-            }, 500);
+            }, 400);
         });
+
+        // Auto close small popup window after printing or cancelling
+        window.onafterprint = function () {
+            setTimeout(function () {
+                window.close();
+            }, 300);
+        };
     </script>
 </body>
 </html>

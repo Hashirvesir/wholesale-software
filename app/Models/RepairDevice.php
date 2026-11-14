@@ -19,6 +19,7 @@ class RepairDevice extends Model
         'security_type',
         'security_code',
         'problem_description',
+        'services',
         'accessories_received',
         'condition_checklist',
         'technician_id',
@@ -33,6 +34,7 @@ class RepairDevice extends Model
 
     protected $casts = [
         'condition_checklist' => 'array',
+        'services' => 'array',
         'labor_cost' => 'decimal:2',
         'parts_cost' => 'decimal:2',
         'total_cost' => 'decimal:2',

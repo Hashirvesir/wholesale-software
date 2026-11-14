@@ -23,8 +23,9 @@
             <div class="flex items-center gap-2" x-data="{ printDropdown: false }">
                 
                 <!-- Main 1-Click Print Button (Both Sticker + Customer Slip) -->
-                <a href="{{ route('repairs.print-combo', $repair->id) }}" target="_blank"
-                   class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm transition">
+                <a href="{{ route('repairs.print-combo', $repair->id) }}"
+                   onclick="return openPrintWindow(this.href)"
+                   class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm transition cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                     </svg>
@@ -50,18 +51,21 @@
                          x-transition:leave-end="transform opacity-0 scale-95"
                          class="absolute right-0 mt-1.5 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50 text-xs"
                          style="display: none;">
-                        <a href="{{ route('repairs.stickers', $repair->id) }}" target="_blank"
-                           class="flex items-center gap-2 px-3.5 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <a href="{{ route('repairs.stickers', $repair->id) }}"
+                           onclick="printDropdown = false; return openPrintWindow(this.href)"
+                           class="flex items-center gap-2 px-3.5 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
                             <span>🏷️</span>
                             <span>Mobile Sticker Only (Slip 1)</span>
                         </a>
-                        <a href="{{ route('repairs.receipt', $repair->id) }}" target="_blank"
-                           class="flex items-center gap-2 px-3.5 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <a href="{{ route('repairs.receipt', $repair->id) }}"
+                           onclick="printDropdown = false; return openPrintWindow(this.href)"
+                           class="flex items-center gap-2 px-3.5 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
                             <span>🧾</span>
                             <span>Customer Slip Only (Slip 2)</span>
                         </a>
-                        <a href="{{ route('repairs.invoice', $repair->id) }}" target="_blank"
-                           class="flex items-center gap-2 px-3.5 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 border-t border-gray-100 dark:border-gray-700">
+                        <a href="{{ route('repairs.invoice', $repair->id) }}"
+                           onclick="printDropdown = false; return openPrintWindow(this.href)"
+                           class="flex items-center gap-2 px-3.5 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 border-t border-gray-100 dark:border-gray-700 cursor-pointer">
                             <span>📄</span>
                             <span>Final Delivery Invoice</span>
                         </a>
@@ -86,7 +90,7 @@
         </div>
     </x-slot>
 
-    <div class="py-6" x-data="{ deliverModal: false }">
+    <div class="py-6" x-data="{ deliverModal: false, showSuccessModal: {{ (session('auto_print') || request('auto_print')) ? 'true' : 'false' }} }">
         <div class="max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
 
             <!-- Clean Light Success Flash Notice -->
@@ -234,8 +238,18 @@
                         <!-- Problem Description & Condition (Light Soft Panels) -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                             <div class="p-3 bg-amber-50/50 dark:bg-amber-950/20 rounded-xl border border-amber-200/50 dark:border-amber-900/30">
-                                <span class="font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider block mb-1">Problem Reported:</span>
+                                <span class="font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider block mb-1">Problem / Services Selected:</span>
                                 <p class="text-gray-800 dark:text-gray-200 font-medium">{{ $device->problem_description }}</p>
+                                @if(!empty($device->services) && is_array($device->services) && count($device->services) > 0)
+                                    <div class="mt-2.5 flex flex-wrap gap-1.5">
+                                        @foreach($device->services as $srv)
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-gray-800 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-[11px] font-bold shadow-xs">
+                                                <span>🔧 {{ $srv['name'] ?? '' }}</span>
+                                                <span class="text-indigo-500 font-mono">Rs {{ number_format($srv['rate'] ?? 0, 0) }}</span>
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                @endif
                             </div>
 
                             <div class="p-3 bg-gray-50 dark:bg-gray-900/40 rounded-xl border border-gray-200/70 dark:border-gray-700/60">
@@ -368,18 +382,121 @@
             </div>
         </div>
 
+        <!-- POS-STYLE POST-INTAKE SUCCESS & PRINT MODAL -->
+        <div x-show="showSuccessModal" x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4"
+             style="display: none;">
+            <div x-show="showSuccessModal"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95"
+                 class="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-gray-100 dark:border-gray-700"
+                 @click.away="showSuccessModal = false">
+                
+                <!-- Green Success Icon -->
+                <div class="w-14 h-14 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+
+                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    Mobile Jama Ho Gaya!
+                </h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-mono">
+                    {{ $repair->order_no }} &bull; <span class="font-sans font-semibold text-gray-700 dark:text-gray-300">{{ $repair->customer_name }}</span>
+                </p>
+
+                <!-- Quick Numbers -->
+                <div class="grid grid-cols-3 gap-2 my-4 text-center text-xs bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <div>
+                        <span class="text-gray-400 text-[10px] uppercase font-bold block">Total</span>
+                        <div class="font-bold text-gray-800 dark:text-gray-200">Rs {{ number_format($repair->total_amount, 0) }}</div>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 text-[10px] uppercase font-bold block">Advance</span>
+                        <div class="font-bold text-emerald-600">Rs {{ number_format($repair->advance_amount, 0) }}</div>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 text-[10px] uppercase font-bold block">Balance</span>
+                        <div class="font-bold {{ $repair->balance_amount > 0 ? 'text-rose-600' : 'text-emerald-600' }}">Rs {{ number_format($repair->balance_amount, 0) }}</div>
+                    </div>
+                </div>
+
+                <!-- Print Buttons (Opens Small Print Window Directly) -->
+                <div class="space-y-2">
+                    <button type="button" @click="openPrintWindow('{{ route('repairs.print-combo', $repair->id) }}')"
+                            class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                        </svg>
+                        <span>Print Slips (Sticker + Copy)</span>
+                    </button>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" @click="openPrintWindow('{{ route('repairs.stickers', $repair->id) }}')"
+                                class="py-2 px-3 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer">
+                            <span>🏷️ Sticker Only</span>
+                        </button>
+                        <button type="button" @click="openPrintWindow('{{ route('repairs.receipt', $repair->id) }}')"
+                                class="py-2 px-3 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer">
+                            <span>🧾 Customer Slip</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Footer Links -->
+                <div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between text-xs">
+                    <a href="{{ route('repairs.create') }}" class="font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
+                        + Naya Mobile Jama Karein
+                    </a>
+                    <button type="button" @click="showSuccessModal = false" class="text-gray-500 hover:text-gray-700 font-semibold cursor-pointer">
+                        Band Karein
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    @if(session('auto_print') || request('auto_print'))
-        <script>
+    <script>
+        // Open small standalone popup window for printing (NO new Chrome tab)
+        function openPrintWindow(url) {
+            if (!url) return false;
+            const w = 400;
+            const h = 650;
+            const left = Math.max(0, Math.floor((window.screen.width - w) / 2));
+            const top = Math.max(0, Math.floor((window.screen.height - h) / 2));
+            const win = window.open(
+                url,
+                'RepairsPrintPopup',
+                `width=${w},height=${h},top=${top},left=${left},scrollbars=yes,status=no,toolbar=no,menubar=no,location=no,resizable=yes`
+            );
+            if (win) {
+                win.focus();
+            }
+            return false;
+        }
+
+        // Auto trigger popup print window on form submission redirect
+        @if(session('auto_print') || request('auto_print'))
             document.addEventListener("DOMContentLoaded", function () {
                 const comboUrl = "{{ session('auto_print_combo') ?? route('repairs.print-combo', $repair->id) }}";
                 try {
-                    window.open(comboUrl, '_blank', 'width=950,height=900');
+                    openPrintWindow(comboUrl);
                 } catch (e) {
                     console.error('Auto-print error:', e);
                 }
             });
-        </script>
-    @endif
+        @endif
+    </script>
 </x-app-layout>
