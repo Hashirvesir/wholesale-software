@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             ChartOfAccountSeeder::class,
             RolePermissionSeeder::class,
             UserSeeder::class,
+            RepairCatalogSeeder::class,
         ]);
     }
 }
