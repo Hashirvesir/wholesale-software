@@ -451,8 +451,9 @@
                 @endif
                 <p>
                     @if(!empty($settings->company_phone))
-                        PHONE: {{ $settings->company_phone }}
+                        PHONE: {{ $settings->company_phone }} &bull;
                     @endif
+                    INVENCO: +92 324 3980274
                     @if(!empty($settings->company_email))
                         | {{ $settings->company_email }}
                     @endif
@@ -573,6 +574,11 @@
             <div class="signatures">
                 <span>CUSTOMER SIGN</span>
                 <span>SHOP SIGN</span>
+            </div>
+
+            <!-- Footer / Software Credit -->
+            <div style="margin-top: 12px; text-align: center; font-size: 9.5px; font-weight: 800; border-top: 1px dashed #000; padding-top: 4px;">
+                Developed by Invenco &bull; Tel: +92 324 3980274
             </div>
         </div>
 

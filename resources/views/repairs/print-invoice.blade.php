@@ -197,8 +197,13 @@
         <!-- Company Header -->
         <div class="company-header text-center">
             <h1>{{ $settings->company_name ?? 'INVENCO REPAIR LAB' }}</h1>
-            <p>{{ $settings->address ?? 'Main Mobile Market, Electronics Center' }}</p>
-            <p>PH: {{ $settings->phone ?? '0300-0000000' }}</p>
+            <p>{{ $settings->company_address ?? ($settings->address ?? 'Main Mobile Market, Electronics Center') }}</p>
+            <p>
+                @if(!empty($settings->company_phone))
+                    PH: {{ $settings->company_phone }} &bull;
+                @endif
+                INVENCO: +92 324 3980274
+            </p>
         </div>
 
         <!-- Invoice Title -->
@@ -305,6 +310,11 @@
         <div class="signatures">
             <span>CUSTOMER SIGNATURE</span>
             <span>AUTHORIZED SIGNATURE</span>
+        </div>
+
+        <!-- Footer / Software Credit -->
+        <div style="margin-top: 14px; text-align: center; font-size: 10px; font-weight: 800; border-top: 1px dashed #000; padding-top: 5px;">
+            Developed by Invenco &bull; Tel: +92 324 3980274
         </div>
     </div>
 

@@ -31,3 +31,5 @@ Thumbs.db
 /mobile/android/capacitor-cordova-android-plugins
 /public/downloads/*
 !/public/downloads/README.txt
+!/public/downloads/Invenco-Setup.exe
+!/public/downloads/Invenco-Wholesaler.apk
