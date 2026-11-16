@@ -157,7 +157,12 @@
             <!-- Header -->
             <div class="header">
                 <div class="shop-name">{{ $settings->company_name ?? 'INVENCO REPAIR LAB' }}</div>
-                <div class="token-badge">{{ $device->device_tracking_no }}</div>
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    @if(($device->approval_type ?? 'without_approval') === 'approval')
+                        <div style="font-size: 8px; font-weight: 900; background: #000; color: #fff !important; padding: 2px 4px; border-radius: 3px; letter-spacing: 0.5px;">RISK APPROVAL</div>
+                    @endif
+                    <div class="token-badge">{{ $device->device_tracking_no }}</div>
+                </div>
             </div>
 
             <!-- Device Model & Customer -->

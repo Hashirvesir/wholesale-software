@@ -257,6 +257,11 @@
                     <tr>
                         <td colspan="3" class="device-row-title uppercase">
                             {{ $device->brand }} {{ $device->model }} [{{ $device->device_tracking_no }}]
+                            @if(($device->approval_type ?? 'without_approval') === 'approval')
+                                <span style="display: inline-block; font-size: 9px; padding: 1px 4px; border: 1.5px solid #000; background: #fff; margin-left: 4px; font-weight: 900;">[APPROVAL: RISK]</span>
+                            @else
+                                <span style="font-size: 8.5px; font-weight: 700; color: #444; margin-left: 4px;">[WITHOUT APPROVAL]</span>
+                            @endif
                         </td>
                     </tr>
                     @foreach($device->parts as $part)
@@ -305,6 +310,17 @@
             - Physical damage, broken screen, or water damage has NO warranty.<br>
             - Warranty claim requires original printed invoice.
         </div>
+
+        @php
+            $hasApprovalRisk = $repair->devices->contains(fn($d) => ($d->approval_type ?? 'without_approval') === 'approval');
+        @endphp
+        @if($hasApprovalRisk)
+            <!-- Customer Risk Approval Agreement -->
+            <div style="border: 2px solid #000; padding: 6px 8px; font-size: 9.5px; font-weight: 800; margin-top: 8px; line-height: 1.35; background: #fff;">
+                <span class="bold uppercase" style="font-size: 10px;">⚠️ CUSTOMER RISK APPROVAL AGREEMENT:</span><br>
+                Customer ne glass / touch / repair ka risk approve kiya hai. Repairing ke doraan display dead/damage hone par dukaan zimmedar nahi hogi.
+            </div>
+        @endif
 
         <!-- Signatures -->
         <div class="signatures">

@@ -108,6 +108,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/repairs/{repair}/invoice', [\App\Http\Controllers\RepairController::class, 'printInvoice'])->name('repairs.invoice')->middleware('permission:print repairs');
     Route::post('/repairs/devices/{device}/status', [\App\Http\Controllers\RepairController::class, 'updateDeviceStatus'])->name('repairs.devices.status')->middleware('permission:edit repairs');
     Route::post('/repairs/{repair}/deliver', [\App\Http\Controllers\RepairController::class, 'deliver'])->name('repairs.deliver')->middleware('permission:deliver repairs');
+    Route::delete('/repairs/{repair}', [\App\Http\Controllers\RepairController::class, 'destroy'])->name('repairs.destroy')->middleware('permission:delete repairs');
     Route::resource('repairs', \App\Http\Controllers\RepairController::class)->middleware('permission:view repairs');
 
 

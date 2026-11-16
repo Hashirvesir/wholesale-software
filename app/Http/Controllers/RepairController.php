@@ -198,6 +198,8 @@ class RepairController extends Controller
                     'security_type' => $devData['security_type'] ?? 'none',
                     'security_code' => $devData['security_code'] ?? null,
                     'problem_description' => $devData['problem_description'],
+                    'approval_type' => in_array($devData['approval_type'] ?? '', ['approval', 'without_approval']) ? $devData['approval_type'] : 'without_approval',
+                    'approval_notes' => $devData['approval_notes'] ?? null,
                     'services' => !empty($devData['services']) ? (is_array($devData['services']) ? $devData['services'] : json_decode($devData['services'], true)) : null,
                     'accessories_received' => $devData['accessories_received'] ?? null,
                     'condition_checklist' => is_array($checklist) ? $checklist : json_decode($checklist, true),
@@ -381,6 +383,8 @@ class RepairController extends Controller
                 'imei' => $d->imei ?? '',
                 'color' => $d->color ?? '',
                 'problem' => $d->problem_description,
+                'approvalType' => $d->approval_type ?? 'without_approval',
+                'approvalNotes' => $d->approval_notes ?? '',
                 'services' => is_array($d->services) ? $d->services : (json_decode($d->services, true) ?? []),
                 'securityType' => $d->security_type,
                 'securityCode' => $d->security_code ?? '',
@@ -484,6 +488,8 @@ class RepairController extends Controller
                         'security_type' => $devData['security_type'] ?? 'none',
                         'security_code' => $devData['security_code'] ?? null,
                         'problem_description' => $devData['problem_description'],
+                        'approval_type' => in_array($devData['approval_type'] ?? '', ['approval', 'without_approval']) ? $devData['approval_type'] : 'without_approval',
+                        'approval_notes' => $devData['approval_notes'] ?? null,
                         'services' => !empty($devData['services']) ? (is_array($devData['services']) ? $devData['services'] : json_decode($devData['services'], true)) : null,
                         'condition_checklist' => is_array($checklist) ? $checklist : json_decode($checklist, true),
                         'technician_id' => !empty($devData['technician_id']) ? $devData['technician_id'] : null,
@@ -502,6 +508,8 @@ class RepairController extends Controller
                         'security_type' => $devData['security_type'] ?? 'none',
                         'security_code' => $devData['security_code'] ?? null,
                         'problem_description' => $devData['problem_description'],
+                        'approval_type' => in_array($devData['approval_type'] ?? '', ['approval', 'without_approval']) ? $devData['approval_type'] : 'without_approval',
+                        'approval_notes' => $devData['approval_notes'] ?? null,
                         'services' => !empty($devData['services']) ? (is_array($devData['services']) ? $devData['services'] : json_decode($devData['services'], true)) : null,
                         'accessories_received' => $devData['accessories_received'] ?? null,
                         'condition_checklist' => is_array($checklist) ? $checklist : json_decode($checklist, true),
@@ -855,6 +863,49 @@ class RepairController extends Controller
             }
 
             return back()->with('success', "Repair Order #{$repair->order_no} marked as DELIVERED! Payment, accounts ledger, and inventory stock updated successfully.");
+        });
+    }
+
+    /**
+     * Delete a repair order (with inventory stock restoration and accounting ledger cleanup).
+     */
+    public function destroy(RepairOrder $repair)
+    {
+        if (!Auth::user()->can('delete repairs')) {
+            abort(403, 'Aap ke paas repair order delete karne ki permission nahi hai.');
+        }
+
+        return DB::transaction(function () use ($repair) {
+            $orderNo = $repair->order_no;
+
+            // 1. If any parts were deducted from inventory stock, restore them back
+            foreach ($repair->devices as $device) {
+                foreach ($device->parts as $part) {
+                    if ($part->is_deducted) {
+                        $stock = Stock::where('product_id', $part->product_id)
+                            ->where('warehouse_id', $part->warehouse_id)
+                            ->lockForUpdate()
+                            ->first();
+
+                        if ($stock) {
+                            $stock->qty += $part->quantity;
+                            $stock->save();
+                        }
+                    }
+                    $part->delete();
+                }
+                $device->delete();
+            }
+
+            // 2. Remove all ledger entries linked with this repair order (advance / delivery / cogs)
+            LedgerEntry::where('reference_type', 'repair')
+                ->where('reference_id', $repair->id)
+                ->delete();
+
+            // 3. Delete the repair order
+            $repair->delete();
+
+            return redirect()->route('repairs.index')->with('success', "Repair Order #{$orderNo} kamyabi se delete kar diya gaya hai aur tamam parts ka stock wapas restore ho gaya hai.");
         });
     }
 

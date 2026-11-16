@@ -422,6 +422,71 @@
                             </div>
                         </div>
 
+                        <!-- Customer Risk & Approval Section (Approval vs Without Approval) -->
+                        <div class="p-5 sm:p-6 rounded-2xl border-2 transition-all duration-200"
+                             :class="device.approval_type === 'approval' 
+                                ? 'bg-rose-50/90 dark:bg-rose-950/40 border-rose-400 dark:border-rose-700 shadow-sm' 
+                                : 'bg-slate-50/80 dark:bg-gray-900/50 border-slate-200 dark:border-gray-700'">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                <div>
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-2.5 h-2.5 rounded-full" :class="device.approval_type === 'approval' ? 'bg-rose-600 animate-pulse' : 'bg-emerald-500'"></span>
+                                        <label class="block text-xs sm:text-sm font-black uppercase tracking-wider"
+                                               :class="device.approval_type === 'approval' ? 'text-rose-700 dark:text-rose-300' : 'text-gray-800 dark:text-gray-200'">
+                                            Customer Risk & Approval Status
+                                        </label>
+                                        <span x-show="device.approval_type === 'approval'" class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white uppercase tracking-wider shadow-2xs">
+                                            Customer Risk
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        Glass / Touch / Motherboard bante waqt kharab hone par dukaan zimmedar nahi hogi.
+                                    </p>
+                                </div>
+
+                                <!-- 2 Clear Toggle Buttons (Approval vs Without Approval) -->
+                                <div class="inline-flex rounded-xl p-1.5 bg-gray-200/90 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 self-start sm:self-auto gap-1">
+                                    <button type="button"
+                                            @click="device.approval_type = 'without_approval'"
+                                            :class="device.approval_type === 'without_approval' 
+                                                ? 'bg-white dark:bg-gray-700 text-emerald-700 dark:text-emerald-400 font-black shadow-xs' 
+                                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 font-bold'"
+                                            class="px-4 py-2 text-xs sm:text-sm rounded-lg transition-all flex items-center gap-2 cursor-pointer">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                        <span>Without Approval</span>
+                                    </button>
+                                    <button type="button"
+                                            @click="device.approval_type = 'approval'"
+                                            :class="device.approval_type === 'approval' 
+                                                ? 'bg-rose-600 text-white font-black shadow-md ring-2 ring-rose-400/50' 
+                                                : 'text-gray-600 dark:text-gray-400 hover:text-rose-600 font-bold'"
+                                            class="px-4 py-2 text-xs sm:text-sm rounded-lg transition-all flex items-center gap-2 cursor-pointer">
+                                        <span class="w-2 h-2 rounded-full" :class="device.approval_type === 'approval' ? 'bg-white' : 'bg-rose-500'"></span>
+                                        <span>Approval (Customer Risk)</span>
+                                    </button>
+                                </div>
+                                <input type="hidden" :name="'devices[' + dIdx + '][approval_type]'" :value="device.approval_type">
+                            </div>
+
+                            <!-- High-Visibility Warning Banner if Approval (Customer Risk) is selected -->
+                            <div x-show="device.approval_type === 'approval'" class="mt-4 pt-3.5 border-t border-rose-200 dark:border-rose-800/60 space-y-2.5">
+                                <div class="flex items-start gap-2.5 p-3 bg-white dark:bg-gray-800 rounded-xl border border-rose-200 dark:border-rose-900/50">
+                                    <span class="text-rose-600 dark:text-rose-400 text-lg leading-none">⚠️</span>
+                                    <div class="text-xs text-rose-800 dark:text-rose-200 leading-relaxed">
+                                        <strong class="font-black text-rose-700 dark:text-rose-300 uppercase">Customer Risk Approved:</strong>
+                                        Customer ne glass / touch / motherboard repair ka risk approve kiya hai. Agar mobile bante waqt kharab/dead ho gaya to dukaan zimmedar nahi hogi. Yeh statement receipt, sticker aur invoice par bold print hogi.
+                                    </div>
+                                </div>
+                                <div>
+                                    <input type="text"
+                                           :name="'devices[' + dIdx + '][approval_notes]'"
+                                           x-model="device.approval_notes"
+                                           placeholder="Optional Risk Note (e.g. Glass crack tha, display lines ka risk customer par hai)..."
+                                           class="w-full py-2.5 px-3.5 bg-white dark:bg-gray-800 border border-rose-300 dark:border-rose-700 rounded-xl text-xs text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-rose-500">
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Problem Description (Auto-fills from services or custom text) & Screen Security -->
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
                             <!-- Problem Description -->
@@ -803,6 +868,8 @@
                         imei: d.imei || '',
                         color: d.color || '',
                         problem: d.problem_description || d.problem || '',
+                        approval_type: d.approval_type || 'without_approval',
+                        approval_notes: d.approval_notes || '',
                         services: Array.isArray(d.services) ? d.services : [],
                         securityType: d.security_type || 'none',
                         securityCode: d.security_code || '',
@@ -825,6 +892,8 @@
                         imei: '',
                         color: '',
                         problem: '',
+                        approval_type: 'without_approval',
+                        approval_notes: '',
                         services: [],
                         securityType: 'none',
                         securityCode: '',
@@ -1181,6 +1250,8 @@
                         imei: '',
                         color: '',
                         problem: '',
+                        approval_type: 'without_approval',
+                        approval_notes: '',
                         services: [],
                         securityType: 'none',
                         securityCode: '',

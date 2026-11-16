@@ -19,6 +19,8 @@ class RepairDevice extends Model
         'security_type',
         'security_code',
         'problem_description',
+        'approval_type',
+        'approval_notes',
         'services',
         'accessories_received',
         'condition_checklist',

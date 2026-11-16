@@ -384,7 +384,12 @@
                     <!-- Header -->
                     <div class="sticker-header">
                         <div class="shop-name">{{ $settings->company_name ?? 'INVENCO REPAIR LAB' }}</div>
-                        <div class="token-badge">{{ $device->device_tracking_no }}</div>
+                        <div style="display: flex; gap: 4px; align-items: center;">
+                            @if(($device->approval_type ?? 'without_approval') === 'approval')
+                                <div style="font-size: 8px; font-weight: 900; background: #000; color: #fff !important; padding: 2px 4px; border-radius: 3px; letter-spacing: 0.5px;">RISK APPROVAL</div>
+                            @endif
+                            <div class="token-badge">{{ $device->device_tracking_no }}</div>
+                        </div>
                     </div>
 
                     <!-- Device Model & Color -->
@@ -498,8 +503,13 @@
 
             @foreach($repair->devices as $index => $device)
                 <div class="device-box">
-                    <div class="device-title uppercase">
-                        #{{ $index + 1 }}. {{ $device->brand }} {{ $device->model }} [{{ $device->device_tracking_no }}]
+                    <div class="device-title uppercase" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>#{{ $index + 1 }}. {{ $device->brand }} {{ $device->model }} [{{ $device->device_tracking_no }}]</span>
+                        @if(($device->approval_type ?? 'without_approval') === 'approval')
+                            <span style="font-size: 8.5px; padding: 1px 4px; border: 1.5px solid #000; font-weight: 900; background: #fff;">[APPROVAL: RISK]</span>
+                        @else
+                            <span style="font-size: 8px; color: #444; font-weight: 700;">[WITHOUT APPROVAL]</span>
+                        @endif
                     </div>
                     @if($device->imei)
                         <div style="font-size: 9.5px;">IMEI: {{ $device->imei }}</div>
@@ -569,6 +579,17 @@
                 3. Phone data (photos, contacts) backup customer ki zimmedari hai.<br>
                 4. 30 din baad mobile ki dukaan zimmedar nahi hogi.
             </div>
+
+            @php
+                $hasApprovalRisk = $repair->devices->contains(fn($d) => ($d->approval_type ?? 'without_approval') === 'approval');
+            @endphp
+            @if($hasApprovalRisk)
+                <!-- Customer Risk Approval Agreement -->
+                <div style="border: 2px solid #000; padding: 5px 7px; font-size: 9px; font-weight: 800; margin-top: 6px; line-height: 1.35; background: #fff;">
+                    <span class="bold uppercase">⚠️ CUSTOMER RISK APPROVAL:</span><br>
+                    Customer ne glass / touch / repair ka risk approve kiya hai. Repairing ke doraan phone ya display kharab/dead hone par dukaan zimmedar nahi hogi.
+                </div>
+            @endif
 
             <!-- Signatures -->
             <div class="signatures">
