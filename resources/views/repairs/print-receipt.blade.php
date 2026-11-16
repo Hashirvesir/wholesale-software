@@ -6,6 +6,11 @@
     <title>Customer Intake Receipt - {{ $repair->order_no }}</title>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
+        @page {
+            size: auto;
+            margin: 0mm !important;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -160,18 +165,22 @@
         }
 
         @media print {
-            body {
-                background: transparent;
-                padding: 0;
+            html, body {
+                background: #fff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
             }
             .no-print-bar {
-                display: none;
+                display: none !important;
             }
             .receipt-card {
-                border: none;
-                width: 100%;
-                max-width: 100%;
-                padding: 2px;
+                border: none !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 0 1mm !important;
+                margin: 0 !important;
+                box-shadow: none !important;
             }
         }
     </style>
@@ -254,9 +263,9 @@
                         @endforeach
                     </div>
                 @endif
-                @if($device->warranty_days > 0)
-                    <div style="font-size: 10px;" class="bold">CHECKING WARRANTY: {{ $device->warranty_days }} DAYS</div>
-                @endif
+                <div style="font-size: 10px;" class="bold">
+                    CHECKING WARRANTY: {{ $device->warranty_days > 0 ? $device->warranty_days . ' DAYS' : 'COUNTER CHECK ONLY (Counter ke baad koi zimmedari nahi)' }}
+                </div>
             </div>
         @endforeach
 
@@ -285,9 +294,10 @@
         <div class="terms-box">
             <span class="bold uppercase">TERMS & CONDITIONS:</span><br>
             1. Mobile wapsi lene ke waqt yeh slip pesh karna lazmi hai.<br>
-            2. Slip gum hone ki soorat mein CNIC copy aur tasdeeq lazmi hogi.<br>
-            3. Phone data (photos, contacts) backup customer ki zimmedari hai.<br>
-            4. 30 din baad mobile ki dukaan zimmedar nahi hogi.
+            2. Checking warranty sirf counter tak ki hai (Counter se nikalne ke baad dukaandar kisi cheez ka zimmedar nahi hoga).<br>
+            3. Slip gum hone ki soorat mein CNIC copy aur tasdeeq lazmi hogi.<br>
+            4. Phone data (photos, contacts) backup customer ki zimmedari hai.<br>
+            5. 30 din baad mobile ki dukaan zimmedar nahi hogi.
         </div>
 
         @php

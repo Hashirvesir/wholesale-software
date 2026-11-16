@@ -6,6 +6,11 @@
     <title>Print Slips (Sticker & Customer Copy) - {{ $repair->order_no }}</title>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
+        @page {
+            size: auto;
+            margin: 0mm !important;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -303,9 +308,11 @@
            PRINT MEDIA QUERIES (SEPARATE INTO 2 PRINTS / PAGES)
            ======================================================== */
         @media print {
-            body {
-                background: transparent !important;
+            html, body {
+                background: #fff !important;
                 padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
             }
 
             .no-print-bar {
@@ -321,14 +328,17 @@
             /* Print 1: Sticker Section */
             .sticker-section {
                 margin: 0 !important;
+                padding: 0 !important;
                 page-break-after: always !important;
                 break-after: page !important;
             }
 
             .sticker-card {
                 border: 1.5px solid #000 !important;
-                margin: 0 0 10px 0 !important;
+                margin: 0 0 3mm 0 !important;
+                padding: 4px 6px !important;
                 width: 100% !important;
+                max-width: 100% !important;
             }
 
             /* Tear line hidden or clean in physical print */
@@ -338,9 +348,11 @@
 
             /* Print 2: Customer Copy / Invoice Section */
             .customer-section {
-                border: 1.5px solid #000 !important;
+                border: none !important;
                 margin: 0 !important;
+                padding: 0 1mm !important;
                 width: 100% !important;
+                max-width: 100% !important;
                 page-break-before: always !important;
                 break-before: page !important;
             }
@@ -575,9 +587,10 @@
             <div class="terms-box">
                 <span class="bold uppercase">TERMS & CONDITIONS:</span><br>
                 1. Mobile wapsi lene ke waqt yeh slip pesh karna lazmi hai.<br>
-                2. Slip gum hone ki soorat mein CNIC copy aur tasdeeq lazmi hogi.<br>
-                3. Phone data (photos, contacts) backup customer ki zimmedari hai.<br>
-                4. 30 din baad mobile ki dukaan zimmedar nahi hogi.
+                2. Checking warranty sirf counter tak ki hai (Counter se nikalne ke baad dukaandar kisi cheez ka zimmedar nahi hoga).<br>
+                3. Slip gum hone ki soorat mein CNIC copy aur tasdeeq lazmi hogi.<br>
+                4. Phone data (photos, contacts) backup customer ki zimmedari hai.<br>
+                5. 30 din baad mobile ki dukaan zimmedar nahi hogi.
             </div>
 
             @php

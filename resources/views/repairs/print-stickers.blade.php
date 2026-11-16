@@ -6,6 +6,11 @@
     <title>Mobile Sticker Tags - {{ $repair->order_no }}</title>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
+        @page {
+            size: auto;
+            margin: 0mm !important;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -129,17 +134,22 @@
         }
 
         @media print {
-            body {
-                background: transparent;
-                padding: 0;
+            html, body {
+                background: #fff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
             }
             .no-print-bar {
-                display: none;
+                display: none !important;
             }
             .sticker-card {
-                border: 1px solid #000;
-                margin: 0;
-                width: 100%;
+                border: 1.5px solid #000 !important;
+                margin: 0 0 3mm 0 !important;
+                padding: 4px 6px !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                box-shadow: none !important;
                 page-break-after: always;
             }
         }

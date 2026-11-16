@@ -643,9 +643,10 @@
 
                             <div>
                                 <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-2">
-                                    Repair Warranty (Days)
+                                    Checking Warranty (Days)
                                 </label>
-                                <input type="number" :name="'devices[' + dIdx + '][warranty_days]'" x-model.number="device.warrantyDays" placeholder="7" class="w-full py-2.5 sm:py-3 px-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs sm:text-sm font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
+                                <input type="number" :name="'devices[' + dIdx + '][warranty_days]'" x-model.number="device.warrantyDays" placeholder="0" class="w-full py-2.5 sm:py-3 px-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs sm:text-sm font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
+                                <span class="text-[10px] text-gray-400 mt-1 block">0 = Sirf Counter Tak (Counter ke baad koi zimmedari nahi)</span>
                             </div>
 
                             <div>
@@ -1148,7 +1149,7 @@
                         securityCode: '',
                         labor: 0,
                         technicianId: '',
-                        warrantyDays: 7,
+                        warrantyDays: 0,
                         parts: [],
                         errors: { model: false, problem: false }
                     });

@@ -6,6 +6,11 @@
     <title>Repair Invoice - {{ $repair->order_no }}</title>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
+        @page {
+            size: auto;
+            margin: 0mm !important;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -170,18 +175,22 @@
         }
 
         @media print {
-            body {
-                background: transparent;
-                padding: 0;
+            html, body {
+                background: #fff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
             }
             .no-print-bar {
-                display: none;
+                display: none !important;
             }
             .invoice-card {
-                border: none;
-                width: 100%;
-                max-width: 100%;
-                padding: 2px;
+                border: none !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 0 1mm !important;
+                margin: 0 !important;
+                box-shadow: none !important;
             }
         }
     </style>
@@ -306,9 +315,9 @@
         <!-- Warranty Policy (Monochrome Bold) -->
         <div class="warranty-box">
             <span class="bold uppercase">WARRANTY POLICY:</span><br>
-            - 7 Days checking warranty on replaced parts only.<br>
-            - Physical damage, broken screen, or water damage has NO warranty.<br>
-            - Warranty claim requires original printed invoice.
+            - Checking warranty sirf counter tak ki hai (Counter se nikalne ke baad dukaandar kisi cheez ka zimmedar nahi hoga).<br>
+            - Physical damage, broken screen, display lines/dots, ya water damage ki koi warranty nahi hai.<br>
+            - Har qisam ke claim ke liye yeh original printed invoice pesh karna lazmi hai.
         </div>
 
         @php
