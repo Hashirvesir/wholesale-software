@@ -197,44 +197,79 @@
                                         Rs {{ number_format($order->balance_amount, 2) }}
                                     </td>
 
-                                    <!-- Actions Menu -->
+                                    <!-- Actions Dropdown (3-Dots Menu) -->
                                     <td class="py-3.5 px-4 align-top text-center">
-                                        <div class="flex items-center justify-center gap-1.5">
-                                            <!-- View Details -->
-                                            <a href="{{ route('repairs.show', $order->id) }}" class="p-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-lg transition" title="View Details">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                            </a>
-
-                                            <!-- Edit Order -->
-                                            <a href="{{ route('repairs.edit', $order->id) }}" class="p-1.5 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 rounded-lg transition" title="Edit Order (Parts & Labor)">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                            </a>
-
-                                            <!-- Print Both Together (Sticker + Customer Invoice) -->
-                                            <a href="{{ route('repairs.print-combo', $order->id) }}" onclick="return openPrintWindow(this.href)" class="p-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-lg transition" title="Print Both (Sticker + Customer Copy)">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                                            </a>
-
-                                            <!-- Print Stickers (Slip 1) -->
-                                            <a href="{{ route('repairs.stickers', $order->id) }}" onclick="return openPrintWindow(this.href)" class="p-1.5 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 rounded-lg transition" title="Print Mobile Stickers (Slip 1)">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
-                                            </a>
-
-                                            <!-- Print Intake Receipt (Slip 2) -->
-                                            <a href="{{ route('repairs.receipt', $order->id) }}" onclick="return openPrintWindow(this.href)" class="p-1.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 rounded-lg transition" title="Print Customer Receipt (Slip 2)">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                            </a>
-
-                                            <!-- Delete Repair Order (With Stock Restore) -->
-                                            @can('delete repairs')
-                                                <form action="{{ route('repairs.destroy', $order->id) }}" method="POST" class="inline" onsubmit="return confirm('Kia aap waqai Repair Order #{{ $order->order_no }} delete karna chahte hain? Tamam spare parts ka stock wapas restore ho jayega.')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="p-1.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-lg transition cursor-pointer" title="Delete Repair Order (Ghalti se enter hua phone delete karein)">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        <div class="flex items-center justify-center">
+                                            <x-dropdown align="right" width="w-56">
+                                                <x-slot name="trigger">
+                                                    <button type="button"
+                                                            class="p-1.5 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/60 rounded-xl transition cursor-pointer"
+                                                            title="Options">
+                                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                                                        </svg>
                                                     </button>
-                                                </form>
-                                            @endcan
+                                                </x-slot>
+
+                                                <x-slot name="content">
+                                                    <!-- View Details -->
+                                                    <x-dropdown-link :href="route('repairs.show', $order->id)" class="flex items-center gap-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-indigo-600">
+                                                        <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                        <span>View Details</span>
+                                                    </x-dropdown-link>
+
+                                                    <!-- Edit Order -->
+                                                    @can('edit repairs')
+                                                        <x-dropdown-link :href="route('repairs.edit', $order->id)" class="flex items-center gap-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-amber-600">
+                                                            <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                            <span>Edit Order</span>
+                                                        </x-dropdown-link>
+                                                    @endcan
+
+                                                    @can('print repairs')
+                                                        <div class="my-1 border-t border-gray-100 dark:border-gray-700"></div>
+
+                                                        <!-- Print Both (Combo) -->
+                                                        <x-dropdown-link :href="route('repairs.print-combo', $order->id)" onclick="return openPrintWindow(this.href)" class="flex items-center gap-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-emerald-600">
+                                                            <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                                            <span>Print Slips (Sticker + Copy)</span>
+                                                        </x-dropdown-link>
+
+                                                        <!-- Mobile Stickers Only -->
+                                                        <x-dropdown-link :href="route('repairs.stickers', $order->id)" onclick="return openPrintWindow(this.href)" class="flex items-center gap-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-amber-600">
+                                                            <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                                                            <span>Mobile Stickers Only</span>
+                                                        </x-dropdown-link>
+
+                                                        <!-- Customer Intake Receipt -->
+                                                        <x-dropdown-link :href="route('repairs.receipt', $order->id)" onclick="return openPrintWindow(this.href)" class="flex items-center gap-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-blue-600">
+                                                            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                            <span>Customer Intake Slip</span>
+                                                        </x-dropdown-link>
+
+                                                        <!-- Final Delivery Invoice -->
+                                                        <x-dropdown-link :href="route('repairs.invoice', $order->id)" onclick="return openPrintWindow(this.href)" class="flex items-center gap-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-indigo-600">
+                                                            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                            <span>Final Delivery Invoice</span>
+                                                        </x-dropdown-link>
+                                                    @endcan
+
+                                                    <!-- Delete Repair Order -->
+                                                    @can('delete repairs')
+                                                        <div class="my-1 border-t border-gray-100 dark:border-gray-700"></div>
+                                                        <form action="{{ route('repairs.destroy', $order->id) }}" method="POST" id="delete-repair-{{ $order->id }}">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit"
+                                                                    onclick="return confirm('Kia aap waqai Repair Order #{{ $order->order_no }} delete karna chahte hain? Tamam spare parts ka stock wapas restore ho jayega.')"
+                                                                    class="w-full text-left flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer">
+                                                                <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                                <span>Delete Repair Order</span>
+                                                            </button>
+                                                        </form>
+                                                    @endcan
+                                                </x-slot>
+                                            </x-dropdown>
                                         </div>
                                     </td>
                                 </tr>
