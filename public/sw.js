@@ -48,8 +48,22 @@ self.addEventListener('fetch', (event) => {
     const request = event.request;
     const url = new URL(request.url);
 
-    // Only handle GET requests for same origin or fonts/cdn
+    // Only handle GET requests
     if (request.method !== 'GET') {
+        return;
+    }
+
+    // Only handle http and https schemes (skip chrome-extension, blob, etc.)
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+        return;
+    }
+
+    // Skip third-party trackers / analytics that might be blocked by adblockers
+    if (
+        url.hostname.includes('cloudflareinsights.com') ||
+        url.hostname.includes('google-analytics.com') ||
+        url.hostname.includes('googletagmanager.com')
+    ) {
         return;
     }
 
@@ -66,7 +80,7 @@ self.addEventListener('fetch', (event) => {
                     if (networkResponse && networkResponse.status === 200) {
                         const copy = networkResponse.clone();
                         caches.open(CACHE_NAME).then((cache) => {
-                            cache.put(request, copy);
+                            cache.put(request, copy).catch(() => {});
                         });
                     }
                     return networkResponse;
@@ -105,17 +119,24 @@ self.addEventListener('fetch', (event) => {
     ) {
         event.respondWith(
             caches.match(request).then((cachedResponse) => {
-                const fetchPromise = fetch(request).then((networkResponse) => {
-                    if (networkResponse && networkResponse.status === 200) {
-                        const copy = networkResponse.clone();
-                        caches.open(CACHE_NAME).then((cache) => {
-                            cache.put(request, copy);
-                        });
-                    }
-                    return networkResponse;
-                }).catch(() => null);
+                const networkFetch = fetch(request)
+                    .then((networkResponse) => {
+                        if (networkResponse && networkResponse.status === 200) {
+                            const copy = networkResponse.clone();
+                            caches.open(CACHE_NAME).then((cache) => {
+                                cache.put(request, copy).catch(() => {});
+                            });
+                        }
+                        return networkResponse;
+                    })
+                    .catch(() => {
+                        if (cachedResponse) {
+                            return cachedResponse;
+                        }
+                        return new Response('', { status: 408, statusText: 'Blocked or Offline' });
+                    });
 
-                return cachedResponse || fetchPromise;
+                return cachedResponse || networkFetch;
             })
         );
         return;

@@ -75,10 +75,10 @@
     <x-barcode-camera-scanner />
 
     <!-- Invenco AI Copilot Widget & Drawer -->
+    @can('access ai assistant')
     <x-ai-copilot />
-
-    <!-- AI WhatsApp Payment Recovery Modal -->
     <x-ai-recovery-modal />
+    @endcan
 
     <!-- Command Palette & Shortcuts -->
     <x-command-palette />

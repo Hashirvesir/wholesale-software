@@ -119,6 +119,7 @@
             </div>
 
             <!-- StockPOS AI Morning Briefing & Strategic Insight Banner -->
+            @can('access ai assistant')
             <div x-data="{
                 briefing: '',
                 loading: false,
@@ -128,12 +129,18 @@
                     try {
                         const url = refresh ? '{{ route('ai.daily-briefing') }}?refresh=1' : '{{ route('ai.daily-briefing') }}';
                         const res = await fetch(url);
+                        if (!res.ok) {
+                            this.dismissed = true;
+                            return;
+                        }
                         const data = await res.json();
-                        if (data.success) {
+                        if (data && data.success) {
                             this.briefing = data.briefing;
+                        } else {
+                            this.dismissed = true;
                         }
                     } catch (e) {
-                        this.briefing = 'Unable to fetch AI briefing.';
+                        this.dismissed = true;
                     } finally {
                         this.loading = false;
                     }
@@ -223,6 +230,7 @@
                     }
                 </style>
             </div>
+            @endcan
 
             <!-- Quick Actions Bar (Top Shortcuts) -->
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xs border border-gray-200/80 dark:border-gray-700/80 p-4">

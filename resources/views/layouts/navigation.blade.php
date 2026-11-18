@@ -276,6 +276,7 @@
                     </button>
 
                     <!-- AI Copilot Button -->
+                    @can('access ai assistant')
                     <button type="button" @click="$dispatch('toggle-ai-copilot')"
                         class="flex items-center gap-1.5 px-2 2xl:px-3 py-1.5 text-xs font-semibold text-white bg-[#252ebf] hover:bg-[#1e2599] rounded-xl transition-all duration-150 shrink-0 cursor-pointer shadow-xs active:scale-95"
                         title="Invenco AI (Alt + A)">
@@ -284,6 +285,7 @@
                         </svg>
                         <span class="hidden 2xl:inline">Ask AI</span><span class="xl:inline 2xl:hidden">AI</span>
                     </button>
+                    @endcan
 
                     <!-- POS Counter Screen Button -->
                     @can('view sales')
@@ -694,6 +696,7 @@
                 </button>
 
                 <!-- Mobile AI Copilot -->
+                @can('access ai assistant')
                 <button type="button" @click="$dispatch('toggle-ai-copilot')"
                     class="p-2 text-[#252ebf] dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-gray-700/60 rounded-xl transition border border-blue-200/80 dark:border-gray-700 cursor-pointer"
                     title="Invenco AI (Alt + A)">
@@ -701,6 +704,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
                     </svg>
                 </button>
+                @endcan
 
                 <!-- Mobile Dark Mode -->
                 <button @click="toggleDarkMode()"

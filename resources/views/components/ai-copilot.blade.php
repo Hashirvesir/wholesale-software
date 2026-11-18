@@ -216,8 +216,9 @@
             async fetchUsage() {
                 try {
                     const res = await fetch("{{ route('ai.usage-stats') }}");
+                    if (!res.ok) return;
                     const data = await res.json();
-                    if (data.success && data.usage) {
+                    if (data && data.success && data.usage) {
                         this.usage = data.usage;
                     }
                 } catch(e) {}

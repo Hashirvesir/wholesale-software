@@ -40,7 +40,7 @@
                 </div>
 
                 <!-- Content State -->
-                <div x-show="!loading && messageData" class="space-y-4">
+                <div x-show="!loading && messageData && messageData.message" class="space-y-4">
                     <!-- Party & Balance Badge -->
                     <div class="p-3 rounded-xl bg-indigo-50 dark:bg-gray-900/60 border border-indigo-100 dark:border-gray-700 flex items-center justify-between">
                         <div>
@@ -93,7 +93,12 @@
         return {
             modalOpen: false,
             loading: false,
-            messageData: null,
+            messageData: {
+                message: '',
+                customer_name: '',
+                balance: 0,
+                whatsapp_url: ''
+            },
             errorMessage: '',
 
             async openModal(partyId) {
@@ -101,7 +106,12 @@
 
                 this.modalOpen = true;
                 this.loading = true;
-                this.messageData = null;
+                this.messageData = {
+                    message: '',
+                    customer_name: '',
+                    balance: 0,
+                    whatsapp_url: ''
+                };
                 this.errorMessage = '';
 
                 try {
