@@ -76,6 +76,10 @@
                                 <span class="w-5 h-5 rounded-lg bg-amber-500 text-white flex items-center justify-center text-[10px] font-black">1</span>
                                 Customer & Wapsi Ka Time
                             </h3>
+                            <button type="button" @click="openQuickCustomerModal()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg shadow-2xs transition flex items-center gap-1 active:scale-95 cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                                <span>+ Direct Customer Banayein</span>
+                            </button>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -114,6 +118,11 @@
                                                 </span>
                                             </div>
                                         </template>
+                                        <div x-show="customerSearch && !getFilteredCustomers().some(c => c.name.toLowerCase() === customerSearch.trim().toLowerCase())"
+                                             @click="openQuickCustomerModal(customerSearch)"
+                                             class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold cursor-pointer text-xs flex items-center gap-1.5 border-t border-emerald-100">
+                                            <span>➕ Add "</span><span x-text="customerSearch"></span><span>" as Direct New Customer</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -478,6 +487,60 @@
                 </div>
             </div>
         </div>
+
+        <!-- Direct New Customer Modal -->
+        <div x-show="quickCustomerModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-gray-200 dark:border-gray-700 space-y-4" @click.away="quickCustomerModalOpen = false">
+                <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-2.5">
+                    <h3 class="font-black text-xs sm:text-sm text-gray-900 dark:text-white flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs">👤</span>
+                        <span>Naya Customer (Direct Khata) Banayein</span>
+                    </h3>
+                    <button type="button" @click="quickCustomerModalOpen = false" class="text-gray-400 hover:text-gray-600 font-black text-base">&times;</button>
+                </div>
+
+                <form @submit.prevent="saveQuickCustomer()" class="space-y-3">
+                    <div>
+                        <label class="block text-[11px] font-black uppercase text-gray-700 dark:text-gray-300 mb-1">Customer Name *</label>
+                        <input type="text" x-model="quickCustomerForm.name" required placeholder="e.g. Haji Aslam / Usman Ali" class="w-full py-2 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-black uppercase text-gray-700 dark:text-gray-300 mb-1">Phone / WhatsApp Number</label>
+                        <input type="text" x-model="quickCustomerForm.phone" placeholder="0300-1234567" class="w-full py-2 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-black uppercase text-gray-700 dark:text-gray-300 mb-1">Address / Shop / City (Optional)</label>
+                        <input type="text" x-model="quickCustomerForm.address" placeholder="e.g. Main Bazar, Shop #4" class="w-full py-2 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-black uppercase text-gray-600 dark:text-gray-400 mb-1">Opening Balance</label>
+                            <input type="number" step="any" min="0" x-model.number="quickCustomerForm.opening_balance" placeholder="0" class="w-full py-1.5 px-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs font-mono font-bold text-gray-900 dark:text-white">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black uppercase text-gray-600 dark:text-gray-400 mb-1">Type</label>
+                            <select x-model="quickCustomerForm.balance_type" class="w-full py-1.5 px-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs font-semibold text-gray-900 dark:text-white">
+                                <option value="debit">Lena Hai (Debit)</option>
+                                <option value="credit">Dena Hai (Credit)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+                        <button type="button" @click="quickCustomerModalOpen = false" class="px-3.5 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold text-xs rounded-xl">
+                            Cancel
+                        </button>
+                        <button type="submit" :disabled="savingCustomer" class="px-5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-xs flex items-center gap-1.5 disabled:opacity-50">
+                            <span x-show="!savingCustomer">Save Customer</span>
+                            <span x-show="savingCustomer">Bana rahe hain...</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -680,6 +743,61 @@
                         console.error(e);
                     }
                     this.quickServiceModalOpen = false;
+                },
+
+                // Direct New Customer Modal State & Methods
+                quickCustomerModalOpen: false,
+                savingCustomer: false,
+                quickCustomerForm: {
+                    name: '',
+                    phone: '',
+                    address: '',
+                    opening_balance: 0,
+                    balance_type: 'debit'
+                },
+
+                openQuickCustomerModal(initialName = '') {
+                    this.quickCustomerForm = {
+                        name: initialName || this.customerName || this.customerSearch || '',
+                        phone: this.customerPhone || '',
+                        address: '',
+                        opening_balance: 0,
+                        balance_type: 'debit'
+                    };
+                    this.quickCustomerModalOpen = true;
+                },
+
+                async saveQuickCustomer() {
+                    const name = (this.quickCustomerForm.name || '').trim();
+                    if (!name) {
+                        alert('Customer ka naam likhna lazmi hai!');
+                        return;
+                    }
+                    this.savingCustomer = true;
+                    try {
+                        const res = await fetch("{{ route('repairs.customer.quick-store') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify(this.quickCustomerForm)
+                        });
+                        const data = await res.json();
+                        if (data.success && data.customer) {
+                            this.customersList.unshift(data.customer);
+                            this.selectCustomer(data.customer);
+                            this.quickCustomerModalOpen = false;
+                            return;
+                        } else {
+                            alert(data.message || 'Customer shamil nahi ho saka.');
+                        }
+                    } catch (err) {
+                        alert('Error: ' + err.message);
+                    } finally {
+                        this.savingCustomer = false;
+                    }
                 },
 
                 toggleService(device, srv) {

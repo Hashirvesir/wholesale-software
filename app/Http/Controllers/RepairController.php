@@ -1137,4 +1137,41 @@ class RepairController extends Controller
 
         return view('repairs.print-invoice', compact('repair', 'settings'));
     }
+
+    /**
+     * Direct / Quick create customer from repair intake page.
+     */
+    public function quickAddCustomer(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:25',
+            'address' => 'nullable|string|max:500',
+            'opening_balance' => 'nullable|numeric',
+            'balance_type' => 'nullable|in:debit,credit',
+        ]);
+
+        $party = Party::create([
+            'name' => $validated['name'],
+            'type' => 'customer',
+            'price_tier' => 'retail',
+            'phone' => $validated['phone'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'opening_balance' => (float)($validated['opening_balance'] ?? 0),
+            'balance_type' => $validated['balance_type'] ?? 'debit',
+            'status' => true,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'customer' => [
+                'id' => $party->id,
+                'name' => $party->name,
+                'phone' => $party->phone,
+                'current_balance' => (float)$party->getCurrentBalance(),
+                'address' => $party->address,
+            ],
+            'message' => 'Naya Customer kamyabi se shamil ho gaya!'
+        ]);
+    }
 }
