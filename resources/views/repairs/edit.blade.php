@@ -267,64 +267,120 @@
                                     </div>
                                 </div>
 
-                                <!-- Predefined Services & Common Faults: Search & One-Tap Select -->
+                                <!-- Predefined Services & Common Faults: Search & Select Combobox -->
                                 <div class="p-3 bg-slate-50 dark:bg-gray-900/60 rounded-xl border border-slate-200 dark:border-gray-700 space-y-2.5">
                                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                         <div class="flex items-center gap-1.5">
-                                            <span class="text-[11px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                                                🔧 Services & Faults
+                                            <span class="text-[11px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider flex items-center gap-1">
+                                                <span>🔧 Services & Faults</span>
+                                                <span class="text-[10px] text-gray-400 font-normal hidden sm:inline">(Search or click to select)</span>
                                             </span>
-                                            <span class="text-[10px] text-gray-400 font-medium hidden sm:inline">(Auto-fills fault & rate)</span>
                                         </div>
 
-                                        <div class="flex items-center gap-2">
-                                            <!-- Service Search Bar -->
-                                            <div class="relative w-full sm:w-56">
-                                                <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-gray-400">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                                                </div>
-                                                <input type="text"
-                                                       x-model="device.serviceSearch"
-                                                       @keydown.enter.prevent="selectFirstMatchingService(device)"
-                                                       placeholder="Search service (Screen, Battery, Mic)..."
-                                                       class="w-full text-xs py-1.5 pl-8 pr-7 bg-white dark:bg-gray-800 border border-slate-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 transition shadow-2xs">
-                                                <button type="button"
-                                                        x-show="device.serviceSearch"
-                                                        @click="device.serviceSearch = ''"
-                                                        class="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-400 hover:text-gray-600 text-xs font-bold">
-                                                    &times;
-                                                </button>
-                                            </div>
+                                        <button type="button" @click="openQuickAddServiceModal(device)" class="self-start sm:self-auto px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 text-[11px] font-bold text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded-lg shrink-0 transition flex items-center gap-1 cursor-pointer">
+                                            <span>+ New Service</span>
+                                        </button>
+                                    </div>
 
-                                            <button type="button" @click="openQuickAddServiceModal(device)" class="px-2.5 py-1.5 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 text-[11px] font-bold text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded-lg shrink-0 transition flex items-center gap-1 cursor-pointer">
-                                                <span>+ Add Service</span>
+                                    <!-- Search & Select Services Combobox -->
+                                    <div class="relative" @click.away="device.serviceDropdownOpen = false">
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                            </div>
+                                            <input type="text"
+                                                   x-model="device.serviceSearch"
+                                                   @focus="device.serviceDropdownOpen = true; device.serviceHighlightedIndex = 0"
+                                                   @input="device.serviceDropdownOpen = true; device.serviceHighlightedIndex = 0"
+                                                   @keydown.arrow-down.prevent="device.serviceHighlightedIndex = Math.min((device.serviceHighlightedIndex || 0) + 1, getFilteredServices(device).length - 1)"
+                                                   @keydown.arrow-up.prevent="device.serviceHighlightedIndex = Math.max((device.serviceHighlightedIndex || 0) - 1, 0)"
+                                                   @keydown.enter.prevent="selectHighlightedService(device)"
+                                                   @keydown.escape="device.serviceDropdownOpen = false"
+                                                   placeholder="🔍 Search service to select (e.g. Screen, Battery, Mic, Camera)..."
+                                                   class="w-full text-xs font-bold py-2 pl-9 pr-8 bg-white dark:bg-gray-800 border border-slate-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 transition shadow-2xs">
+                                            
+                                            <button type="button"
+                                                    x-show="device.serviceSearch"
+                                                    @click="device.serviceSearch = ''; device.serviceDropdownOpen = false"
+                                                    class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-400 hover:text-gray-600 text-xs font-bold">
+                                                &times;
                                             </button>
+                                        </div>
+
+                                        <!-- Live Search Dropdown Menu -->
+                                        <div x-show="device.serviceDropdownOpen && (device.serviceSearch || '').trim().length > 0"
+                                             x-cloak
+                                             class="absolute z-30 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-1 divide-y divide-gray-100 dark:divide-gray-700/60">
+                                            
+                                            <template x-for="(srv, srvIdx) in getFilteredServices(device)" :key="srv.id">
+                                                <button type="button"
+                                                        @click="toggleService(device, srv); device.serviceDropdownOpen = false; device.serviceSearch = ''"
+                                                        @mouseenter="device.serviceHighlightedIndex = srvIdx"
+                                                        :class="(device.serviceHighlightedIndex || 0) === srvIdx ? 'bg-indigo-50 dark:bg-indigo-950/60' : ''"
+                                                        class="w-full text-left px-3 py-2 text-xs hover:bg-indigo-50 dark:hover:bg-indigo-950/60 flex items-center justify-between cursor-pointer transition">
+                                                    <div>
+                                                        <span class="font-bold text-gray-800 dark:text-gray-100" x-text="srv.name"></span>
+                                                        <span class="text-[10px] text-gray-400 ml-1.5" x-text="'(' + (srv.category || 'Repair') + ')'"></span>
+                                                    </div>
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="font-mono font-bold text-indigo-600 dark:text-indigo-400" x-text="'Rs. ' + Number(srv.default_labor_cost).toFixed(0)"></span>
+                                                        <span x-show="isServiceSelected(device, srv.name)" class="text-[11px] text-emerald-600 font-bold flex items-center gap-0.5">
+                                                            ✓ Selected
+                                                        </span>
+                                                        <span x-show="!isServiceSelected(device, srv.name)" class="text-[11px] text-indigo-600 font-bold">
+                                                            + Select
+                                                        </span>
+                                                    </div>
+                                                </button>
+                                            </template>
+
+                                            <template x-if="getFilteredServices(device).length === 0">
+                                                <div class="p-3 text-center text-xs text-gray-500">
+                                                    Koi service match nahi hui: "<strong class="text-indigo-600" x-text="device.serviceSearch"></strong>"
+                                                    <div class="mt-1.5">
+                                                        <button type="button" @click="quickServiceForm.name = device.serviceSearch; openQuickAddServiceModal(device); device.serviceDropdownOpen = false" class="px-3 py-1 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700">
+                                                            + Nayi service banayein
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </template>
                                         </div>
                                     </div>
 
-                                    <!-- Service Chips Grid/Wrap -->
-                                    <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1">
-                                        <template x-for="srv in getFilteredServices(device)" :key="srv.id">
-                                            <button type="button"
-                                                    @click="toggleService(device, srv)"
-                                                    :class="isServiceSelected(device, srv.name) 
-                                                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs font-bold ring-2 ring-indigo-300 dark:ring-indigo-800' 
-                                                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-100'"
-                                                    class="px-2.5 py-1.5 rounded-lg border text-xs transition flex items-center gap-1.5 cursor-pointer active:scale-95">
-                                                <span x-show="isServiceSelected(device, srv.name)" class="text-[10px]">✓</span>
-                                                <span x-text="srv.name"></span>
-                                                <span class="opacity-75 font-mono text-[10px]" x-text="'Rs.' + Number(srv.default_labor_cost).toFixed(0)"></span>
-                                            </button>
-                                        </template>
+                                    <!-- Selected Services Active Pills -->
+                                    <template x-if="device.services && device.services.length > 0">
+                                        <div class="flex flex-wrap items-center gap-1.5 pt-1">
+                                            <span class="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mr-1">Selected:</span>
+                                            <template x-for="(s, sIdx) in device.services" :key="sIdx">
+                                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 rounded-lg text-xs font-bold shadow-2xs">
+                                                    <span class="text-emerald-600">✓</span>
+                                                    <span x-text="s.name"></span>
+                                                    <span class="font-mono text-[10px] text-emerald-600 dark:text-emerald-400" x-text="'(Rs. ' + (s.rate || 0) + ')'"></span>
+                                                    <button type="button" @click="device.services.splice(sIdx, 1); recalculateDeviceServices(device)" class="text-emerald-500 hover:text-rose-600 text-xs font-black ml-0.5 cursor-pointer" title="Remove">&times;</button>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
 
-                                        <template x-if="getFilteredServices(device).length === 0">
-                                            <div class="w-full py-2 px-3 text-center text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-700 flex items-center justify-center gap-2">
-                                                <span>Koi service match nahi hui: "<strong class="text-indigo-600" x-text="device.serviceSearch"></strong>"</span>
-                                                <button type="button" @click="quickServiceForm.name = device.serviceSearch; openQuickAddServiceModal(device)" class="font-bold text-indigo-600 hover:underline">
-                                                    + Nayi service banayein
+                                    <!-- Quick 1-Tap Chips (Common Services) -->
+                                    <div class="pt-1 border-t border-slate-200/60 dark:border-gray-800">
+                                        <div class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
+                                            Aam Services (Direct 1-Tap Select):
+                                        </div>
+                                        <div class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1">
+                                            <template x-for="srv in servicesList" :key="srv.id">
+                                                <button type="button"
+                                                        @click="toggleService(device, srv)"
+                                                        :class="isServiceSelected(device, srv.name) 
+                                                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs font-bold' 
+                                                            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-100'"
+                                                        class="px-2.5 py-1 rounded-lg border text-xs transition flex items-center gap-1.5 cursor-pointer active:scale-95">
+                                                    <span x-show="isServiceSelected(device, srv.name)" class="text-[10px]">✓</span>
+                                                    <span x-text="srv.name"></span>
+                                                    <span class="opacity-75 font-mono text-[10px]" x-text="'Rs.' + Number(srv.default_labor_cost).toFixed(0)"></span>
                                                 </button>
-                                            </div>
-                                        </template>
+                                            </template>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -593,6 +649,8 @@
                     modelOpen: false,
                     selectedBrandId: foundBrand ? foundBrand.id : null,
                     serviceSearch: '',
+                    serviceDropdownOpen: false,
+                    serviceHighlightedIndex: 0,
                     services: Array.isArray(d.services) ? d.services : [],
                     errors: { model: false, problem: false }
                 };
@@ -863,11 +921,23 @@
                     });
                 },
 
+                selectHighlightedService(device) {
+                    const filtered = this.getFilteredServices(device);
+                    const idx = device.serviceHighlightedIndex || 0;
+                    if (filtered.length > 0 && filtered[idx]) {
+                        this.toggleService(device, filtered[idx]);
+                        device.serviceSearch = '';
+                        device.serviceDropdownOpen = false;
+                        device.serviceHighlightedIndex = 0;
+                    }
+                },
+
                 selectFirstMatchingService(device) {
                     const filtered = this.getFilteredServices(device);
                     if (filtered.length > 0) {
                         this.toggleService(device, filtered[0]);
                         device.serviceSearch = '';
+                        device.serviceDropdownOpen = false;
                     }
                 },
 
@@ -966,6 +1036,8 @@
                         approval_type: 'without_approval',
                         approval_notes: '',
                         serviceSearch: '',
+                        serviceDropdownOpen: false,
+                        serviceHighlightedIndex: 0,
                         services: [],
                         securityType: 'none',
                         securityCode: '',
