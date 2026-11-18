@@ -228,21 +228,38 @@
                 this.voiceLang = this.voiceLang === 'en-US' ? 'ur-PK' : 'en-US';
             },
 
-            toggleVoice() {
+            async toggleVoice() {
                 const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
                 if (!SpeechRec) {
-                    alert('Aapka browser Speech Recognition support nahi karta. Google Chrome ya Microsoft Edge use karein.');
+                    alert('Aapka device / browser Speech Recognition support nahi karta. Google Chrome ya updated Android WebView use karein.');
                     return;
                 }
 
                 if (!this.isSecure) {
-                    alert('Browser security restriction: Microphone/Voice input sirf HTTPS ya localhost par allow hota hai. HTTP par browser mic block kar deta hai.');
+                    alert('Security restriction: Microphone sirf HTTPS ya localhost par allow hota hai. HTTP par security policy mic block kar deti hai.');
                     return;
                 }
 
                 if (this.listening) {
                     this.stopVoice();
                     return;
+                }
+
+                // Explicitly request mobile/browser audio stream permission first (triggers native Android OS prompt)
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        stream.getTracks().forEach(track => track.stop());
+                    } catch(permErr) {
+                        console.warn('getUserMedia permission error:', permErr);
+                        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                        if (isMobile) {
+                            alert('Microphone access blocked hai!\n\nBaraye meharbani Mobile Settings -> Apps -> Invenco Wholesaler -> Permissions mein ja kar "Microphone" ko Allow karein.');
+                        } else {
+                            alert('Microphone access blocked hai! Browser ke search bar mein Lock icon par click kar ke Microphone ko Allow karein.');
+                        }
+                        return;
+                    }
                 }
 
                 try {
@@ -272,7 +289,12 @@
                         this.voiceStatus = '';
 
                         if (event.error === 'not-allowed') {
-                            alert('Microphone permission blocked hai! Browser ke URL bar mein lock icon par click kar ke microphone permission allow karein.');
+                            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                            if (isMobile) {
+                                alert('Microphone permission blocked hai!\n\nMobile Settings -> Apps -> Invenco Wholesaler -> Permissions mein ja kar "Microphone" ko Allow karein.');
+                            } else {
+                                alert('Microphone permission blocked hai! Browser ke URL bar mein lock icon par click kar ke microphone permission allow karein.');
+                            }
                         } else if (event.error === 'network') {
                             // If ur-PK failed on network, fallback to en-US
                             if (this.voiceLang === 'ur-PK') {
