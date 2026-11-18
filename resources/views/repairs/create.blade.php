@@ -1,72 +1,51 @@
 <x-app-layout>
-    <div class="py-4 sm:py-8 lg:py-12" x-data="repairIntakeForm()">
-        <form method="POST" action="{{ route('repairs.store') }}" @submit="validateAndSubmit($event)" class="max-w-[1750px] mx-auto px-2 sm:px-6 lg:px-8 space-y-8">
+    <div class="py-3 sm:py-5 max-w-[1700px] mx-auto px-2 sm:px-6 lg:px-8" x-data="repairIntakeForm()" @keydown.window.ctrl.enter="document.getElementById('repairSubmitBtn').click()">
+        <form method="POST" action="{{ route('repairs.store') }}" @submit="validateAndSubmit($event)">
             @csrf
 
-            <!-- Header bar matching purchases.index / create style -->
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2 border-b dark:border-gray-700 pb-4">
-                <div>
-                    <h3 class="text-xl font-black text-gray-800 dark:text-gray-100 tracking-wide uppercase flex items-center gap-2">
-                        <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        <span>{{ __('Mobile Jama Karein (Receive Mobile Job Sheet)') }}</span>
-                    </h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Order Token: <strong class="text-indigo-600 dark:text-indigo-400 font-mono">{{ $orderNo }}</strong> &bull; Multiple devices, live stock spare parts, and Code128 thermal sticker slips.
-                    </p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <a href="{{ route('repairs.catalog') }}" target="_blank" class="px-3.5 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/60 text-xs font-bold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 transition flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        <span>Manage Catalog & Services</span>
-                    </a>
-                    <a href="{{ route('repairs.index') }}" class="px-3.5 py-1.5 rounded-xl border border-gray-300 dark:border-gray-600 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
-                        &larr; {{ __('Back to Repairs') }}
-                    </a>
-                </div>
-            </div>
-
-            <!-- Helpful Step-by-Step Instructions Banner -->
-            <div class="p-4 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
+            <!-- Header bar: Compact and Clean -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 text-base font-bold shadow-md shadow-indigo-600/30">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-black shadow-sm shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     </div>
                     <div>
-                        <div class="font-black text-indigo-900 dark:text-indigo-200 text-sm">
-                            Hidayat / Quick Guide:
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-base sm:text-lg font-black text-gray-900 dark:text-white uppercase tracking-wide">
+                                {{ __('Mobile Jama Karein (Repair Job Intake)') }}
+                            </h2>
+                            <span class="px-2.5 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-mono font-bold text-xs border border-indigo-200 dark:border-indigo-800">
+                                #{{ $orderNo }}
+                            </span>
                         </div>
-                        <div class="text-indigo-700 dark:text-indigo-300 mt-0.5">
-                            1. Customer search karein (Khata / Name / Phone) &bull; 
-                            2. Mobile Model aur Masla likhein &bull; 
-                            3. Spare Parts search karke select karein (Live stock auto-minus hoga) &bull; 
-                            4. Save karein aur Sticker/Receipt print karein.
-                        </div>
+                        <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                            Customer aur mobile ki zaroori maloomat darj karein aur foran slip print karein.
+                        </p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 self-end md:self-auto shrink-0 font-bold text-indigo-600 dark:text-indigo-400 bg-white dark:bg-gray-900 px-3 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800">
-                    <span>Order No:</span>
-                    <span class="font-mono">{{ $orderNo }}</span>
+
+                <div class="flex items-center gap-2 self-end sm:self-auto">
+                    <a href="{{ route('repairs.catalog') }}" target="_blank" class="px-3 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/60 text-xs font-bold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 transition flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <span>Catalog Services</span>
+                    </a>
+                    <a href="{{ route('repairs.index') }}" class="px-3 py-1.5 rounded-xl border border-gray-300 dark:border-gray-600 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                        &larr; {{ __('Back') }}
+                    </a>
                 </div>
             </div>
 
             <!-- Server & Exception Error Display -->
             @if(session('error'))
-                <div class="p-4 bg-rose-50 dark:bg-rose-950/40 border-l-4 border-rose-500 rounded-r-xl text-rose-800 dark:text-rose-200 text-xs">
-                    <div class="font-bold flex items-center gap-2 text-sm text-rose-700 dark:text-rose-300">
-                        <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                        <span>{{ session('error') }}</span>
-                    </div>
+                <div class="mb-3 p-3 bg-rose-50 dark:bg-rose-950/40 border-l-4 border-rose-500 rounded-r-xl text-rose-800 dark:text-rose-200 text-xs font-bold">
+                    {{ session('error') }}
                 </div>
             @endif
 
-            <!-- Server Validation Errors Display -->
             @if ($errors->any())
-                <div class="p-4 bg-rose-50 dark:bg-rose-950/40 border-l-4 border-rose-500 rounded-r-xl text-rose-800 dark:text-rose-200 text-xs">
-                    <div class="font-bold mb-1.5 flex items-center gap-1.5 text-sm text-rose-700 dark:text-rose-300">
-                        <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                        <span>Meherbani farma kar yeh khamiyan theek karein:</span>
-                    </div>
-                    <ul class="list-disc pl-6 space-y-1 font-semibold">
+                <div class="mb-3 p-3 bg-rose-50 dark:bg-rose-950/40 border-l-4 border-rose-500 rounded-r-xl text-rose-800 dark:text-rose-200 text-xs space-y-1">
+                    <div class="font-black">Meherbani farma kar yeh khamiyan theek karein:</div>
+                    <ul class="list-disc pl-5 font-semibold">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
                         @endforeach
@@ -75,528 +54,452 @@
             @endif
 
             <!-- Client-Side Real-Time Error Summary Banner -->
-            <div id="formErrorSummary" x-show="formErrors.length > 0" x-cloak class="p-4 bg-rose-50 dark:bg-rose-950/50 border-2 border-rose-400 dark:border-rose-800 rounded-2xl text-rose-900 dark:text-rose-200 text-xs shadow-md space-y-2">
-                <div class="font-black flex items-center justify-between text-sm text-rose-700 dark:text-rose-300">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                        <span>Form mein darj zail khamiyan theek karein:</span>
-                    </div>
-                    <button type="button" @click="formErrors = []" class="text-rose-500 hover:text-rose-700 font-black text-sm">&times;</button>
+            <div id="formErrorSummary" x-show="formErrors.length > 0" x-cloak class="mb-3 p-3 bg-rose-50 dark:bg-rose-950/50 border-2 border-rose-400 dark:border-rose-800 rounded-xl text-rose-900 dark:text-rose-200 text-xs space-y-1">
+                <div class="font-black flex items-center justify-between text-rose-700 dark:text-rose-300">
+                    <span>⚠️ Form mein darj zail khamiyan theek karein:</span>
+                    <button type="button" @click="formErrors = []" class="text-rose-500 hover:text-rose-700 font-black">&times;</button>
                 </div>
-                <ul class="list-disc pl-6 space-y-1 font-bold">
+                <ul class="list-disc pl-5 font-bold">
                     <template x-for="(err, idx) in formErrors" :key="idx">
                         <li x-text="err"></li>
                     </template>
                 </ul>
             </div>
 
-            <!-- 1. Customer & Intake Details -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 border border-gray-200 dark:border-gray-700 shadow-sm space-y-6">
-                <div class="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-700">
-                    <h3 class="text-sm sm:text-base font-black text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2.5">
-                        <span class="w-7 h-7 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-xs font-black shadow-xs">1</span>
-                        Customer & Intake Details (Grahak Ki Maloomat)
-                    </h3>
-                    <span class="text-xs text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                        {{ $customers->count() }} Customers Loaded
-                    </span>
-                </div>
+            <!-- Two-Column POS Layout on Large Screens: Left = Form Inputs, Right = Sticky Billing & Submit -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-start">
+                
+                <!-- Left 8 Columns: Customer & Device Intake -->
+                <div class="lg:col-span-8 space-y-4">
+                    
+                    <!-- 1. Customer & Intake Details (Ultra Compact 1-Row Card) -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-5 border border-gray-200 dark:border-gray-700 shadow-xs space-y-3">
+                        <div class="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-700">
+                            <h3 class="text-xs sm:text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                                <span class="w-5 h-5 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-[10px] font-black">1</span>
+                                Customer & Wapsi Ka Time
+                            </h3>
+                            <span class="text-[11px] text-gray-500 font-semibold">
+                                Khata Search se purana hisaab khud aa jata hai
+                            </span>
+                        </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
-                    <!-- Searchable Customer Dropdown (Matches Purchases/Sales pattern) -->
-                    <div>
-                        <label class="block text-xs font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-2">
-                            Search Customer (Khata List)
-                        </label>
-                        <div class="relative" @click.away="customerOpen = false">
-                            <input type="text" x-model="customerSearch" @focus="customerOpen = true"
-                                @input="customerOpen = true" @keydown="handleCustomerKey($event)"
-                                class="block w-full py-2.5 sm:py-3 px-3.5 border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl shadow-sm text-xs sm:text-sm font-bold transition"
-                                :class="{'border-rose-500 ring-1 ring-rose-500': errors.customerName}"
-                                placeholder="Search by name / phone..." autocomplete="off">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                            <!-- Khata Search -->
+                            <div class="relative" @click.away="customerOpen = false">
+                                <label class="block text-[11px] font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-1.5">
+                                    Search Customer (Khata)
+                                </label>
+                                <div class="relative">
+                                    <input type="text" x-model="customerSearch" @focus="customerOpen = true"
+                                        @input="customerOpen = true" @keydown="handleCustomerKey($event)"
+                                        class="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl text-xs font-bold transition"
+                                        :class="{'border-rose-500 ring-1 ring-rose-500': errors.customerName}"
+                                        placeholder="Khata name / phone..." autocomplete="off">
 
-                            <input type="hidden" name="party_id" :value="selectedPartyId">
+                                    <input type="hidden" name="party_id" :value="selectedPartyId">
 
-                            <!-- Search Results Dropdown -->
-                            <div x-show="customerOpen && getFilteredCustomers().length > 0" x-cloak
-                                class="absolute z-50 mt-1.5 w-full bg-white dark:bg-gray-800 shadow-2xl max-h-60 rounded-xl py-1 text-xs border border-gray-200 dark:border-gray-700 overflow-auto divide-y dark:divide-gray-700">
-                                <div @click="selectCustomer(null)"
-                                    class="cursor-pointer select-none relative py-2.5 px-3 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition font-bold text-gray-500 italic">
-                                    <span>-- Walk-in / Naya Customer (Type Name Below) --</span>
-                                </div>
-                                <template x-for="(c, cIdx) in getFilteredCustomers()" :key="c.id">
-                                    <div @click="selectCustomer(c)"
-                                        class="cursor-pointer select-none relative py-2.5 px-3.5 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition"
-                                        :class="customerHighlightedIndex === cIdx ? 'bg-indigo-50 dark:bg-indigo-950/40' : ''">
-                                        <div class="flex items-center justify-between">
-                                            <div>
-                                                <span class="block truncate uppercase font-bold text-gray-900 dark:text-gray-100"
-                                                    x-text="c.name"></span>
-                                                <span class="text-gray-500 text-[10px]"
-                                                    x-text="c.phone || 'No Phone'"></span>
+                                    <!-- Dropdown List -->
+                                    <div x-show="customerOpen && getFilteredCustomers().length > 0" x-cloak
+                                        class="absolute z-50 mt-1 left-0 right-0 bg-white dark:bg-gray-800 shadow-xl max-h-56 rounded-xl py-1 text-xs border border-gray-200 dark:border-gray-700 overflow-auto divide-y dark:divide-gray-700">
+                                        <div @click="selectCustomer(null)"
+                                            class="cursor-pointer py-2 px-3 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 font-bold text-gray-500 italic">
+                                            <span>-- Naya / Walk-in Customer --</span>
+                                        </div>
+                                        <template x-for="(c, cIdx) in getFilteredCustomers()" :key="c.id">
+                                            <div @click="selectCustomer(c)"
+                                                class="cursor-pointer py-2 px-3 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition flex items-center justify-between"
+                                                :class="customerHighlightedIndex === cIdx ? 'bg-indigo-50 dark:bg-indigo-950/40' : ''">
+                                                <div>
+                                                    <span class="block truncate uppercase font-bold text-gray-900 dark:text-gray-100" x-text="c.name"></span>
+                                                    <span class="text-gray-400 text-[10px]" x-text="c.phone || 'No Phone'"></span>
+                                                </div>
+                                                <span class="font-black text-[11px]" :class="c.current_balance >= 0 ? 'text-rose-500' : 'text-emerald-500'">
+                                                    Rs. <span x-text="formatNumber(Math.abs(c.current_balance || 0))"></span>
+                                                    <span class="text-[9px]" x-text="(c.current_balance || 0) >= 0 ? 'Dr' : 'Cr'"></span>
+                                                </span>
                                             </div>
-                                            <span class="font-black whitespace-nowrap ml-2 text-xs"
-                                                :class="c.current_balance >= 0 ? 'text-rose-500' : 'text-emerald-500'">
-                                                <span>Rs. </span><span x-text="formatNumber(Math.abs(c.current_balance || 0))"></span>
-                                                <span class="text-[9px]" x-text="(c.current_balance || 0) >= 0 ? 'Dr' : 'Cr'"></span>
+                                        </template>
+                                    </div>
+
+                                    <template x-if="selectedPartyId && getCustomerBalance() !== null">
+                                        <div class="mt-1 text-[11px] font-bold" :class="getCustomerBalance() >= 0 ? 'text-rose-500' : 'text-emerald-500'">
+                                            Khata: Rs. <span x-text="formatNumber(Math.abs(getCustomerBalance()))"></span>
+                                            <span x-text="getCustomerBalance() >= 0 ? '(Lena hai)' : '(Dena hai)'"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Customer Name -->
+                            <div>
+                                <label class="block text-[11px] font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-1.5">
+                                    Customer Name *
+                                </label>
+                                <input type="text" name="customer_name" x-model="customerName"
+                                       @input="errors.customerName = false; removeFromErrors('Customer ka naam')"
+                                       placeholder="e.g. Ali Ahmed"
+                                       :class="errors.customerName ? 'border-rose-500 ring-1 ring-rose-400 bg-rose-50/40 dark:bg-rose-950/20' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900'"
+                                       class="w-full py-2 px-3 rounded-xl text-xs font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition">
+                                <span x-show="errors.customerName" x-cloak class="text-[10px] text-rose-500 font-bold block mt-1">⚠️ Naam likhna lazmi hai.</span>
+                            </div>
+
+                            <!-- Customer Phone -->
+                            <div>
+                                <label class="block text-[11px] font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-1.5">
+                                    Phone / WhatsApp *
+                                </label>
+                                <input type="text" name="customer_phone" x-model="customerPhone"
+                                       @input="errors.customerPhone = false; removeFromErrors('phone number')"
+                                       placeholder="0300-1234567"
+                                       :class="errors.customerPhone ? 'border-rose-500 ring-1 ring-rose-400 bg-rose-50/40 dark:bg-rose-950/20' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900'"
+                                       class="w-full py-2 px-3 rounded-xl text-xs font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition">
+                                <span x-show="errors.customerPhone" x-cloak class="text-[10px] text-rose-500 font-bold block mt-1">⚠️ Phone number lazmi hai.</span>
+                            </div>
+
+                            <!-- Expected Delivery Date & Time (Wapsi Ka Time) -->
+                            <div>
+                                <label class="block text-[11px] font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-1.5">
+                                    Wapsi Ka Time
+                                </label>
+                                <input type="datetime-local" name="expected_delivery_date" class="w-full py-2 px-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="received_date" value="{{ now()->format('Y-m-d\TH:i') }}">
+                        <input type="hidden" name="default_warehouse_id" value="{{ $warehouses->first()->id ?? 1 }}">
+                    </div>
+
+                    <!-- 2. Devices Intake Section -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between px-1">
+                            <h3 class="text-xs sm:text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                                <span class="w-5 h-5 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-[10px] font-black">2</span>
+                                Devices Jama Karein (Phones)
+                            </h3>
+                            <button type="button" @click="addDevice()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs rounded-xl border border-indigo-200 dark:border-indigo-800 transition flex items-center gap-1 active:scale-95">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                <span>+ Add Another Mobile</span>
+                            </button>
+                        </div>
+
+                        <!-- Devices Cards -->
+                        <template x-for="(device, dIdx) in devices" :key="device.id">
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 shadow-xs space-y-4 relative">
+                                
+                                <!-- Device Card Header -->
+                                <div class="flex items-center justify-between pb-2.5 border-b border-gray-100 dark:border-gray-700">
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2.5 py-1 bg-indigo-600 text-white font-black text-[11px] rounded-lg uppercase tracking-wider shadow-2xs" x-text="'Mobile #' + (dIdx + 1)"></span>
+                                        <span class="text-[11px] font-mono font-bold text-gray-400" x-text="'Slip Token: {{ $orderNo }}-' + (dIdx + 1)"></span>
+                                    </div>
+                                    <template x-if="devices.length > 1">
+                                        <button type="button" @click="removeDevice(dIdx)" class="px-2.5 py-1 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg text-xs font-bold transition border border-rose-200 dark:border-rose-900/50">
+                                            Remove Mobile
+                                        </button>
+                                    </template>
+                                </div>
+
+                                <!-- Brand & Model 2-Column Row -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                    <!-- Searchable Brand -->
+                                    <div class="relative" @click.away="device.brandOpen = false">
+                                        <label class="block text-[11px] font-black uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1">
+                                            Brand / Company
+                                        </label>
+                                        <div class="relative">
+                                            <input type="text"
+                                                   :name="'devices[' + dIdx + '][brand]'"
+                                                   x-model="device.brand"
+                                                   @focus="device.brandOpen = true"
+                                                   @input="device.brandOpen = true; device.selectedBrandId = null"
+                                                   placeholder="Samsung, Infinix, Vivo..."
+                                                   autocomplete="off"
+                                                   class="w-full py-2 px-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
+                                            
+                                            <!-- Brand Dropdown -->
+                                            <div x-show="device.brandOpen"
+                                                 class="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 text-xs"
+                                                 style="display: none;">
+                                                <template x-for="b in getFilteredBrands(device)" :key="b.id">
+                                                    <div @click="selectBrand(device, b)"
+                                                         class="px-3 py-2 hover:bg-indigo-50 dark:hover:bg-gray-700 cursor-pointer flex items-center justify-between border-b border-gray-50 dark:border-gray-700/50">
+                                                        <span class="font-bold text-gray-800 dark:text-gray-200" x-text="b.name"></span>
+                                                        <span class="text-[10px] text-gray-400 font-mono" x-text="(b.models ? b.models.length : 0) + ' models'"></span>
+                                                    </div>
+                                                </template>
+                                                <div x-show="device.brand && !brandsList.some(b => b.name.toLowerCase() === device.brand.trim().toLowerCase())"
+                                                     @click="addNewBrand(device, device.brand)"
+                                                     class="px-3 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold cursor-pointer text-xs border-t border-indigo-100">
+                                                    <span>➕ Add "</span><span x-text="device.brand"></span><span>" as New Brand</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Searchable Model -->
+                                    <div class="relative" @click.away="device.modelOpen = false">
+                                        <label class="block text-[11px] font-black uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1">
+                                            Model Name *
+                                        </label>
+                                        <div class="relative">
+                                            <input type="text"
+                                                   :name="'devices[' + dIdx + '][model]'"
+                                                   x-model="device.model"
+                                                   @focus="device.modelOpen = true"
+                                                   @input="device.modelOpen = true; if(device.errors) device.errors.model = false"
+                                                   placeholder="Model (e.g. A32, Hot 10, Y20)..."
+                                                   autocomplete="off"
+                                                   :class="device.errors && device.errors.model ? 'border-rose-500 ring-1 ring-rose-400 bg-rose-50/40 dark:bg-rose-950/20' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900'"
+                                                   class="w-full py-2 px-3 rounded-xl text-xs font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition">
+                                            <span x-show="device.errors && device.errors.model" x-cloak class="text-[10px] text-rose-500 font-bold block mt-1">⚠️ Mobile model likhna lazmi hai.</span>
+                                            
+                                            <!-- Model Dropdown -->
+                                            <div x-show="device.modelOpen"
+                                                 class="absolute left-0 right-0 mt-1 max-h-52 overflow-y-auto bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 text-xs"
+                                                 style="display: none;">
+                                                <template x-for="m in getFilteredModels(device)" :key="m.id">
+                                                    <div @click="selectModel(device, m)"
+                                                         class="px-3 py-2 hover:bg-indigo-50 dark:hover:bg-gray-700 cursor-pointer flex items-center justify-between border-b border-gray-50 dark:border-gray-700/50">
+                                                        <span class="font-bold text-gray-800 dark:text-gray-200" x-text="m.name"></span>
+                                                        <span class="text-[10px] text-gray-400" x-text="m.series || ''"></span>
+                                                    </div>
+                                                </template>
+                                                <div x-show="device.model && !getFilteredModels(device).some(m => m.name.toLowerCase() === device.model.trim().toLowerCase())"
+                                                     @click="addNewModel(device, device.model)"
+                                                     class="px-3 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold cursor-pointer text-xs border-t border-indigo-100">
+                                                    <span>➕ Add "</span><span x-text="device.model"></span><span>" to Model List</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Predefined Services & Common Faults Chips: Compact One-Tap Select -->
+                                <div class="p-3 bg-slate-50 dark:bg-gray-900/60 rounded-xl border border-slate-200 dark:border-gray-700 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-[11px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                                            🔧 Common Services (Click to auto-fill fault & rate):
+                                        </span>
+                                        <button type="button" @click="openQuickAddServiceModal(device)" class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
+                                            + Add Service
+                                        </button>
+                                    </div>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        <template x-for="srv in servicesList" :key="srv.id">
+                                            <button type="button"
+                                                    @click="toggleService(device, srv)"
+                                                    :class="isServiceSelected(device, srv.name) 
+                                                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs font-bold' 
+                                                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-100'"
+                                                    class="px-2.5 py-1.5 rounded-lg border text-xs transition flex items-center gap-1.5 cursor-pointer active:scale-95">
+                                                <span x-show="isServiceSelected(device, srv.name)" class="text-[10px]">✓</span>
+                                                <span x-text="srv.name"></span>
+                                                <span class="opacity-75 font-mono text-[10px]" x-text="'Rs.' + Number(srv.default_labor_cost).toFixed(0)"></span>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Problem / Fault Summary & Labor Charges (Clean Side-by-Side Row) -->
+                                <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 sm:gap-4">
+                                    <div class="sm:col-span-8">
+                                        <label class="block text-[11px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
+                                            Fault / Problem Summary (Print Slip Par Ayega) <span class="text-rose-500">*</span>
+                                        </label>
+                                        <input type="text" :name="'devices[' + dIdx + '][problem_description]'"
+                                               x-model="device.problem"
+                                               @input="if(device.errors) device.errors.problem = false"
+                                               placeholder="Upar service select karein ya masla type karein..."
+                                               :class="device.errors && device.errors.problem ? 'border-rose-500 ring-1 ring-rose-400 bg-rose-50/40 dark:bg-rose-950/20' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900'"
+                                               class="w-full py-2 px-3 rounded-xl text-xs font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition">
+                                        <span x-show="device.errors && device.errors.problem" x-cloak class="text-[10px] text-rose-500 font-bold block mt-1">⚠️ Masla likhein ya service select karein.</span>
+                                    </div>
+
+                                    <div class="sm:col-span-4">
+                                        <label class="block text-[11px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
+                                            Repair / Labor (Mazdoori Rs)
+                                        </label>
+                                        <input type="number" step="any" :name="'devices[' + dIdx + '][labor_cost]'" x-model.number="device.labor" placeholder="0" class="w-full py-2 px-3 bg-white dark:bg-gray-900 border border-indigo-200 dark:border-indigo-800 rounded-xl text-sm font-black font-mono text-indigo-600 dark:text-indigo-400 focus:ring-2 focus:ring-indigo-500">
+                                    </div>
+                                </div>
+
+                                <!-- Customer Risk & Approval Bar: Compact Pill Switch -->
+                                <div class="p-3 rounded-xl border transition-all"
+                                     :class="device.approval_type === 'approval' 
+                                        ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-700' 
+                                        : 'bg-slate-50 dark:bg-gray-900/40 border-slate-200 dark:border-gray-700'">
+                                    
+                                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-2 h-2 rounded-full" :class="device.approval_type === 'approval' ? 'bg-rose-600' : 'bg-emerald-500'"></span>
+                                            <span class="text-xs font-black uppercase tracking-wider" :class="device.approval_type === 'approval' ? 'text-rose-700 dark:text-rose-300' : 'text-gray-700 dark:text-gray-300'">
+                                                Customer Risk & Approval:
+                                            </span>
+                                            <span class="text-[10px] text-gray-500 hidden md:inline">
+                                                (Glass/Touch/Board repair risk)
                                             </span>
                                         </div>
-                                    </div>
-                                </template>
-                            </div>
 
-                            <template x-if="selectedPartyId && getCustomerBalance() !== null">
-                                <div class="mt-1.5 text-xs font-bold"
-                                    :class="getCustomerBalance() >= 0 ? 'text-rose-500' : 'text-emerald-500'">
-                                    Khata Balance: <span>Rs. </span><span x-text="formatNumber(Math.abs(getCustomerBalance()))"></span>
-                                    <span x-text="getCustomerBalance() >= 0 ? '(Receivable / Lena hai)' : '(Advance / Dena hai)'"></span>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-
-                    <!-- Customer Name -->
-                    <div>
-                        <label class="block text-xs font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-2">
-                            Customer Name (Naam) <span class="text-rose-500">*</span>
-                        </label>
-                        <input type="text" name="customer_name" x-model="customerName"
-                               @input="errors.customerName = false; removeFromErrors('Customer ka naam')"
-                               placeholder="e.g. Muhammad Ali"
-                               :class="errors.customerName ? 'border-rose-500 ring-2 ring-rose-400 bg-rose-50/40 dark:bg-rose-950/20' : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900'"
-                               class="w-full py-2.5 sm:py-3 px-3.5 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition font-bold">
-                        <span x-show="errors.customerName" x-cloak class="text-[11px] text-rose-500 font-bold block mt-1.5">⚠️ Customer ka naam likhna lazmi hai.</span>
-                    </div>
-
-                    <!-- Customer Phone -->
-                    <div>
-                        <label class="block text-xs font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-2">
-                            Phone / WhatsApp No <span class="text-rose-500">*</span>
-                        </label>
-                        <input type="text" name="customer_phone" x-model="customerPhone"
-                               @input="errors.customerPhone = false; removeFromErrors('phone number')"
-                               placeholder="0300-1234567"
-                               :class="errors.customerPhone ? 'border-rose-500 ring-2 ring-rose-400 bg-rose-50/40 dark:bg-rose-950/20' : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900'"
-                               class="w-full py-2.5 sm:py-3 px-3.5 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition font-bold">
-                        <span x-show="errors.customerPhone" x-cloak class="text-[11px] text-rose-500 font-bold block mt-1.5">⚠️ Valid mobile / WhatsApp number lazmi hai.</span>
-                    </div>
-
-                    <!-- Expected Delivery Date & Time (Wapsi Ka Time) -->
-                    <div>
-                        <label class="block text-xs font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-2">
-                            Expected Delivery Date & Time (Wapsi Ka Time)
-                        </label>
-                        <input type="datetime-local" name="expected_delivery_date" class="w-full py-2.5 sm:py-3 px-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 font-bold">
-                    </div>
-                </div>
-
-                <input type="hidden" name="received_date" value="{{ now()->format('Y-m-d\TH:i') }}">
-                <input type="hidden" name="default_warehouse_id" value="{{ $warehouses->first()->id ?? 1 }}">
-            </div>
-
-            <!-- 2. Devices Intake Section (Support for Multiple Devices) -->
-            <div class="space-y-6">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-1">
-                    <div>
-                        <h3 class="text-sm sm:text-base font-black text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2.5">
-                            <span class="w-7 h-7 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-xs font-black shadow-xs">2</span>
-                            Devices To Repair (Jama Kiye Gaye Mobiles)
-                        </h3>
-                        <p class="text-xs text-gray-500 mt-1">Ek ya ek se zyada mobile add karein. Har mobile ka alag barcode sticker print hoga.</p>
-                    </div>
-                    <button type="button" @click="addDevice()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition flex items-center gap-2 active:scale-95 self-start sm:self-auto">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        <span>+ Add Another Mobile (Mazeed Phone)</span>
-                    </button>
-                </div>
-
-                <!-- Devices Cards -->
-                <template x-for="(device, dIdx) in devices" :key="device.id">
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl border-2 border-indigo-100 dark:border-gray-700 p-6 sm:p-8 shadow-sm space-y-6 relative">
-                        <!-- Device Header Bar -->
-                        <div class="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-700">
-                            <div class="flex items-center gap-3">
-                                <span class="px-3 py-1.5 bg-indigo-600 text-white font-black text-xs rounded-xl uppercase tracking-wider shadow-2xs" x-text="'Mobile #' + (dIdx + 1)"></span>
-                                <span class="text-xs font-mono font-bold text-gray-400" x-text="'Tracking Slip Token: {{ $orderNo }}-' + (dIdx + 1)"></span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <template x-if="devices.length > 1">
-                                    <button type="button" @click="removeDevice(dIdx)" class="px-3 py-1.5 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-rose-200 dark:border-rose-900/50">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                        <span>Remove Mobile</span>
-                                    </button>
-                                </template>
-                            </div>
-                        </div>
-
-                        <!-- Device Primary Fields: Brand & Model Dropdowns -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
-                            <!-- Searchable Brand Dropdown -->
-                            <div class="relative" @click.away="device.brandOpen = false">
-                                <label class="block text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">
-                                    Brand / Company
-                                </label>
-                                <div class="relative">
-                                    <input type="text"
-                                           :name="'devices[' + dIdx + '][brand]'"
-                                           x-model="device.brand"
-                                           @focus="device.brandOpen = true"
-                                           @input="device.brandOpen = true; device.selectedBrandId = null"
-                                           placeholder="Select or type Brand (e.g. Samsung, Infinix, Vivo)..."
-                                           autocomplete="off"
-                                           class="w-full py-2.5 sm:py-3 px-3.5 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs sm:text-sm font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
-                                    
-                                    <!-- Brand Dropdown Menu -->
-                                    <div x-show="device.brandOpen"
-                                         class="absolute left-0 right-0 mt-1.5 max-h-56 overflow-y-auto bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 text-xs"
-                                         style="display: none;">
-                                        <template x-for="b in getFilteredBrands(device)" :key="b.id">
-                                            <div @click="selectBrand(device, b)"
-                                                 class="px-3.5 py-2.5 hover:bg-indigo-50 dark:hover:bg-gray-700 cursor-pointer flex items-center justify-between border-b border-gray-50 dark:border-gray-700/50">
-                                                <span class="font-bold text-gray-800 dark:text-gray-200 text-xs sm:text-sm" x-text="b.name"></span>
-                                                <span class="text-[10px] text-gray-400 font-mono" x-text="(b.models ? b.models.length : 0) + ' models'"></span>
-                                            </div>
-                                        </template>
-                                        <!-- Add Brand if not found -->
-                                        <div x-show="device.brand && !brandsList.some(b => b.name.toLowerCase() === device.brand.trim().toLowerCase())"
-                                             @click="addNewBrand(device, device.brand)"
-                                             class="px-3.5 py-3 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold cursor-pointer text-xs flex items-center gap-2 border-t border-indigo-100">
-                                            <span>➕ Add "</span><span x-text="device.brand"></span><span>" as New Brand</span>
+                                        <div class="inline-flex rounded-lg p-0.5 bg-gray-200 dark:bg-gray-800 gap-1 self-start sm:self-auto">
+                                            <button type="button"
+                                                    @click="device.approval_type = 'without_approval'"
+                                                    :class="device.approval_type === 'without_approval' 
+                                                        ? 'bg-white dark:bg-gray-700 text-emerald-700 dark:text-emerald-300 font-black shadow-xs' 
+                                                        : 'text-gray-600 dark:text-gray-400 font-bold'"
+                                                    class="px-2.5 py-1 text-xs rounded-md transition flex items-center gap-1 cursor-pointer">
+                                                <span>✓ Normal (Without Approval)</span>
+                                            </button>
+                                            <button type="button"
+                                                    @click="device.approval_type = 'approval'"
+                                                    :class="device.approval_type === 'approval' 
+                                                        ? 'bg-rose-600 text-white font-black shadow-xs' 
+                                                        : 'text-gray-600 dark:text-gray-400 hover:text-rose-600 font-bold'"
+                                                    class="px-2.5 py-1 text-xs rounded-md transition flex items-center gap-1 cursor-pointer">
+                                                <span>⚠️ Approval (Customer Risk)</span>
+                                            </button>
                                         </div>
+                                        <input type="hidden" :name="'devices[' + dIdx + '][approval_type]'" :value="device.approval_type">
                                     </div>
-                                </div>
-                            </div>
 
-                            <!-- Cascading Searchable Model Dropdown -->
-                            <div class="relative" @click.away="device.modelOpen = false">
-                                <label class="block text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">
-                                    Model Name <span class="text-rose-500">*</span>
-                                </label>
-                                <div class="relative">
-                                    <input type="text"
-                                           :name="'devices[' + dIdx + '][model]'"
-                                           x-model="device.model"
-                                           @focus="device.modelOpen = true"
-                                           @input="device.modelOpen = true; if(device.errors) device.errors.model = false"
-                                           placeholder="Select or type Model (e.g. A32, Hot 10, Y20)..."
-                                           autocomplete="off"
-                                           :class="device.errors && device.errors.model ? 'border-rose-500 ring-2 ring-rose-400 bg-rose-50/40 dark:bg-rose-950/20' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900'"
-                                           class="w-full py-2.5 sm:py-3 px-3.5 rounded-xl text-xs sm:text-sm font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition">
-                                    <span x-show="device.errors && device.errors.model" x-cloak class="text-[11px] text-rose-500 font-bold block mt-1.5">⚠️ Mobile model likhna lazmi hai.</span>
-                                    
-                                    <!-- Model Dropdown Menu -->
-                                    <div x-show="device.modelOpen"
-                                         class="absolute left-0 right-0 mt-1.5 max-h-60 overflow-y-auto bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 text-xs"
-                                         style="display: none;">
-                                        <template x-for="m in getFilteredModels(device)" :key="m.id">
-                                            <div @click="selectModel(device, m)"
-                                                 class="px-3.5 py-2.5 hover:bg-indigo-50 dark:hover:bg-gray-700 cursor-pointer flex items-center justify-between border-b border-gray-50 dark:border-gray-700/50">
-                                                <span class="font-bold text-gray-800 dark:text-gray-200 text-xs sm:text-sm" x-text="m.name"></span>
-                                                <span class="text-[10px] text-gray-400 font-normal" x-text="m.series || ''"></span>
-                                            </div>
-                                        </template>
-                                        <!-- Add Model if not found -->
-                                        <div x-show="device.model && !getFilteredModels(device).some(m => m.name.toLowerCase() === device.model.trim().toLowerCase())"
-                                             @click="addNewModel(device, device.model)"
-                                             class="px-3.5 py-3 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold cursor-pointer text-xs flex items-center gap-2 border-t border-indigo-100">
-                                            <span>➕ Add "</span><span x-text="device.model"></span><span>" to Model List</span>
+                                    <!-- Risk note input expands only when approval is selected -->
+                                    <div x-show="device.approval_type === 'approval'" class="mt-2 pt-2 border-t border-rose-200 dark:border-rose-800 space-y-1">
+                                        <div class="text-[10px] text-rose-700 dark:text-rose-300 font-bold">
+                                            Customer Risk Approved: Slip aur Invoice par print hoga ke mobile bante waqt kharab/dead hone par dukan zimmedar nahi hogi.
                                         </div>
+                                        <input type="text"
+                                               :name="'devices[' + dIdx + '][approval_notes]'"
+                                               x-model="device.approval_notes"
+                                               placeholder="Risk Note (e.g. Glass crack tha, display lines ka risk customer ka hai)..."
+                                               class="w-full py-1.5 px-3 bg-white dark:bg-gray-800 border border-rose-300 dark:border-rose-700 rounded-lg text-xs text-gray-800 dark:text-gray-200 focus:ring-1 focus:ring-rose-500">
                                     </div>
                                 </div>
+
+                                <!-- Hidden fields to satisfy schema -->
+                                <input type="hidden" :name="'devices[' + dIdx + '][warranty_days]'" value="0">
+                                <input type="hidden" :name="'devices[' + dIdx + '][security_type]'" value="none">
+                                <input type="hidden" :name="'devices[' + dIdx + '][security_code]'" value="">
+                                <input type="hidden" :name="'devices[' + dIdx + '][imei]'" value="">
+                                <input type="hidden" :name="'devices[' + dIdx + '][color]'" value="">
+                                <input type="hidden" :name="'devices[' + dIdx + '][technician_id]'" value="">
                             </div>
-                        </div>
-
-                        <!-- Predefined Services & Faults Multi-Select Section -->
-                        <div class="p-5 sm:p-6 bg-slate-50/80 dark:bg-gray-900/50 rounded-2xl border border-slate-200/90 dark:border-gray-700 space-y-4">
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                <div>
-                                    <div class="text-xs sm:text-sm font-black text-gray-800 dark:text-gray-200 uppercase tracking-wider flex items-center gap-2">
-                                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                        <span>Select Services & Faults (Multiple Services Select Karein)</span>
-                                    </div>
-                                    <span class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 block">Service par click karein, rate khud fill ho jayega. Aap rate apni marzi se kam ya zyada bhi kar sakte hain.</span>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <button type="button" @click="openQuickAddServiceModal(device)" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs rounded-xl transition flex items-center gap-1.5 border border-indigo-200 dark:border-indigo-800">
-                                        <span>➕ Add New Service</span>
-                                    </button>
-                                    <div class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-white dark:bg-gray-800 px-2.5 py-1 rounded-lg border border-indigo-100 dark:border-indigo-900">
-                                        Selected: <span x-text="device.services ? device.services.length : 0"></span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Clickable Services Badges Grid with better gaps and padding -->
-                            <div class="flex flex-wrap gap-2 sm:gap-2.5 pt-1.5">
-                                <template x-for="srv in servicesList" :key="srv.id">
-                                    <button type="button"
-                                            @click="toggleService(device, srv)"
-                                            :class="isServiceSelected(device, srv.name) 
-                                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' 
-                                                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-100'"
-                                            class="px-3.5 py-2 rounded-xl border text-xs font-semibold transition flex items-center gap-2 cursor-pointer shadow-2xs hover:shadow-xs active:scale-95">
-                                        <span x-show="isServiceSelected(device, srv.name)" class="font-bold">✓</span>
-                                        <span x-text="srv.name"></span>
-                                        <span class="opacity-75 font-mono text-[11px]" x-text="'(Rs ' + Number(srv.default_labor_cost).toFixed(0) + ')'"></span>
-                                    </button>
-                                </template>
-                            </div>
-
-                            <!-- Selected Services Table with Editable Rates -->
-                            <div x-show="device.services && device.services.length > 0" class="pt-3">
-                                <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-2xs">
-                                    <table class="min-w-full text-xs sm:text-sm">
-                                        <thead class="bg-gray-50 dark:bg-gray-900/60 text-gray-500 uppercase text-[10px] tracking-wider">
-                                            <tr>
-                                                <th class="py-2.5 px-4 text-left">Selected Service / Work</th>
-                                                <th class="py-2.5 px-4 text-right w-52">Service Rate / Mazdoori (Editable)</th>
-                                                <th class="py-2.5 px-3 text-center w-14">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                                            <template x-for="(s, sIdx) in device.services" :key="sIdx">
-                                                <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-750 transition">
-                                                    <td class="py-2.5 px-4 font-semibold text-gray-800 dark:text-gray-200">
-                                                        <span x-text="s.name"></span>
-                                                        <input type="hidden" :name="'devices[' + dIdx + '][services][' + sIdx + '][name]'" :value="s.name">
-                                                    </td>
-                                                    <td class="py-2 px-4 text-right">
-                                                        <div class="flex items-center justify-end gap-1.5">
-                                                            <span class="text-gray-400 font-bold text-xs">Rs</span>
-                                                            <input type="number" step="any"
-                                                                   :name="'devices[' + dIdx + '][services][' + sIdx + '][rate]'"
-                                                                   x-model.number="s.rate"
-                                                                   @input="recalculateDeviceServices(device)"
-                                                                   class="w-28 py-1.5 px-2.5 text-right bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl font-black text-xs sm:text-sm text-indigo-600 dark:text-indigo-400 focus:ring-2 focus:ring-indigo-500">
-                                                        </div>
-                                                    </td>
-                                                    <td class="py-2 px-3 text-center">
-                                                        <button type="button" @click="removeService(device, sIdx)" class="text-rose-500 hover:text-rose-700 p-1 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg font-bold text-base transition" title="Remove Service">
-                                                            &times;
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            </template>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Customer Risk & Approval Section (Approval vs Without Approval) -->
-                        <div class="p-5 sm:p-6 rounded-2xl border-2 transition-all duration-200"
-                             :class="device.approval_type === 'approval' 
-                                ? 'bg-rose-50/90 dark:bg-rose-950/40 border-rose-400 dark:border-rose-700 shadow-sm' 
-                                : 'bg-slate-50/80 dark:bg-gray-900/50 border-slate-200 dark:border-gray-700'">
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                                <div>
-                                    <div class="flex items-center gap-2.5">
-                                        <span class="w-2.5 h-2.5 rounded-full" :class="device.approval_type === 'approval' ? 'bg-rose-600 animate-pulse' : 'bg-emerald-500'"></span>
-                                        <label class="block text-xs sm:text-sm font-black uppercase tracking-wider"
-                                               :class="device.approval_type === 'approval' ? 'text-rose-700 dark:text-rose-300' : 'text-gray-800 dark:text-gray-200'">
-                                            Customer Risk & Approval Status
-                                        </label>
-                                        <span x-show="device.approval_type === 'approval'" class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white uppercase tracking-wider shadow-2xs">
-                                            Customer Risk
-                                        </span>
-                                    </div>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                        Glass / Touch / Motherboard bante waqt kharab hone par dukaan zimmedar nahi hogi.
-                                    </p>
-                                </div>
-
-                                <!-- 2 Clear Toggle Buttons (Approval vs Without Approval) -->
-                                <div class="inline-flex rounded-xl p-1.5 bg-gray-200/90 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 self-start sm:self-auto gap-1">
-                                    <button type="button"
-                                            @click="device.approval_type = 'without_approval'"
-                                            :class="device.approval_type === 'without_approval' 
-                                                ? 'bg-white dark:bg-gray-700 text-emerald-700 dark:text-emerald-400 font-black shadow-xs' 
-                                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 font-bold'"
-                                            class="px-4 py-2 text-xs sm:text-sm rounded-lg transition-all flex items-center gap-2 cursor-pointer">
-                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                        <span>Without Approval</span>
-                                    </button>
-                                    <button type="button"
-                                            @click="device.approval_type = 'approval'"
-                                            :class="device.approval_type === 'approval' 
-                                                ? 'bg-rose-600 text-white font-black shadow-md ring-2 ring-rose-400/50' 
-                                                : 'text-gray-600 dark:text-gray-400 hover:text-rose-600 font-bold'"
-                                            class="px-4 py-2 text-xs sm:text-sm rounded-lg transition-all flex items-center gap-2 cursor-pointer">
-                                        <span class="w-2 h-2 rounded-full" :class="device.approval_type === 'approval' ? 'bg-white' : 'bg-rose-500'"></span>
-                                        <span>Approval (Customer Risk)</span>
-                                    </button>
-                                </div>
-                                <input type="hidden" :name="'devices[' + dIdx + '][approval_type]'" :value="device.approval_type">
-                            </div>
-
-                            <!-- High-Visibility Warning Banner if Approval (Customer Risk) is selected -->
-                            <div x-show="device.approval_type === 'approval'" class="mt-4 pt-3.5 border-t border-rose-200 dark:border-rose-800/60 space-y-2.5">
-                                <div class="flex items-start gap-2.5 p-3 bg-white dark:bg-gray-800 rounded-xl border border-rose-200 dark:border-rose-900/50">
-                                    <span class="text-rose-600 dark:text-rose-400 text-lg leading-none">⚠️</span>
-                                    <div class="text-xs text-rose-800 dark:text-rose-200 leading-relaxed">
-                                        <strong class="font-black text-rose-700 dark:text-rose-300 uppercase">Customer Risk Approved:</strong>
-                                        Customer ne glass / touch / motherboard repair ka risk approve kiya hai. Agar mobile bante waqt kharab/dead ho gaya to dukaan zimmedar nahi hogi. Yeh statement receipt, sticker aur invoice par bold print hogi.
-                                    </div>
-                                </div>
-                                <div>
-                                    <input type="text"
-                                           :name="'devices[' + dIdx + '][approval_notes]'"
-                                           x-model="device.approval_notes"
-                                           placeholder="Optional Risk Note (e.g. Glass crack tha, display lines ka risk customer par hai)..."
-                                           class="w-full py-2.5 px-3.5 bg-white dark:bg-gray-800 border border-rose-300 dark:border-rose-700 rounded-xl text-xs text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-rose-500">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Problem Description (Auto-fills from services or custom text) & Labor Charges -->
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 p-5 sm:p-6 bg-slate-50/90 dark:bg-gray-900/50 rounded-2xl border border-slate-200 dark:border-gray-700">
-                            <!-- Problem Description -->
-                            <div class="lg:col-span-6">
-                                <label class="block text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
-                                    Problem / Fault Summary (Print Slip par aayega) <span class="text-rose-500">*</span>
-                                </label>
-                                <input type="text" :name="'devices[' + dIdx + '][problem_description]'"
-                                       x-model="device.problem"
-                                       @input="if(device.errors) device.errors.problem = false"
-                                       placeholder="Upar di gayi service select karein ya masla likhein..."
-                                       :class="device.errors && device.errors.problem ? 'border-rose-500 ring-2 ring-rose-400 bg-rose-50/40 dark:bg-rose-950/20' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900'"
-                                       class="w-full py-2.5 sm:py-3 px-3.5 rounded-xl text-xs sm:text-sm font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition">
-                                <span x-show="device.errors && device.errors.problem" x-cloak class="text-[11px] text-rose-500 font-bold block mt-1.5">⚠️ Masla likhein ya upar di gayi services mein se select karein.</span>
-                            </div>
-
-                            <!-- Labor / Service Charges (Mazdoori) -->
-                            <div class="lg:col-span-3">
-                                <label class="block text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
-                                    Repair / Labor Charges (Rs)
-                                </label>
-                                <input type="number" step="any" :name="'devices[' + dIdx + '][labor_cost]'" x-model.number="device.labor" placeholder="0" class="w-full py-2.5 sm:py-3 px-3.5 bg-white dark:bg-gray-900 border border-indigo-200 dark:border-indigo-800 rounded-xl text-base font-black font-mono text-indigo-600 dark:text-indigo-400 focus:ring-2 focus:ring-indigo-500">
-                            </div>
-
-                            <!-- This Device Estimated Total -->
-                            <div class="lg:col-span-3 flex flex-col justify-center items-start sm:items-end text-left sm:text-right bg-white dark:bg-gray-800/80 p-3.5 sm:p-4 rounded-xl border border-indigo-100 dark:border-indigo-950/50">
-                                <span class="text-[10px] text-gray-400 uppercase font-black tracking-wider">This Device Total</span>
-                                <span class="text-2xl font-black text-indigo-600 dark:text-indigo-400 font-mono mt-0.5">
-                                    Rs <span x-text="calculateDeviceTotal(device)"></span>
-                                </span>
-                            </div>
-
-                            <!-- Hidden default fields to keep backend schema happy -->
-                            <input type="hidden" :name="'devices[' + dIdx + '][warranty_days]'" value="0">
-                            <input type="hidden" :name="'devices[' + dIdx + '][security_type]'" value="none">
-                            <input type="hidden" :name="'devices[' + dIdx + '][security_code]'" value="">
-                            <input type="hidden" :name="'devices[' + dIdx + '][imei]'" value="">
-                            <input type="hidden" :name="'devices[' + dIdx + '][color]'" value="">
-                            <input type="hidden" :name="'devices[' + dIdx + '][technician_id]'" value="">
-                        </div>
+                        </template>
                     </div>
-                </template>
-            </div>
 
-            <!-- 3. Grand Total & Advance Payment Summary Card (Spacious & Clean) -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 border border-gray-200 dark:border-gray-700 shadow-sm space-y-6">
-                <div class="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-700">
-                    <h3 class="text-sm sm:text-base font-black text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2.5">
-                        <span class="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-xs font-black shadow-xs">3</span>
-                        Billing Estimate & Advance Payment (Kul Hisaab & Peshgi)
-                    </h3>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                    <!-- Grand Total Estimate -->
-                    <div class="p-5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800">
-                        <div class="text-[11px] text-indigo-700 dark:text-indigo-300 uppercase tracking-wider font-black">Total Repair Charges (Kul Bill)</div>
-                        <div class="text-2xl font-black text-indigo-900 dark:text-indigo-100 mt-1.5 font-mono">
-                            Rs <span x-text="calculateGrandTotal()"></span>
+                <!-- Right 4 Columns: Sticky Summary, Advance & Submit (Always in sight!) -->
+                <div class="lg:col-span-4 sticky top-4 space-y-4">
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 border-2 border-indigo-200 dark:border-gray-700 shadow-md space-y-4">
+                        
+                        <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-700">
+                            <h3 class="text-xs sm:text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                                <span class="w-5 h-5 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black">3</span>
+                                Hisaab & Peshgi (Bill)
+                            </h3>
+                            <span class="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-0.5 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                                {{ $orderNo }}
+                            </span>
                         </div>
-                    </div>
 
-                    <!-- Advance Received Amount -->
-                    <div>
-                        <label class="block text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
-                            Advance Received (Peshgi)
-                        </label>
-                        <input type="number" step="any" name="advance_amount" x-model.number="advanceAmount" placeholder="0" class="w-full py-3 px-4 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-base font-black text-emerald-600 dark:text-emerald-400 focus:ring-2 focus:ring-emerald-400 font-mono">
-                    </div>
-
-                    <!-- Payment Method -->
-                    <div>
-                        <label class="block text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
-                            Payment Method
-                        </label>
-                        <select name="payment_method" class="w-full py-3 px-4 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs sm:text-sm font-bold text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-emerald-400">
-                            <option value="cash">Cash Counter</option>
-                            <option value="bank">Bank Transfer / Online</option>
-                            <option value="jazzcash">JazzCash / EasyPaisa</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/90 dark:border-gray-700">
-                    <div>
-                        <div class="text-xs text-gray-500 uppercase tracking-wider font-bold">Remaining Balance (Baqaya)</div>
-                        <div class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1 font-mono">
-                            Rs <span x-text="calculateBalance()"></span>
+                        <!-- Grand Total Highlight Card -->
+                        <div class="p-4 rounded-xl bg-gradient-to-br from-indigo-900 to-slate-900 text-white space-y-1 shadow-sm">
+                            <span class="text-[10px] uppercase tracking-wider text-indigo-300 font-black">Total Repair Charges (Kul Bill)</span>
+                            <div class="text-2xl sm:text-3xl font-black font-mono text-emerald-400">
+                                Rs <span x-text="calculateGrandTotal()"></span>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="flex flex-wrap items-center gap-3.5">
-                        <label class="flex items-center gap-2.5 cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-300 transition select-none border border-gray-200 dark:border-gray-700 shadow-2xs">
+                        <!-- Advance Received (Peshgi) -->
+                        <div>
+                            <label class="block text-[11px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
+                                Advance Received (Peshgi Raqam)
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">Rs</span>
+                                <input type="number" step="any" name="advance_amount" x-model.number="advanceAmount" placeholder="0" class="w-full py-2.5 pl-9 pr-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-base font-black text-emerald-600 dark:text-emerald-400 focus:ring-2 focus:ring-emerald-400 font-mono">
+                            </div>
+                        </div>
+
+                        <!-- Baqaya / Remaining Balance -->
+                        <div class="p-3 bg-slate-50 dark:bg-gray-900/60 rounded-xl border border-slate-200 dark:border-gray-700 flex items-center justify-between">
+                            <span class="text-xs text-gray-600 dark:text-gray-400 font-bold uppercase tracking-wider">Remaining (Baqaya):</span>
+                            <span class="text-lg font-black font-mono" :class="calculateBalance() > 0 ? 'text-rose-600' : 'text-emerald-600'">
+                                Rs <span x-text="calculateBalance()"></span>
+                            </span>
+                        </div>
+
+                        <!-- Payment Method -->
+                        <div>
+                            <label class="block text-[11px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
+                                Payment Method
+                            </label>
+                            <select name="payment_method" class="w-full py-2 px-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs font-bold text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-emerald-400">
+                                <option value="cash">Cash Counter</option>
+                                <option value="bank">Bank Transfer / Online</option>
+                                <option value="jazzcash">JazzCash / EasyPaisa</option>
+                            </select>
+                        </div>
+
+                        <!-- Auto Print Option -->
+                        <label class="flex items-center gap-2 cursor-pointer select-none text-xs font-semibold text-gray-700 dark:text-gray-300 pt-1">
                             <input type="checkbox" name="auto_print" value="1" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300">
-                            <span>🖨️ Auto-Open Slips on Submit</span>
+                            <span>🖨️ Save hote hi Stickers + Receipt print karein</span>
                         </label>
-                        <a href="{{ route('repairs.index') }}" class="px-5 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold text-xs sm:text-sm rounded-xl transition">
-                            Cancel
-                        </a>
-                        <button type="submit" class="px-7 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition flex items-center gap-2 active:scale-95">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                            <span>Save & Print Slips (Sticker + Customer Copy)</span>
-                        </button>
+
+                        <!-- Primary Action Buttons -->
+                        <div class="space-y-2 pt-2">
+                            <button type="submit" id="repairSubmitBtn" class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm rounded-xl shadow-md shadow-indigo-600/30 transition transform active:scale-95 flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                <span>Save & Print Slip</span>
+                            </button>
+                            <div class="text-center text-[10px] text-gray-400 font-semibold">
+                                Shortkey: <kbd class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded font-mono">Ctrl + Enter</kbd> dabayein
+                            </div>
+                        </div>
+
+                        <div class="text-center pt-1">
+                            <a href="{{ route('repairs.index') }}" class="text-xs font-bold text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition">
+                                Cancel (Wapas Jayein)
+                            </a>
+                        </div>
                     </div>
+
                 </div>
+
             </div>
 
         </form>
 
         <!-- Quick Add Service Modal -->
         <div x-show="quickServiceModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-            <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-700 space-y-4" @click.away="quickServiceModalOpen = false">
-                <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-3">
-                    <h3 class="font-black text-sm text-gray-900 dark:text-white flex items-center gap-2">
-                        <span class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs">🔧</span>
+            <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-gray-200 dark:border-gray-700 space-y-3" @click.away="quickServiceModalOpen = false">
+                <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-2.5">
+                    <h3 class="font-black text-xs text-gray-900 dark:text-white flex items-center gap-1.5">
+                        <span class="w-5 h-5 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs">🔧</span>
                         <span>Add New Repair Service</span>
                     </h3>
-                    <button type="button" @click="quickServiceModalOpen = false" class="text-gray-400 hover:text-gray-600 font-bold text-lg">&times;</button>
+                    <button type="button" @click="quickServiceModalOpen = false" class="text-gray-400 hover:text-gray-600 font-black text-base">&times;</button>
                 </div>
 
-                <div class="space-y-3">
+                <div class="space-y-2.5 text-xs">
                     <div>
-                        <label class="block text-[11px] font-bold text-gray-600 dark:text-gray-400 uppercase mb-1">Service / Fault Name *</label>
-                        <input type="text" x-model="quickServiceForm.name" placeholder="e.g. Face ID Repair, Sensor Issue..." class="w-full py-2 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
+                        <label class="block text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase mb-1">Service / Fault Name *</label>
+                        <input type="text" x-model="quickServiceForm.name" placeholder="e.g. Camera Glass, Audio IC..." class="w-full py-1.5 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
                     </div>
 
                     <div>
-                        <label class="block text-[11px] font-bold text-gray-600 dark:text-gray-400 uppercase mb-1">Category</label>
-                        <select x-model="quickServiceForm.category" class="w-full py-2 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs font-semibold text-gray-900 dark:text-white">
-                            <option value="Screen & Glass">Screen & Glass</option>
-                            <option value="Battery & Charging">Battery & Charging</option>
-                            <option value="Camera & Audio">Camera & Audio</option>
-                            <option value="Board & Motherboard">Board & Motherboard</option>
-                            <option value="Software & OS">Software & OS</option>
-                            <option value="General Repair">General Repair</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] font-bold text-gray-600 dark:text-gray-400 uppercase mb-1">Default Labor Rate (Rs)</label>
-                        <input type="number" step="any" x-model.number="quickServiceForm.rate" placeholder="500" class="w-full py-2 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 focus:ring-2 focus:ring-indigo-500">
+                        <label class="block text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase mb-1">Default Labor Rate (Rs)</label>
+                        <input type="number" step="any" x-model.number="quickServiceForm.rate" placeholder="500" class="w-full py-1.5 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 focus:ring-2 focus:ring-indigo-500">
                     </div>
                 </div>
 
                 <div class="flex items-center justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-                    <button type="button" @click="quickServiceModalOpen = false" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold text-xs rounded-xl">
+                    <button type="button" @click="quickServiceModalOpen = false" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold text-xs rounded-xl">
                         Cancel
                     </button>
-                    <button type="button" @click="saveQuickService()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs">
+                    <button type="button" @click="saveQuickService()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs">
                         Save & Apply
                     </button>
                 </div>
@@ -668,14 +571,12 @@
                 brandsList: rawBrands,
                 servicesList: rawServices,
 
-                // Customer Search State
                 customerSearch: '{{ addslashes(old('customer_name', '')) }}',
                 customerOpen: false,
                 customerHighlightedIndex: 0,
                 selectedPartyId: '{{ old('party_id', '') }}',
                 customerName: '{{ addslashes(old('customer_name', '')) }}',
                 customerPhone: '{{ addslashes(old('customer_phone', '')) }}',
-                customerBalance: null,
 
                 advanceAmount: {{ (float) old('advance_amount', 0) }},
                 errors: {
@@ -689,7 +590,6 @@
                     return Number(val || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
                 },
 
-                // Filter Brands
                 getFilteredBrands(device) {
                     const q = (device.brand || '').trim().toLowerCase();
                     if (!q) return this.brandsList;
@@ -731,7 +631,6 @@
                     device.brandOpen = false;
                 },
 
-                // Filter Models by selected Brand
                 getFilteredModels(device) {
                     let models = [];
                     if (device.selectedBrandId) {
@@ -745,7 +644,6 @@
                             models = brand.models;
                         }
                     } else {
-                        // All models flattened
                         models = this.brandsList.flatMap(b => b.models || []);
                     }
 
@@ -794,7 +692,6 @@
                     device.modelOpen = false;
                 },
 
-                // Quick Add Service Modal State
                 quickServiceModalOpen: false,
                 quickServiceTargetDevice: null,
                 quickServiceForm: {
@@ -820,7 +717,6 @@
                         return;
                     }
                     const rate = parseFloat(this.quickServiceForm.rate) || 0;
-                    const cat = this.quickServiceForm.category || 'General Repair';
 
                     try {
                         const res = await fetch("{{ route('repairs.service.store') }}", {
@@ -831,7 +727,7 @@
                             },
                             body: JSON.stringify({
                                 name: name,
-                                category: cat,
+                                category: 'General Repair',
                                 default_labor_cost: rate
                             })
                         });
@@ -841,15 +737,7 @@
                                 this.servicesList.push(data.service);
                             }
                             if (this.quickServiceTargetDevice) {
-                                if (!this.quickServiceTargetDevice.services) this.quickServiceTargetDevice.services = [];
-                                const alreadySelected = this.quickServiceTargetDevice.services.find(s => s.name === data.service.name);
-                                if (!alreadySelected) {
-                                    this.quickServiceTargetDevice.services.push({
-                                        name: data.service.name,
-                                        rate: parseFloat(data.service.default_labor_cost) || rate
-                                    });
-                                    this.recalculateDeviceServices(this.quickServiceTargetDevice);
-                                }
+                                this.toggleService(this.quickServiceTargetDevice, data.service);
                             }
                             this.quickServiceModalOpen = false;
                             return;
@@ -860,7 +748,6 @@
                     this.quickServiceModalOpen = false;
                 },
 
-                // Services & Faults Management
                 toggleService(device, srv) {
                     if (!device.services) device.services = [];
                     const existsIdx = device.services.findIndex(s => s.name === srv.name);
@@ -872,11 +759,6 @@
                             rate: parseFloat(srv.default_labor_cost) || 0
                         });
                     }
-                    this.recalculateDeviceServices(device);
-                },
-
-                removeService(device, sIdx) {
-                    device.services.splice(sIdx, 1);
                     this.recalculateDeviceServices(device);
                 },
 
@@ -895,7 +777,6 @@
                     }
                 },
 
-                // Filter Customers (Search by name or phone)
                 getFilteredCustomers() {
                     const q = (this.customerSearch || '').trim().toLowerCase();
                     if (!q) return this.customersList.slice(0, 20);
@@ -911,16 +792,9 @@
                         this.customerSearch = c.name;
                         this.customerName = c.name;
                         this.customerPhone = c.phone || '';
-                        this.customerBalance = c.current_balance;
                     } else {
                         this.selectedPartyId = '';
-                        this.customerSearch = '';
-                        this.customerName = '';
-                        this.customerPhone = '';
-                        this.customerBalance = null;
                     }
-                    this.errors.customerName = false;
-                    this.errors.customerPhone = false;
                     this.customerOpen = false;
                     this.customerHighlightedIndex = 0;
                 },
@@ -950,48 +824,6 @@
                         }
                     } else if (e.key === 'Escape') {
                         this.customerOpen = false;
-                    }
-                },
-
-                // Product Search Methods
-                getFilteredProducts(searchQuery) {
-                    const q = (searchQuery || '').trim().toLowerCase();
-                    if (!q) return this.productsList.slice(0, 20);
-                    return this.productsList.filter(p => {
-                        return (p.name && p.name.toLowerCase().includes(q)) ||
-                               (p.sku && p.sku.toLowerCase().includes(q)) ||
-                               (p.barcode && p.barcode.toLowerCase().includes(q));
-                    }).slice(0, 20);
-                },
-
-                selectProductForPart(part, prod) {
-                    part.productId = prod.id;
-                    part.search = prod.name;
-                    part.price = parseFloat(prod.sale_price) || 0;
-                    part.stock = prod.total_stock;
-                    part.open = false;
-                    part.highlightedIndex = 0;
-                },
-
-                handlePartKey(e, part) {
-                    const filtered = this.getFilteredProducts(part.search);
-                    if (e.key === 'ArrowDown') {
-                        e.preventDefault();
-                        if (part.highlightedIndex < filtered.length - 1) {
-                            part.highlightedIndex++;
-                        }
-                    } else if (e.key === 'ArrowUp') {
-                        e.preventDefault();
-                        if (part.highlightedIndex > 0) {
-                            part.highlightedIndex--;
-                        }
-                    } else if (e.key === 'Enter') {
-                        e.preventDefault();
-                        if (part.open && filtered.length > 0) {
-                            this.selectProductForPart(part, filtered[part.highlightedIndex]);
-                        }
-                    } else if (e.key === 'Escape') {
-                        part.open = false;
                     }
                 },
 
@@ -1025,44 +857,13 @@
                     }
                 },
 
-                addPart(device) {
-                    device.parts.push({
-                        productId: '',
-                        search: '',
-                        open: false,
-                        highlightedIndex: 0,
-                        qty: 1,
-                        price: 0,
-                        stock: null
-                    });
-                },
-
-                removePart(device, partIndex) {
-                    device.parts.splice(partIndex, 1);
-                },
-
-                calculateDeviceParts(device) {
-                    return device.parts.reduce((sum, p) => sum + ((p.qty || 0) * (p.price || 0)), 0);
-                },
-
                 calculateDeviceTotal(device) {
-                    const parts = this.calculateDeviceParts(device);
                     const labor = parseFloat(device.labor) || 0;
-                    return (parts + labor).toFixed(2);
-                },
-
-                calculateGrandParts() {
-                    return this.devices.reduce((sum, d) => sum + this.calculateDeviceParts(d), 0).toFixed(2);
-                },
-
-                calculateGrandLabor() {
-                    return this.devices.reduce((sum, d) => sum + (parseFloat(d.labor) || 0), 0).toFixed(2);
+                    return labor.toFixed(2);
                 },
 
                 calculateGrandTotal() {
-                    const parts = parseFloat(this.calculateGrandParts()) || 0;
-                    const labor = parseFloat(this.calculateGrandLabor()) || 0;
-                    return (parts + labor).toFixed(2);
+                    return this.devices.reduce((sum, d) => sum + (parseFloat(d.labor) || 0), 0).toFixed(2);
                 },
 
                 calculateBalance() {
@@ -1117,17 +918,6 @@
                         if (!problemTrim && (!dev.services || dev.services.length === 0)) {
                             dev.errors.problem = true;
                             this.formErrors.push(`Mobile #${i + 1}: Masla / fault likhein ya services select karein.`);
-                        }
-
-                        if (dev.parts && dev.parts.length > 0) {
-                            for (let p = 0; p < dev.parts.length; p++) {
-                                const part = dev.parts[p];
-                                if (!part.productId && !part.search) {
-                                    this.formErrors.push(`Mobile #${i + 1}: Spare part row #${p + 1} mein product search karke select karein.`);
-                                } else if ((part.qty || 0) <= 0) {
-                                    this.formErrors.push(`Mobile #${i + 1}: Spare part "${part.search}" ki quantity kam az kam 1 honi chahiye.`);
-                                }
-                            }
                         }
                     }
 
