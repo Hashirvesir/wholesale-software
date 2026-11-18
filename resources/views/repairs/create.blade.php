@@ -87,7 +87,7 @@
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                             <!-- Khata Search -->
-                            <div class="relative" @click.away="customerOpen = false">
+                            <div class="relative" @click.away="customerOpen = false" @scroll.window="customerOpen = false">
                                 <label class="block text-[11px] font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-1.5">
                                     Search Customer (Khata)
                                 </label>
@@ -102,7 +102,7 @@
 
                                     <!-- Dropdown List -->
                                     <div x-show="customerOpen && getFilteredCustomers().length > 0" x-cloak
-                                        class="absolute z-50 mt-1 left-0 right-0 bg-white dark:bg-gray-800 shadow-xl max-h-56 rounded-xl py-1 text-xs border border-gray-200 dark:border-gray-700 overflow-auto divide-y dark:divide-gray-700">
+                                        class="absolute z-30 mt-1 left-0 right-0 bg-white dark:bg-gray-800 shadow-xl max-h-56 rounded-xl py-1 text-xs border border-gray-200 dark:border-gray-700 overflow-auto divide-y dark:divide-gray-700">
                                         <div @click="selectCustomer(null)"
                                             class="cursor-pointer py-2 px-3 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 font-bold text-gray-500 italic">
                                             <span>-- Naya / Walk-in Customer --</span>
@@ -124,7 +124,7 @@
                                         <div x-show="customerSearch && !getFilteredCustomers().some(c => c.name.toLowerCase() === customerSearch.trim().toLowerCase())"
                                              @click="openQuickCustomerModal(customerSearch)"
                                              class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold cursor-pointer text-xs flex items-center gap-1.5 border-t border-emerald-100">
-                                            <span>➕ Add "</span><span x-text="customerSearch"></span><span>" as Direct New Customer</span>
+                                            <span>+ Add "</span><span x-text="customerSearch"></span><span>" as Direct New Customer</span>
                                         </div>
                                     </div>
 
@@ -209,7 +209,7 @@
                                 <!-- Brand & Model 2-Column Row -->
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     <!-- Searchable Brand -->
-                                    <div class="relative" @click.away="device.brandOpen = false">
+                                    <div class="relative" @click.away="device.brandOpen = false" @scroll.window="device.brandOpen = false">
                                         <label class="block text-[11px] font-black uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1">
                                             Brand / Company
                                         </label>
@@ -225,7 +225,7 @@
                                             
                                             <!-- Brand Dropdown -->
                                             <div x-show="device.brandOpen"
-                                                 class="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 text-xs"
+                                                 class="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-30 text-xs"
                                                  style="display: none;">
                                                 <template x-for="b in getFilteredBrands(device)" :key="b.id">
                                                     <div @click="selectBrand(device, b)"
@@ -237,14 +237,14 @@
                                                 <div x-show="device.brand && !brandsList.some(b => b.name.toLowerCase() === device.brand.trim().toLowerCase())"
                                                      @click="addNewBrand(device, device.brand)"
                                                      class="px-3 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold cursor-pointer text-xs border-t border-indigo-100">
-                                                    <span>➕ Add "</span><span x-text="device.brand"></span><span>" as New Brand</span>
+                                                    <span>+ Add "</span><span x-text="device.brand"></span><span>" as New Brand</span>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- Searchable Model -->
-                                    <div class="relative" @click.away="device.modelOpen = false">
+                                    <div class="relative" @click.away="device.modelOpen = false" @scroll.window="device.modelOpen = false">
                                         <label class="block text-[11px] font-black uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1">
                                             Model Name *
                                         </label>
@@ -262,7 +262,7 @@
                                             
                                             <!-- Model Dropdown -->
                                             <div x-show="device.modelOpen"
-                                                 class="absolute left-0 right-0 mt-1 max-h-52 overflow-y-auto bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 text-xs"
+                                                 class="absolute left-0 right-0 mt-1 max-h-52 overflow-y-auto bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-30 text-xs"
                                                  style="display: none;">
                                                 <template x-for="m in getFilteredModels(device)" :key="m.id">
                                                     <div @click="selectModel(device, m)"
@@ -274,30 +274,27 @@
                                                 <div x-show="device.model && !getFilteredModels(device).some(m => m.name.toLowerCase() === device.model.trim().toLowerCase())"
                                                      @click="addNewModel(device, device.model)"
                                                      class="px-3 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold cursor-pointer text-xs border-t border-indigo-100">
-                                                    <span>➕ Add "</span><span x-text="device.model"></span><span>" to Model List</span>
+                                                    <span>+ Add "</span><span x-text="device.model"></span><span>" to Model List</span>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Predefined Services & Common Faults: Search & Select Combobox -->
+                                <!-- Predefined Services & Common Faults: Search & Select Only -->
                                 <div class="p-3 bg-slate-50 dark:bg-gray-900/60 rounded-xl border border-slate-200 dark:border-gray-700 space-y-2.5">
-                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                        <div class="flex items-center gap-1.5">
-                                            <span class="text-[11px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider flex items-center gap-1">
-                                                <span>🔧 Services & Faults</span>
-                                                <span class="text-[10px] text-gray-400 font-normal hidden sm:inline">(Search or click to select)</span>
-                                            </span>
-                                        </div>
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="text-[11px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                                            Services & Faults
+                                        </span>
 
-                                        <button type="button" @click="openQuickAddServiceModal(device)" class="self-start sm:self-auto px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 text-[11px] font-bold text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded-lg shrink-0 transition flex items-center gap-1 cursor-pointer">
-                                            <span>+ New Service</span>
+                                        <button type="button" @click="openQuickAddServiceModal(device)" class="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 text-[11px] font-bold text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded-lg shrink-0 transition cursor-pointer">
+                                            + New Service
                                         </button>
                                     </div>
 
                                     <!-- Search & Select Services Combobox -->
-                                    <div class="relative" @click.away="device.serviceDropdownOpen = false">
+                                    <div class="relative" @click.away="device.serviceDropdownOpen = false" @scroll.window="device.serviceDropdownOpen = false">
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -310,7 +307,7 @@
                                                    @keydown.arrow-up.prevent="device.serviceHighlightedIndex = Math.max((device.serviceHighlightedIndex || 0) - 1, 0)"
                                                    @keydown.enter.prevent="selectHighlightedService(device)"
                                                    @keydown.escape="device.serviceDropdownOpen = false"
-                                                   placeholder="🔍 Search service to select (e.g. Screen, Battery, Mic, Camera)..."
+                                                   placeholder="Search service to select (Screen, Battery, Mic)..."
                                                    class="w-full text-xs font-bold py-2 pl-9 pr-8 bg-white dark:bg-gray-800 border border-slate-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 transition shadow-2xs">
                                             
                                             <button type="button"
@@ -321,7 +318,7 @@
                                             </button>
                                         </div>
 
-                                        <!-- Live Search Dropdown Menu -->
+                                        <!-- Live Search Dropdown Menu (Only shows when searching) -->
                                         <div x-show="device.serviceDropdownOpen && (device.serviceSearch || '').trim().length > 0"
                                              x-cloak
                                              class="absolute z-30 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-1 divide-y divide-gray-100 dark:divide-gray-700/60">
@@ -338,11 +335,11 @@
                                                     </div>
                                                     <div class="flex items-center gap-2">
                                                         <span class="font-mono font-bold text-indigo-600 dark:text-indigo-400" x-text="'Rs. ' + Number(srv.default_labor_cost).toFixed(0)"></span>
-                                                        <span x-show="isServiceSelected(device, srv.name)" class="text-[11px] text-emerald-600 font-bold flex items-center gap-0.5">
-                                                            ✓ Selected
+                                                        <span x-show="isServiceSelected(device, srv.name)" class="text-[11px] text-emerald-600 font-bold">
+                                                            Selected
                                                         </span>
                                                         <span x-show="!isServiceSelected(device, srv.name)" class="text-[11px] text-indigo-600 font-bold">
-                                                            + Select
+                                                            Select
                                                         </span>
                                                     </div>
                                                 </button>
@@ -361,13 +358,12 @@
                                         </div>
                                     </div>
 
-                                    <!-- Selected Services Active Pills -->
+                                    <!-- Selected Services Active Pills (Only shows what user selected) -->
                                     <template x-if="device.services && device.services.length > 0">
                                         <div class="flex flex-wrap items-center gap-1.5 pt-1">
                                             <span class="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mr-1">Selected:</span>
                                             <template x-for="(s, sIdx) in device.services" :key="sIdx">
                                                 <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 rounded-lg text-xs font-bold shadow-2xs">
-                                                    <span class="text-emerald-600">✓</span>
                                                     <span x-text="s.name"></span>
                                                     <span class="font-mono text-[10px] text-emerald-600 dark:text-emerald-400" x-text="'(Rs. ' + (s.rate || 0) + ')'"></span>
                                                     <button type="button" @click="device.services.splice(sIdx, 1); recalculateDeviceServices(device)" class="text-emerald-500 hover:text-rose-600 text-xs font-black ml-0.5 cursor-pointer" title="Remove">&times;</button>
@@ -375,27 +371,6 @@
                                             </template>
                                         </div>
                                     </template>
-
-                                    <!-- Quick 1-Tap Chips (Common Services) -->
-                                    <div class="pt-1 border-t border-slate-200/60 dark:border-gray-800">
-                                        <div class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
-                                            Aam Services (Direct 1-Tap Select):
-                                        </div>
-                                        <div class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1">
-                                            <template x-for="srv in servicesList" :key="srv.id">
-                                                <button type="button"
-                                                        @click="toggleService(device, srv)"
-                                                        :class="isServiceSelected(device, srv.name) 
-                                                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs font-bold' 
-                                                            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-100'"
-                                                        class="px-2.5 py-1 rounded-lg border text-xs transition flex items-center gap-1.5 cursor-pointer active:scale-95">
-                                                    <span x-show="isServiceSelected(device, srv.name)" class="text-[10px]">✓</span>
-                                                    <span x-text="srv.name"></span>
-                                                    <span class="opacity-75 font-mono text-[10px]" x-text="'Rs.' + Number(srv.default_labor_cost).toFixed(0)"></span>
-                                                </button>
-                                            </template>
-                                        </div>
-                                    </div>
                                 </div>
 
                                 <!-- Problem / Fault Summary & Labor Charges (Clean Side-by-Side Row) -->
@@ -542,7 +517,7 @@
                         <!-- Auto Print Option -->
                         <label class="flex items-center gap-2 cursor-pointer select-none text-xs font-semibold text-gray-700 dark:text-gray-300 pt-1">
                             <input type="checkbox" name="auto_print" value="1" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300">
-                            <span>🖨️ Save hote hi Stickers + Receipt print karein</span>
+                            <span>Save hote hi Stickers + Receipt print karein</span>
                         </label>
 
                         <!-- Primary Action Buttons -->
@@ -573,9 +548,8 @@
         <div x-show="quickServiceModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
             <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-gray-200 dark:border-gray-700 space-y-3" @click.away="quickServiceModalOpen = false">
                 <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-2.5">
-                    <h3 class="font-black text-xs text-gray-900 dark:text-white flex items-center gap-1.5">
-                        <span class="w-5 h-5 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs">🔧</span>
-                        <span>Add New Repair Service</span>
+                    <h3 class="font-black text-xs text-gray-900 dark:text-white">
+                        Add New Repair Service
                     </h3>
                     <button type="button" @click="quickServiceModalOpen = false" class="text-gray-400 hover:text-gray-600 font-black text-base">&times;</button>
                 </div>
@@ -607,9 +581,8 @@
         <div x-show="quickCustomerModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
             <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-gray-200 dark:border-gray-700 space-y-4" @click.away="quickCustomerModalOpen = false">
                 <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-2.5">
-                    <h3 class="font-black text-xs sm:text-sm text-gray-900 dark:text-white flex items-center gap-2">
-                        <span class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs">👤</span>
-                        <span>Naya Customer (Direct Khata) Banayein</span>
+                    <h3 class="font-black text-xs sm:text-sm text-gray-900 dark:text-white">
+                        Naya Customer (Direct Khata) Banayein
                     </h3>
                     <button type="button" @click="quickCustomerModalOpen = false" class="text-gray-400 hover:text-gray-600 font-black text-base">&times;</button>
                 </div>
