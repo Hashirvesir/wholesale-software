@@ -106,14 +106,14 @@
                     <!-- Searchable Customer Dropdown (Matches Purchases/Sales pattern) -->
                     <div>
                         <label class="block text-xs font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-2">
-                            Search Customer (Khata List) <span class="text-rose-500">*</span>
+                            Search Customer (Khata List)
                         </label>
                         <div class="relative" @click.away="customerOpen = false">
                             <input type="text" x-model="customerSearch" @focus="customerOpen = true"
                                 @input="customerOpen = true" @keydown="handleCustomerKey($event)"
                                 class="block w-full py-2.5 sm:py-3 px-3.5 border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl shadow-sm text-xs sm:text-sm font-bold transition"
                                 :class="{'border-rose-500 ring-1 ring-rose-500': errors.customerName}"
-                                placeholder="Type name or phone to search..." autocomplete="off">
+                                placeholder="Search by name / phone..." autocomplete="off">
 
                             <input type="hidden" name="party_id" :value="selectedPartyId">
 
@@ -164,7 +164,7 @@
                                @input="errors.customerName = false; removeFromErrors('Customer ka naam')"
                                placeholder="e.g. Muhammad Ali"
                                :class="errors.customerName ? 'border-rose-500 ring-2 ring-rose-400 bg-rose-50/40 dark:bg-rose-950/20' : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900'"
-                               class="w-full py-2.5 sm:py-3 px-3.5 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition">
+                               class="w-full py-2.5 sm:py-3 px-3.5 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition font-bold">
                         <span x-show="errors.customerName" x-cloak class="text-[11px] text-rose-500 font-bold block mt-1.5">⚠️ Customer ka naam likhna lazmi hai.</span>
                     </div>
 
@@ -177,48 +177,21 @@
                                @input="errors.customerPhone = false; removeFromErrors('phone number')"
                                placeholder="0300-1234567"
                                :class="errors.customerPhone ? 'border-rose-500 ring-2 ring-rose-400 bg-rose-50/40 dark:bg-rose-950/20' : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900'"
-                               class="w-full py-2.5 sm:py-3 px-3.5 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition">
-                        <span x-show="errors.customerPhone" x-cloak class="text-[11px] text-rose-500 font-bold block mt-1.5">⚠️ Valid mobile / WhatsApp number lazmi hai (min 7 digits).</span>
+                               class="w-full py-2.5 sm:py-3 px-3.5 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition font-bold">
+                        <span x-show="errors.customerPhone" x-cloak class="text-[11px] text-rose-500 font-bold block mt-1.5">⚠️ Valid mobile / WhatsApp number lazmi hai.</span>
                     </div>
 
-                    <!-- Intake Date & Time -->
-                    <div>
-                        <label class="block text-xs font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-2">
-                            Received Date & Time <span class="text-rose-500">*</span>
-                        </label>
-                        <input type="datetime-local" name="received_date" value="{{ now()->format('Y-m-d\TH:i') }}" required class="w-full py-2.5 sm:py-3 px-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6 pt-2">
-                    <!-- Expected Delivery Date -->
+                    <!-- Expected Delivery Date & Time (Wapsi Ka Time) -->
                     <div>
                         <label class="block text-xs font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-2">
                             Expected Delivery Date & Time (Wapsi Ka Time)
                         </label>
-                        <input type="datetime-local" name="expected_delivery_date" class="w-full py-2.5 sm:py-3 px-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
-                    </div>
-
-                    <!-- Default Warehouse -->
-                    <div>
-                        <label class="block text-xs font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-2">
-                            Default Warehouse (Stock Deduction)
-                        </label>
-                        <select name="default_warehouse_id" class="w-full py-2.5 sm:py-3 px-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
-                            @foreach($warehouses as $w)
-                                <option value="{{ $w->id }}">{{ $w->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Notes -->
-                    <div>
-                        <label class="block text-xs font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-2">
-                            Order General Note / Special Instructions
-                        </label>
-                        <input type="text" name="notes" placeholder="e.g. Urgent customer, call before replacement" class="w-full py-2.5 sm:py-3 px-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
+                        <input type="datetime-local" name="expected_delivery_date" class="w-full py-2.5 sm:py-3 px-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 font-bold">
                     </div>
                 </div>
+
+                <input type="hidden" name="received_date" value="{{ now()->format('Y-m-d\TH:i') }}">
+                <input type="hidden" name="default_warehouse_id" value="{{ $warehouses->first()->id ?? 1 }}">
             </div>
 
             <!-- 2. Devices Intake Section (Support for Multiple Devices) -->
@@ -257,10 +230,10 @@
                         </div>
 
                         <!-- Device Primary Fields: Brand & Model Dropdowns -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-5 sm:gap-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
                             <!-- Searchable Brand Dropdown -->
-                            <div class="lg:col-span-3 relative" @click.away="device.brandOpen = false">
-                                <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-2">
+                            <div class="relative" @click.away="device.brandOpen = false">
+                                <label class="block text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">
                                     Brand / Company
                                 </label>
                                 <div class="relative">
@@ -269,9 +242,9 @@
                                            x-model="device.brand"
                                            @focus="device.brandOpen = true"
                                            @input="device.brandOpen = true; device.selectedBrandId = null"
-                                           placeholder="Type or select Brand..."
+                                           placeholder="Select or type Brand (e.g. Samsung, Infinix, Vivo)..."
                                            autocomplete="off"
-                                           class="w-full py-2.5 sm:py-3 px-3.5 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs sm:text-sm font-semibold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
+                                           class="w-full py-2.5 sm:py-3 px-3.5 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs sm:text-sm font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
                                     
                                     <!-- Brand Dropdown Menu -->
                                     <div x-show="device.brandOpen"
@@ -295,8 +268,8 @@
                             </div>
 
                             <!-- Cascading Searchable Model Dropdown -->
-                            <div class="lg:col-span-4 relative" @click.away="device.modelOpen = false">
-                                <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-2">
+                            <div class="relative" @click.away="device.modelOpen = false">
+                                <label class="block text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">
                                     Model Name <span class="text-rose-500">*</span>
                                 </label>
                                 <div class="relative">
@@ -305,10 +278,10 @@
                                            x-model="device.model"
                                            @focus="device.modelOpen = true"
                                            @input="device.modelOpen = true; if(device.errors) device.errors.model = false"
-                                           placeholder="Select or type Model..."
+                                           placeholder="Select or type Model (e.g. A32, Hot 10, Y20)..."
                                            autocomplete="off"
                                            :class="device.errors && device.errors.model ? 'border-rose-500 ring-2 ring-rose-400 bg-rose-50/40 dark:bg-rose-950/20' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900'"
-                                           class="w-full py-2.5 sm:py-3 px-3.5 rounded-xl text-xs sm:text-sm font-semibold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition">
+                                           class="w-full py-2.5 sm:py-3 px-3.5 rounded-xl text-xs sm:text-sm font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition">
                                     <span x-show="device.errors && device.errors.model" x-cloak class="text-[11px] text-rose-500 font-bold block mt-1.5">⚠️ Mobile model likhna lazmi hai.</span>
                                     
                                     <!-- Model Dropdown Menu -->
@@ -330,18 +303,6 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            <!-- IMEI / Serial -->
-                            <div class="lg:col-span-3">
-                                <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-2">IMEI / Serial No</label>
-                                <input type="text" :name="'devices[' + dIdx + '][imei]'" x-model="device.imei" placeholder="15-digit IMEI (Optional)" class="w-full py-2.5 sm:py-3 px-3.5 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs sm:text-sm font-mono text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
-                            </div>
-
-                            <!-- Color -->
-                            <div class="lg:col-span-2">
-                                <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-2">Color (Rang)</label>
-                                <input type="text" :name="'devices[' + dIdx + '][color]'" x-model="device.color" placeholder="e.g. Black, Blue" class="w-full py-2.5 sm:py-3 px-3.5 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
                             </div>
                         </div>
 
@@ -487,235 +448,45 @@
                             </div>
                         </div>
 
-                        <!-- Problem Description (Auto-fills from services or custom text) & Screen Security -->
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
+                        <!-- Problem Description (Auto-fills from services or custom text) & Labor Charges -->
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 p-5 sm:p-6 bg-slate-50/90 dark:bg-gray-900/50 rounded-2xl border border-slate-200 dark:border-gray-700">
                             <!-- Problem Description -->
-                            <div class="lg:col-span-8">
-                                <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-2">
-                                    Problem / Fault Summary (Print Slip par yeh aayega) <span class="text-rose-500">*</span>
+                            <div class="lg:col-span-6">
+                                <label class="block text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
+                                    Problem / Fault Summary (Print Slip par aayega) <span class="text-rose-500">*</span>
                                 </label>
                                 <input type="text" :name="'devices[' + dIdx + '][problem_description]'"
                                        x-model="device.problem"
                                        @input="if(device.errors) device.errors.problem = false"
-                                       placeholder="Select services above or type fault details..."
+                                       placeholder="Upar di gayi service select karein ya masla likhein..."
                                        :class="device.errors && device.errors.problem ? 'border-rose-500 ring-2 ring-rose-400 bg-rose-50/40 dark:bg-rose-950/20' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900'"
-                                       class="w-full py-2.5 sm:py-3 px-3.5 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition">
+                                       class="w-full py-2.5 sm:py-3 px-3.5 rounded-xl text-xs sm:text-sm font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition">
                                 <span x-show="device.errors && device.errors.problem" x-cloak class="text-[11px] text-rose-500 font-bold block mt-1.5">⚠️ Masla likhein ya upar di gayi services mein se select karein.</span>
                             </div>
 
-                            <!-- Screen Security -->
-                            <div class="lg:col-span-4">
-                                <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-2">Screen Lock / PIN</label>
-                                <div class="flex items-center gap-2.5">
-                                    <select :name="'devices[' + dIdx + '][security_type]'" x-model="device.securityType" class="py-2.5 sm:py-3 px-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
-                                        <option value="none">No Lock</option>
-                                        <option value="pin">PIN / Pass</option>
-                                        <option value="pattern">Pattern</option>
-                                    </select>
-                                    <input type="text" :name="'devices[' + dIdx + '][security_code]'" x-model="device.securityCode" placeholder="Code (e.g. 1234 or L-Pattern)" class="w-full py-2.5 sm:py-3 px-3.5 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Physical Condition Checklist -->
-                        <div class="p-4 sm:p-5 bg-slate-50/70 dark:bg-gray-900/40 rounded-2xl border border-slate-200/80 dark:border-gray-700/80 space-y-3">
-                            <div class="text-[11px] font-black text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                                Device Condition at Intake (Dispute se bachne ke liye tick karein):
-                            </div>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs sm:text-sm">
-                                <label class="inline-flex items-center gap-2.5 cursor-pointer bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-600 transition shadow-2xs">
-                                    <input type="checkbox" :name="'devices[' + dIdx + '][condition_checklist][power_on]'" value="1" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300">
-                                    <span class="text-gray-700 dark:text-gray-300 font-bold">Power On</span>
+                            <!-- Labor / Service Charges (Mazdoori) -->
+                            <div class="lg:col-span-3">
+                                <label class="block text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
+                                    Repair / Labor Charges (Rs)
                                 </label>
-                                <label class="inline-flex items-center gap-2.5 cursor-pointer bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-600 transition shadow-2xs">
-                                    <input type="checkbox" :name="'devices[' + dIdx + '][condition_checklist][touch_working]'" value="1" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300">
-                                    <span class="text-gray-700 dark:text-gray-300 font-bold">Touch OK</span>
-                                </label>
-                                <label class="inline-flex items-center gap-2.5 cursor-pointer bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-600 transition shadow-2xs">
-                                    <input type="checkbox" :name="'devices[' + dIdx + '][condition_checklist][camera_ok]'" value="1" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300">
-                                    <span class="text-gray-700 dark:text-gray-300 font-bold">Cameras OK</span>
-                                </label>
-                                <label class="inline-flex items-center gap-2.5 cursor-pointer bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-600 transition shadow-2xs">
-                                    <input type="checkbox" :name="'devices[' + dIdx + '][condition_checklist][body_scratch]'" value="1" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300">
-                                    <span class="text-gray-700 dark:text-gray-300 font-bold">Body Scratched</span>
-                                </label>
-                                <label class="inline-flex items-center gap-2.5 cursor-pointer bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-600 transition shadow-2xs">
-                                    <input type="checkbox" :name="'devices[' + dIdx + '][condition_checklist][back_broken]'" value="1" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300">
-                                    <span class="text-gray-700 dark:text-gray-300 font-bold">Back Broken</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- 3. Spare Parts Selection with SEARCHABLE INVENTORY DROPDOWN -->
-                        <div class="p-5 sm:p-6 bg-indigo-50/40 dark:bg-indigo-950/20 rounded-2xl border border-indigo-200/60 dark:border-indigo-900/50 space-y-4">
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                <div>
-                                    <div class="text-xs sm:text-sm font-black text-indigo-900 dark:text-indigo-300 uppercase tracking-wider flex items-center gap-2">
-                                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                                        <span>Spare Parts from Inventory (Searchable Dropdown jaise Purchase mein hai)</span>
-                                    </div>
-                                    <span class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 block">Part search karein (Battery, Glass, LCD). Delivery ke waqt inventory khud ba khud deduct hogi.</span>
-                                </div>
-                                <button type="button" @click="addPart(device)" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5 self-start sm:self-auto">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                    <span>+ Add Spare Part</span>
-                                </button>
+                                <input type="number" step="any" :name="'devices[' + dIdx + '][labor_cost]'" x-model.number="device.labor" placeholder="0" class="w-full py-2.5 sm:py-3 px-3.5 bg-white dark:bg-gray-900 border border-indigo-200 dark:border-indigo-800 rounded-xl text-base font-black font-mono text-indigo-600 dark:text-indigo-400 focus:ring-2 focus:ring-indigo-500">
                             </div>
 
-                            <!-- Parts Table -->
-                            <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-2xs">
-                                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                    <thead class="bg-gray-50 dark:bg-gray-900/60">
-                                        <tr>
-                                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider w-1/2">
-                                                Spare Part (Search Name / SKU / Barcode)
-                                            </th>
-                                            <th class="px-3 py-3 text-center text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider w-28">
-                                                Current Stock
-                                            </th>
-                                            <th class="px-3 py-3 text-center text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider w-24">
-                                                Qty
-                                            </th>
-                                            <th class="px-4 py-3 text-right text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider w-36">
-                                                Rate (Rs)
-                                            </th>
-                                            <th class="px-4 py-3 text-right text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider w-36">
-                                                Subtotal (Rs)
-                                            </th>
-                                            <th class="px-3 py-3 text-center text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider w-12">
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                        <template x-for="(part, pIdx) in device.parts" :key="pIdx">
-                                            <tr class="hover:bg-gray-50/60 dark:hover:bg-gray-750 transition">
-                                                <!-- Searchable Product Input -->
-                                                <td class="px-3.5 py-3 relative" @click.away="part.open = false">
-                                                    <input type="text" x-model="part.search" @focus="part.open = true"
-                                                        @input="part.open = true" @keydown="handlePartKey($event, part)"
-                                                        class="block w-full text-xs sm:text-sm py-2 px-3 border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 font-bold"
-                                                        placeholder="Type to search part by name, SKU, or barcode..." autocomplete="off">
-
-                                                    <input type="hidden" :name="'devices[' + dIdx + '][parts][' + pIdx + '][product_id]'"
-                                                        :value="part.productId">
-
-                                                    <!-- Product Results Dropdown -->
-                                                    <div x-show="part.open && getFilteredProducts(part.search).length > 0" x-cloak
-                                                        class="absolute z-50 mt-1.5 w-full bg-white dark:bg-gray-800 shadow-2xl max-h-60 rounded-xl py-1 text-xs border border-gray-200 dark:border-gray-700 overflow-auto divide-y dark:divide-gray-700">
-                                                        <template x-for="(prod, pIdx2) in getFilteredProducts(part.search)" :key="prod.id">
-                                                            <div @click="selectProductForPart(part, prod)"
-                                                                class="cursor-pointer select-none relative py-2.5 px-3.5 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition"
-                                                                :class="part.highlightedIndex === pIdx2 ? 'bg-indigo-50 dark:bg-indigo-950/40' : ''">
-                                                                <div class="flex items-center justify-between">
-                                                                    <div>
-                                                                        <span class="block truncate uppercase font-bold text-gray-900 dark:text-gray-100"
-                                                                            x-text="prod.name"></span>
-                                                                        <div class="flex items-center gap-2 mt-0.5">
-                                                                            <span class="text-gray-500 dark:text-gray-400 text-[9px] font-mono tracking-tighter"
-                                                                                x-text="'SKU: ' + prod.sku"></span>
-                                                                            <template x-if="prod.barcode">
-                                                                                <span class="text-gray-500 dark:text-gray-400 text-[9px] font-mono tracking-tighter"
-                                                                                    x-text="'| BAR: ' + prod.barcode"></span>
-                                                                            </template>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="text-right ml-2 shrink-0">
-                                                                        <span class="block font-black text-gray-900 dark:text-gray-100 text-xs sm:text-sm"
-                                                                            x-text="'Rs. ' + formatNumber(prod.sale_price)"></span>
-                                                                        <span class="font-bold text-[10px] px-1.5 py-0.5 rounded"
-                                                                            :class="prod.total_stock > 0 ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400'"
-                                                                            x-text="'Stock: ' + prod.total_stock"></span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </template>
-                                                    </div>
-                                                </td>
-
-                                                <!-- Current Stock -->
-                                                <td class="px-3 py-3 text-center text-xs font-black">
-                                                    <span :class="part.stock > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'"
-                                                        x-text="part.stock !== null ? part.stock : '--'"></span>
-                                                </td>
-
-                                                <!-- Quantity -->
-                                                <td class="px-3 py-3">
-                                                    <input type="number" min="1" :name="'devices[' + dIdx + '][parts][' + pIdx + '][quantity]'"
-                                                        x-model.number="part.qty"
-                                                        class="block w-full text-xs sm:text-sm py-2 text-center border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 font-black"
-                                                        required>
-                                                </td>
-
-                                                <!-- Rate -->
-                                                <td class="px-3 py-3">
-                                                    <input type="number" step="any" :name="'devices[' + dIdx + '][parts][' + pIdx + '][unit_price]'"
-                                                        x-model.number="part.price"
-                                                        class="block w-full text-xs sm:text-sm py-2 text-right border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 font-black font-mono"
-                                                        required>
-                                                </td>
-
-                                                <!-- Subtotal -->
-                                                <td class="px-4 py-3 text-right text-xs sm:text-sm font-black font-mono text-gray-900 dark:text-gray-100">
-                                                    Rs. <span x-text="formatNumber((part.qty || 0) * (part.price || 0))"></span>
-                                                </td>
-
-                                                <!-- Remove Row -->
-                                                <td class="px-3 py-3 text-center">
-                                                    <button type="button" @click="removePart(device, pIdx)"
-                                                        class="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition"
-                                                        title="Remove part">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </template>
-                                        <template x-if="device.parts.length === 0">
-                                            <tr>
-                                                <td colspan="6" class="py-5 text-center text-xs text-gray-400 italic">
-                                                    Koi spare part shamil nahi kiya gaya. Agar battery, display wagera lagani ho to <strong>"+ Add Spare Part"</strong> dabayein.
-                                                </td>
-                                            </tr>
-                                        </template>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- Device Labor Charges & Summary -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 p-5 sm:p-6 bg-slate-50/90 dark:bg-gray-900/50 rounded-2xl border border-slate-200 dark:border-gray-700">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-2">
-                                    Assigned Technician (Karigar)
-                                </label>
-                                <select :name="'devices[' + dIdx + '][technician_id]'" x-model="device.technicianId" class="w-full py-2.5 sm:py-3 px-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs sm:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
-                                    <option value="">-- Assign Later --</option>
-                                    @foreach($technicians as $t)
-                                        <option value="{{ $t->id }}">{{ $t->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-2">
-                                    Checking Warranty (Days)
-                                </label>
-                                <input type="number" :name="'devices[' + dIdx + '][warranty_days]'" x-model.number="device.warrantyDays" placeholder="0" class="w-full py-2.5 sm:py-3 px-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs sm:text-sm font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
-                                <span class="text-[10px] text-gray-400 mt-1 block">0 = Sirf Counter Tak (Counter ke baad koi zimmedari nahi)</span>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-2">
-                                    Labor / Service Charges (Mazdoori)
-                                </label>
-                                <input type="number" step="any" :name="'devices[' + dIdx + '][labor_cost]'" x-model.number="device.labor" placeholder="0" class="w-full py-2.5 sm:py-3 px-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs sm:text-sm font-black font-mono text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
-                            </div>
-
-                            <div class="flex flex-col justify-center items-start sm:items-end text-left sm:text-right bg-white dark:bg-gray-800/80 p-3.5 sm:p-4 rounded-xl border border-indigo-100 dark:border-indigo-950/50">
-                                <span class="text-[10px] text-gray-400 uppercase font-black tracking-wider">This Device Estimated Total</span>
-                                <span class="text-xl font-black text-indigo-600 dark:text-indigo-400 font-mono mt-0.5">
+                            <!-- This Device Estimated Total -->
+                            <div class="lg:col-span-3 flex flex-col justify-center items-start sm:items-end text-left sm:text-right bg-white dark:bg-gray-800/80 p-3.5 sm:p-4 rounded-xl border border-indigo-100 dark:border-indigo-950/50">
+                                <span class="text-[10px] text-gray-400 uppercase font-black tracking-wider">This Device Total</span>
+                                <span class="text-2xl font-black text-indigo-600 dark:text-indigo-400 font-mono mt-0.5">
                                     Rs <span x-text="calculateDeviceTotal(device)"></span>
                                 </span>
                             </div>
+
+                            <!-- Hidden default fields to keep backend schema happy -->
+                            <input type="hidden" :name="'devices[' + dIdx + '][warranty_days]'" value="0">
+                            <input type="hidden" :name="'devices[' + dIdx + '][security_type]'" value="none">
+                            <input type="hidden" :name="'devices[' + dIdx + '][security_code]'" value="">
+                            <input type="hidden" :name="'devices[' + dIdx + '][imei]'" value="">
+                            <input type="hidden" :name="'devices[' + dIdx + '][color]'" value="">
+                            <input type="hidden" :name="'devices[' + dIdx + '][technician_id]'" value="">
                         </div>
                     </div>
                 </template>
@@ -730,26 +501,10 @@
                     </h3>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-                    <!-- Total Spare Parts -->
-                    <div class="p-5 rounded-2xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-700">
-                        <div class="text-[11px] text-gray-500 uppercase tracking-wider font-bold">Total Spare Parts</div>
-                        <div class="text-xl font-black text-gray-900 dark:text-white mt-1.5">
-                            Rs <span x-text="calculateGrandParts()"></span>
-                        </div>
-                    </div>
-
-                    <!-- Total Labor -->
-                    <div class="p-5 rounded-2xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-700">
-                        <div class="text-[11px] text-gray-500 uppercase tracking-wider font-bold">Total Labor (Mazdoori)</div>
-                        <div class="text-xl font-black text-gray-900 dark:text-white mt-1.5">
-                            Rs <span x-text="calculateGrandLabor()"></span>
-                        </div>
-                    </div>
-
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     <!-- Grand Total Estimate -->
                     <div class="p-5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800">
-                        <div class="text-[11px] text-indigo-700 dark:text-indigo-300 uppercase tracking-wider font-bold">Grand Total (Kul Bill)</div>
+                        <div class="text-[11px] text-indigo-700 dark:text-indigo-300 uppercase tracking-wider font-black">Total Repair Charges (Kul Bill)</div>
                         <div class="text-2xl font-black text-indigo-900 dark:text-indigo-100 mt-1.5 font-mono">
                             Rs <span x-text="calculateGrandTotal()"></span>
                         </div>
@@ -757,7 +512,7 @@
 
                     <!-- Advance Received Amount -->
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">
+                        <label class="block text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
                             Advance Received (Peshgi)
                         </label>
                         <input type="number" step="any" name="advance_amount" x-model.number="advanceAmount" placeholder="0" class="w-full py-3 px-4 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-base font-black text-emerald-600 dark:text-emerald-400 focus:ring-2 focus:ring-emerald-400 font-mono">
@@ -765,10 +520,10 @@
 
                     <!-- Payment Method -->
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">
+                        <label class="block text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
                             Payment Method
                         </label>
-                        <select name="payment_method" class="w-full py-3 px-4 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs sm:text-sm font-semibold text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-emerald-400">
+                        <select name="payment_method" class="w-full py-3 px-4 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs sm:text-sm font-bold text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-emerald-400">
                             <option value="cash">Cash Counter</option>
                             <option value="bank">Bank Transfer / Online</option>
                             <option value="jazzcash">JazzCash / EasyPaisa</option>
