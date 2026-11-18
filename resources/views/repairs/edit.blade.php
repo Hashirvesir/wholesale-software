@@ -13,14 +13,14 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <h2 class="text-base sm:text-lg font-black text-gray-900 dark:text-white uppercase tracking-wide">
-                                {{ __('Repair Order Tabdeel Karein (Edit Job Sheet)') }}
+                                {{ __('Edit Repair Order') }}
                             </h2>
                             <span class="px-2.5 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-mono font-bold text-xs border border-amber-200 dark:border-amber-800">
                                 #{{ $repair->order_no }}
                             </span>
                         </div>
                         <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                            Customer maloomat, mobile fault ya labor charges update karein.
+                            Update customer details, device faults, or labor charges.
                         </p>
                     </div>
                 </div>
@@ -41,7 +41,7 @@
 
             @if ($errors->any())
                 <div class="mb-3 p-3 bg-rose-50 dark:bg-rose-950/40 border-l-4 border-rose-500 rounded-r-xl text-rose-800 dark:text-rose-200 text-xs space-y-1">
-                    <div class="font-black">Meherbani farma kar yeh khamiyan theek karein:</div>
+                    <div class="font-black">Please correct the following errors:</div>
                     <ul class="list-disc pl-5 font-semibold">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
@@ -53,7 +53,7 @@
             <!-- Client-Side Real-Time Error Summary Banner -->
             <div id="formErrorSummary" x-show="formErrors.length > 0" x-cloak class="mb-3 p-3 bg-rose-50 dark:bg-rose-950/50 border-2 border-rose-400 dark:border-rose-800 rounded-xl text-rose-900 dark:text-rose-200 text-xs space-y-1">
                 <div class="font-black flex items-center justify-between text-rose-700 dark:text-rose-300">
-                    <span>⚠️ Form mein darj zail khamiyan theek karein:</span>
+                    <span>Please correct the following errors:</span>
                     <button type="button" @click="formErrors = []" class="text-rose-500 hover:text-rose-700 font-black">&times;</button>
                 </div>
                 <ul class="list-disc pl-5 font-bold">
@@ -74,19 +74,19 @@
                         <div class="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-700">
                             <h3 class="text-xs sm:text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                                 <span class="w-5 h-5 rounded-lg bg-amber-500 text-white flex items-center justify-center text-[10px] font-black">1</span>
-                                Customer & Wapsi Ka Time
+                                Customer & Expected Delivery
                             </h3>
                             <button type="button" @click="openQuickCustomerModal()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg shadow-2xs transition flex items-center gap-1 active:scale-95 cursor-pointer">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                                <span>+ Direct Customer Banayein</span>
+                                <span>+ New Customer</span>
                             </button>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                            <!-- Khata Search -->
+                            <!-- Customer Search -->
                             <div class="relative" @click.away="customerOpen = false" @scroll.window="customerOpen = false">
                                 <label class="block text-[11px] font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-1.5">
-                                    Search Customer (Khata)
+                                    Search Customer
                                 </label>
                                 <div class="relative">
                                     <input type="text" x-model="customerSearch" @focus="customerOpen = true"
@@ -121,7 +121,7 @@
                                         <div x-show="customerSearch && !getFilteredCustomers().some(c => c.name.toLowerCase() === customerSearch.trim().toLowerCase())"
                                              @click="openQuickCustomerModal(customerSearch)"
                                              class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold cursor-pointer text-xs flex items-center gap-1.5 border-t border-emerald-100">
-                                            <span>+ Add "</span><span x-text="customerSearch"></span><span>" as Direct New Customer</span>
+                                            <span>+ Add "</span><span x-text="customerSearch"></span><span>" as New Customer</span>
                                         </div>
                                     </div>
                                 </div>
@@ -133,10 +133,10 @@
                                     Customer Name *
                                 </label>
                                 <input type="text" name="customer_name" x-model="customerName"
-                                       @input="errors.customerName = false; removeFromErrors('Customer ka naam')"
+                                       @input="errors.customerName = false; removeFromErrors('customer name')"
                                        :class="errors.customerName ? 'border-rose-500 ring-1 ring-rose-400 bg-rose-50/40 dark:bg-rose-950/20' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900'"
                                        class="w-full py-2 px-3 rounded-xl text-xs font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition">
-                                <span x-show="errors.customerName" x-cloak class="text-[10px] text-rose-500 font-bold block mt-1">⚠️ Customer ka naam lazmi hai.</span>
+                                <span x-show="errors.customerName" x-cloak class="text-[10px] text-rose-500 font-bold block mt-1">Customer name is required.</span>
                             </div>
 
                             <!-- Customer Phone -->
@@ -148,13 +148,13 @@
                                        @input="errors.customerPhone = false; removeFromErrors('phone number')"
                                        :class="errors.customerPhone ? 'border-rose-500 ring-1 ring-rose-400 bg-rose-50/40 dark:bg-rose-950/20' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900'"
                                        class="w-full py-2 px-3 rounded-xl text-xs font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition">
-                                <span x-show="errors.customerPhone" x-cloak class="text-[10px] text-rose-500 font-bold block mt-1">⚠️ Mobile number lazmi hai.</span>
+                                <span x-show="errors.customerPhone" x-cloak class="text-[10px] text-rose-500 font-bold block mt-1">Phone number is required.</span>
                             </div>
 
-                            <!-- Expected Delivery Date & Time (Wapsi Ka Time) -->
+                            <!-- Expected Delivery Date & Time -->
                             <div>
                                 <label class="block text-[11px] font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-1.5">
-                                    Wapsi Ka Time
+                                    Expected Delivery Time
                                 </label>
                                 <input type="datetime-local" name="expected_delivery_date" value="{{ $repair->expected_delivery_date ? \Carbon\Carbon::parse($repair->expected_delivery_date)->format('Y-m-d\TH:i') : '' }}" class="w-full py-2 px-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
                             </div>
@@ -245,7 +245,7 @@
                                                    autocomplete="off"
                                                    :class="device.errors && device.errors.model ? 'border-rose-500 ring-1 ring-rose-400 bg-rose-50/40 dark:bg-rose-950/20' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900'"
                                                    class="w-full py-2 px-3 rounded-xl text-xs font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition">
-                                            <span x-show="device.errors && device.errors.model" x-cloak class="text-[10px] text-rose-500 font-bold block mt-1">Mobile model likhna lazmi hai.</span>
+                                            <span x-show="device.errors && device.errors.model" x-cloak class="text-[10px] text-rose-500 font-bold block mt-1">Model name is required.</span>
                                             
                                             <div x-show="device.modelOpen"
                                                  class="absolute left-0 right-0 mt-1 max-h-52 overflow-y-auto bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-30 text-xs"
@@ -333,10 +333,10 @@
 
                                             <template x-if="getFilteredServices(device).length === 0">
                                                 <div class="p-3 text-center text-xs text-gray-500">
-                                                    Koi service match nahi hui: "<strong class="text-indigo-600" x-text="device.serviceSearch"></strong>"
+                                                    No matching service found: "<strong class="text-indigo-600" x-text="device.serviceSearch"></strong>"
                                                     <div class="mt-1.5">
                                                         <button type="button" @click="quickServiceForm.name = device.serviceSearch; openQuickAddServiceModal(device); device.serviceDropdownOpen = false" class="px-3 py-1 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700">
-                                                            + Nayi service banayein
+                                                            + Create New Service
                                                         </button>
                                                     </div>
                                                 </div>
@@ -363,20 +363,20 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 sm:gap-4">
                                     <div class="sm:col-span-8">
                                         <label class="block text-[11px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
-                                            Fault / Problem Summary (Print Slip Par Ayega) <span class="text-rose-500">*</span>
+                                            Fault / Problem Summary (Printed on Slip) <span class="text-rose-500">*</span>
                                         </label>
                                         <input type="text" :name="'devices[' + dIdx + '][problem_description]'"
                                                x-model="device.problem"
                                                @input="if(device.errors) device.errors.problem = false"
-                                               placeholder="Upar service select karein ya masla type karein..."
+                                               placeholder="Type problem or select service above..."
                                                :class="device.errors && device.errors.problem ? 'border-rose-500 ring-1 ring-rose-400 bg-rose-50/40 dark:bg-rose-950/20' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900'"
                                                class="w-full py-2 px-3 rounded-xl text-xs font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition">
-                                        <span x-show="device.errors && device.errors.problem" x-cloak class="text-[10px] text-rose-500 font-bold block mt-1">⚠️ Masla likhein ya service select karein.</span>
+                                        <span x-show="device.errors && device.errors.problem" x-cloak class="text-[10px] text-rose-500 font-bold block mt-1">Problem description or service is required.</span>
                                     </div>
 
                                     <div class="sm:col-span-4">
                                         <label class="block text-[11px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
-                                            Repair / Labor (Mazdoori Rs)
+                                            Repair / Labor Charges (Rs)
                                         </label>
                                         <input type="number" step="any" :name="'devices[' + dIdx + '][labor_cost]'" x-model.number="device.labor" placeholder="0" class="w-full py-2 px-3 bg-white dark:bg-gray-900 border border-amber-300 dark:border-amber-700 rounded-xl text-sm font-black font-mono text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
                                     </div>
@@ -419,12 +419,12 @@
 
                                     <div x-show="device.approval_type === 'approval'" class="mt-2 pt-2 border-t border-rose-200 dark:border-rose-800 space-y-1">
                                         <div class="text-[10px] text-rose-700 dark:text-rose-300 font-bold">
-                                            Customer Risk: Slip par print hoga ke bante waqt dead/kharab hone par dukan zimmedar nahi hogi.
+                                            Customer Risk: Printed on slip stating repair risk is on customer.
                                         </div>
                                         <input type="text"
                                                :name="'devices[' + dIdx + '][approval_notes]'"
                                                x-model="device.approval_notes"
-                                               placeholder="Risk Note (e.g. Glass crack tha, display lines ka risk customer ka hai)..."
+                                               placeholder="Risk Note (e.g. Glass cracked, display risk on customer)..."
                                                class="w-full py-1.5 px-3 bg-white dark:bg-gray-800 border border-rose-300 dark:border-rose-700 rounded-lg text-xs text-gray-800 dark:text-gray-200 focus:ring-1 focus:ring-rose-500">
                                     </div>
                                 </div>
@@ -450,7 +450,7 @@
                         <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-700">
                             <h3 class="text-xs sm:text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                                 <span class="w-5 h-5 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black">3</span>
-                                Updated Bill & Peshgi
+                                Billing & Payment
                             </h3>
                             <span class="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-0.5 rounded-lg border border-amber-200 dark:border-amber-800">
                                 {{ $repair->order_no }}
@@ -459,7 +459,7 @@
 
                         <!-- Grand Total -->
                         <div class="p-4 rounded-xl bg-gradient-to-br from-slate-900 to-indigo-950 text-white space-y-1 shadow-sm">
-                            <span class="text-[10px] uppercase tracking-wider text-slate-400 font-black">Grand Total (Kul Bill)</span>
+                            <span class="text-[10px] uppercase tracking-wider text-slate-400 font-black">Total Repair Charges</span>
                             <div class="text-2xl sm:text-3xl font-black font-mono text-emerald-400">
                                 Rs <span x-text="calculateGrandTotal()"></span>
                             </div>
@@ -468,7 +468,7 @@
                         <!-- Advance Received -->
                         <div>
                             <label class="block text-[11px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
-                                Advance Received (Peshgi Raqam)
+                                Advance Received (Rs)
                             </label>
                             <div class="relative">
                                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">Rs</span>
@@ -476,9 +476,9 @@
                             </div>
                         </div>
 
-                        <!-- Baqaya / Remaining Balance -->
+                        <!-- Remaining Balance -->
                         <div class="p-3 bg-slate-50 dark:bg-gray-900/60 rounded-xl border border-slate-200 dark:border-gray-700 flex items-center justify-between">
-                            <span class="text-xs text-gray-600 dark:text-gray-400 font-bold uppercase tracking-wider">Remaining (Baqaya):</span>
+                            <span class="text-xs text-gray-600 dark:text-gray-400 font-bold uppercase tracking-wider">Remaining Balance:</span>
                             <span class="text-lg font-black font-mono" :class="calculateBalance() > 0 ? 'text-rose-600' : 'text-emerald-600'">
                                 Rs <span x-text="calculateBalance()"></span>
                             </span>
@@ -503,13 +503,13 @@
                                 <span>Update Order & Save</span>
                             </button>
                             <div class="text-center text-[10px] text-gray-400 font-semibold">
-                                Shortkey: <kbd class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded font-mono">Ctrl + Enter</kbd> dabayein
+                                Shortcut: Press <kbd class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded font-mono">Ctrl + Enter</kbd>
                             </div>
                         </div>
 
                         <div class="text-center pt-1">
                             <a href="{{ route('repairs.show', $repair->id) }}" class="text-xs font-bold text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition">
-                                Cancel (Wapas Jayein)
+                                Cancel
                             </a>
                         </div>
                     </div>
@@ -558,7 +558,7 @@
             <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-gray-200 dark:border-gray-700 space-y-4" @click.away="quickCustomerModalOpen = false">
                 <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-2.5">
                     <h3 class="font-black text-xs sm:text-sm text-gray-900 dark:text-white">
-                        Naya Customer (Direct Khata) Banayein
+                        Create New Customer
                     </h3>
                     <button type="button" @click="quickCustomerModalOpen = false" class="text-gray-400 hover:text-gray-600 font-black text-base">&times;</button>
                 </div>
@@ -587,8 +587,8 @@
                         <div>
                             <label class="block text-[10px] font-black uppercase text-gray-600 dark:text-gray-400 mb-1">Type</label>
                             <select x-model="quickCustomerForm.balance_type" class="w-full py-1.5 px-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-xs font-semibold text-gray-900 dark:text-white">
-                                <option value="debit">Lena Hai (Debit)</option>
-                                <option value="credit">Dena Hai (Credit)</option>
+                                <option value="debit">Debit (Receivable)</option>
+                                <option value="credit">Credit (Payable)</option>
                             </select>
                         </div>
                     </div>
@@ -599,7 +599,7 @@
                         </button>
                         <button type="submit" :disabled="savingCustomer" class="px-5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-xs flex items-center gap-1.5 disabled:opacity-50">
                             <span x-show="!savingCustomer">Save Customer</span>
-                            <span x-show="savingCustomer">Bana rahe hain...</span>
+                            <span x-show="savingCustomer">Saving...</span>
                         </button>
                     </div>
                 </form>
@@ -777,7 +777,7 @@
                 async saveQuickService() {
                     const name = (this.quickServiceForm.name || '').trim();
                     if (!name) {
-                        alert('Service ka naam likhna lazmi hai!');
+                        alert('Service name is required!');
                         return;
                     }
                     const rate = parseFloat(this.quickServiceForm.rate) || 0;
@@ -837,7 +837,7 @@
                 async saveQuickCustomer() {
                     const name = (this.quickCustomerForm.name || '').trim();
                     if (!name) {
-                        alert('Customer ka naam likhna lazmi hai!');
+                        alert('Customer name is required!');
                         return;
                     }
                     this.savingCustomer = true;
@@ -867,7 +867,7 @@
                             this.quickCustomerModalOpen = false;
                             return;
                         } else {
-                            alert(data.message || 'Customer shamil nahi ho saka.');
+                            alert(data.message || 'Could not save customer.');
                         }
                     } catch (err) {
                         if (window.OfflineSync) {
@@ -1072,19 +1072,19 @@
 
                     if (!trimmedName || trimmedName.length < 2) {
                         this.errors.customerName = true;
-                        this.formErrors.push('Customer ka naam likhna lazmi hai (kam az kam 2 huroof).');
+                        this.formErrors.push('Customer name is required (minimum 2 characters).');
                     }
 
                     if (!trimmedPhone) {
                         this.errors.customerPhone = true;
-                        this.formErrors.push('Customer ka mobile / WhatsApp number lazmi hai.');
+                        this.formErrors.push('Customer mobile / WhatsApp number is required.');
                     } else if (trimmedPhone.replace(/[^0-9]/g, '').length < 7) {
                         this.errors.customerPhone = true;
-                        this.formErrors.push('Valid phone number darj karein (kam az kam 7 digits).');
+                        this.formErrors.push('Please enter a valid phone number (minimum 7 digits).');
                     }
 
                     if (!this.devices || this.devices.length === 0) {
-                        this.formErrors.push('Kam az kam 1 mobile hona lazmi hai.');
+                        this.formErrors.push('At least 1 device is required.');
                     }
 
                     for (let i = 0; i < this.devices.length; i++) {
@@ -1098,12 +1098,12 @@
 
                         if (!modelTrim) {
                             dev.errors.model = true;
-                            this.formErrors.push(`Mobile #${i + 1}: Phone model ka naam select ya type karein.`);
+                            this.formErrors.push(`Mobile #${i + 1}: Please select or type the phone model.`);
                         }
 
                         if (!problemTrim && (!dev.services || dev.services.length === 0)) {
                             dev.errors.problem = true;
-                            this.formErrors.push(`Mobile #${i + 1}: Masla / fault likhein ya services select karein.`);
+                            this.formErrors.push(`Mobile #${i + 1}: Please enter the fault / problem or select services.`);
                         }
                     }
 
