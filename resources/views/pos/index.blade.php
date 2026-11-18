@@ -1628,10 +1628,24 @@
                     try {
                         const offlineSale = window.OfflineSync ? window.OfflineSync.saveOfflineSale(payload) : null;
                         
+                        let offWaUrl = '';
+                        if (this.selectedCustomer && this.selectedCustomer.phone) {
+                            let cleanPhone = (this.selectedCustomer.phone || '').replace(/\D/g, '');
+                            if (cleanPhone.startsWith('0')) cleanPhone = '92' + cleanPhone.substring(1);
+                            const netTotal = this.grandTotal();
+                            const totalPaid = this.totalPaid();
+                            const billDue = Math.max(0, netTotal - totalPaid);
+                            const prevBal = parseFloat(this.selectedCustomer.current_balance) || 0;
+                            const totalDue = prevBal + billDue;
+                            const offMsg = `Assalam-o-Alaikum ${this.selectedCustomer.name},\nInvoice #${offlineSale ? offlineSale.offline_id : 'OFFLINE'}\nTotal Bill: ${this.currency} ${netTotal.toFixed(2)}\nPaid: ${this.currency} ${totalPaid.toFixed(2)}\nBill Due: ${this.currency} ${billDue.toFixed(2)}\nTotal Due (Kul Baaqi): ${this.currency} ${totalDue.toFixed(2)}\n\nShukriya!\nInvenco Wholesaler`;
+                            offWaUrl = `https://wa.me/${cleanPhone}?text=` + encodeURIComponent(offMsg);
+                        }
+
                         this.lastSale = {
                             success: true,
                             message: 'Sale saved in Local Offline Queue!',
                             is_offline: true,
+                            whatsapp_url: offWaUrl,
                             sale: {
                                 id: offlineSale ? offlineSale.offline_id : 'OFFLINE-' + Date.now(),
                                 total_amount: this.grandTotal(),

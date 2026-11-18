@@ -605,6 +605,27 @@
                             </div>
                         </div>
 
+                        <!-- Pending Offline Sales List with Delete option -->
+                        <template x-if="salesCount > 0">
+                            <div class="mb-3">
+                                <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Queue Mein Pending Sales:</div>
+                                <div class="max-h-32 overflow-y-auto space-y-1.5 p-1.5 bg-amber-50/60 dark:bg-amber-950/40 rounded-xl border border-amber-200/80 dark:border-amber-800/80">
+                                    <template x-for="s in (window.OfflineSync ? window.OfflineSync.salesQueue : [])" :key="s.offline_id">
+                                        <div class="flex items-center justify-between text-[11px] p-1.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 shadow-2xs">
+                                            <div class="truncate mr-2">
+                                                <span class="font-bold text-gray-800 dark:text-gray-200" x-text="s.customer_name || s.party_name || 'Sale'"></span>
+                                                <div class="text-[10px] text-gray-500 font-mono" x-text="'Total: Rs ' + (s.total_amount || 0)"></div>
+                                            </div>
+                                            <button type="button" @click="if(confirm('Is offline sale ko cancel/delete karna chahte hain?')) { window.OfflineSync.deleteOfflineSale(s.offline_id); }"
+                                                class="px-2 py-0.5 text-[10px] font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition">
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+
                         <div class="flex flex-col gap-2">
                             <button type="button" @click="syncNow()" :disabled="!isOnline || isSyncing || pendingCount === 0"
                                 class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white rounded-xl font-bold flex items-center justify-center gap-1.5 transition shadow-2xs cursor-pointer">

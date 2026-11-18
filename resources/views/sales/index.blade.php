@@ -243,7 +243,10 @@
                                                     @can('view sales')
                                                         @php
                                                             $idxSignedUrl = \Illuminate\Support\Facades\URL::signedRoute('sales.public-pdf', ['sale' => $sale->id]);
-                                                            $idxSaleText = "Invoice #" . ($sale->invoice_number ?? $sale->id) . "\nCustomer: {$sale->party->name}\nTotal: Rs " . number_format($sale->total_amount, 2) . "\nPDF Link: {$idxSignedUrl}";
+                                                            $idxDue = max(0, $sale->total_amount - $sale->paid_amount);
+                                                            $idxTotalDue = $sale->party ? $sale->party->getCurrentBalance() : $idxDue;
+                                                            $curr = $settings->currency_symbol ?? 'Rs';
+                                                            $idxSaleText = "Invoice #" . ($sale->invoice_number ?? $sale->id) . "\nCustomer: {$sale->party->name}\nTotal: {$curr} " . number_format($sale->total_amount, 2) . "\nPaid: {$curr} " . number_format($sale->paid_amount, 2) . "\nBill Due: {$curr} " . number_format($idxDue, 2) . "\nTotal Due (Kul Baaqi): {$curr} " . number_format($idxTotalDue, 2) . "\nPDF Link: {$idxSignedUrl}";
                                                         @endphp
                                                         <button type="button"
                                                             onclick="window.shareDoc({
@@ -327,7 +330,9 @@
                                         $waPhone = '92' . $rawPhone;
                                     }
                                 }
-                                $waText = "Assalam-o-Alaikum {$sale->party->name}, Invoice #{$settings->invoice_prefix}{$sale->id} Total: {$settings->currency_symbol}" . number_format($sale->total_amount, 2) . ($due > 0 ? " Due: {$settings->currency_symbol}" . number_format($due, 2) : " (Paid)") . "\nShukriya!";
+                                $custTotalDue = $sale->party ? $sale->party->getCurrentBalance() : $due;
+                                $curr = $settings->currency_symbol ?? 'Rs';
+                                $waText = "Assalam-o-Alaikum {$sale->party->name},\nInvoice #{$settings->invoice_prefix}{$sale->id}\nTotal: {$curr} " . number_format($sale->total_amount, 2) . "\nPaid: {$curr} " . number_format($sale->paid_amount, 2) . ($due > 0 ? "\nBill Due: {$curr} " . number_format($due, 2) : " (Paid)") . "\nTotal Due (Kul Baaqi): {$curr} " . number_format($custTotalDue, 2) . "\n\nShukriya!\n" . ($settings->company_name ?? 'Invenco Wholesaler');
                             @endphp
                             <div class="bg-gray-50 dark:bg-gray-900/60 p-4 rounded-xl border border-gray-200 dark:border-gray-700/80 shadow-sm space-y-3">
                                 <!-- Header: ID, Date & Status Badge -->

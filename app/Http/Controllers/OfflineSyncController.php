@@ -11,6 +11,7 @@ use App\Models\SaleItem;
 use App\Models\Stock;
 use App\Models\LedgerEntry;
 use App\Models\Payment;
+use App\Models\PaymentSplit;
 use App\Models\Setting;
 use App\Models\Expense;
 use App\Models\Purchase;
@@ -359,7 +360,7 @@ class OfflineSyncController extends Controller
                             'debit' => $pAmount,
                             'credit' => 0,
                             'date' => $sale->date,
-                            'reference_type' => 'payment_received',
+                            'reference_type' => 'sale',
                             'reference_id' => $sale->id,
                             'note' => "Payment for Offline Sale #{$sale->id}",
                         ]);
@@ -372,11 +373,19 @@ class OfflineSyncController extends Controller
                                 'debit' => 0,
                                 'credit' => $pAmount,
                                 'date' => $sale->date,
-                                'reference_type' => 'payment_received',
+                                'reference_type' => 'sale',
                                 'reference_id' => $sale->id,
                                 'note' => "Payment received from {$party->name} for Offline Sale #{$sale->id}",
                             ]);
                         }
+
+                        PaymentSplit::create([
+                            'reference_type' => 'sale',
+                            'reference_id' => $sale->id,
+                            'account_id' => $paymentData['account_id'],
+                            'amount' => $pAmount,
+                            'note' => "Payment for Offline Sale #{$sale->id}",
+                        ]);
                     }
 
                     $this->logActivity('Synced Offline Sale', 'Sales', $sale->id, null, $sale->toArray());

@@ -11,6 +11,7 @@ use App\Models\Stock;
 use App\Models\ChartOfAccount;
 use App\Models\LedgerEntry;
 use App\Models\PaymentSplit;
+use App\Models\Payment;
 use App\Models\Setting;
 use App\Traits\TracksActivity;
 use Illuminate\Http\Request;
@@ -664,16 +665,33 @@ class SaleController extends Controller implements HasMiddleware
                 }
             }
 
-            // Delete ledger entries and payment splits
-            LedgerEntry::where('reference_type', 'sale')->where('reference_id', $sale->id)->delete();
-            PaymentSplit::where('reference_type', 'sale')->where('reference_id', $sale->id)->delete();
+            // 1. Delete all ledger entries related to this sale (sale revenue, AR receivable, COGS, payment received, accounts)
+            LedgerEntry::where('reference_id', $sale->id)
+                ->whereIn('reference_type', ['sale', 'sale_cogs', 'payment_received', 'payment'])
+                ->delete();
 
+            // Also remove any ledger entries referencing this Sale ID in their note
+            LedgerEntry::where('note', 'like', "%Sale #{$sale->id}%")->delete();
+
+            // 2. Delete payment splits
+            PaymentSplit::where('reference_id', $sale->id)
+                ->whereIn('reference_type', ['sale', 'payment_received'])
+                ->delete();
+
+            // 3. Delete any direct payment records linked to this sale
+            if (!empty($sale->offline_id)) {
+                Payment::where('offline_id', 'like', "%{$sale->offline_id}%")->delete();
+            }
+            Payment::where('note', 'like', "%Sale #{$sale->id}%")->delete();
+
+            // 4. Delete sale items & sale record
+            $sale->items()->delete();
             $sale->delete();
         });
 
         $this->logActivity('Deleted Sale', 'Sales', $sale->id, $sale->toArray(), null);
 
-        return redirect()->route('sales.index')->with('success', 'Sale deleted successfully!');
+        return redirect()->route('sales.index')->with('success', 'Sale and all associated ledger, payment & account entries deleted successfully!');
     }
 
     public function customerLastPrice(Request $request)

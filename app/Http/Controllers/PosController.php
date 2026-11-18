@@ -321,7 +321,54 @@ class PosController extends Controller implements HasMiddleware
                     $cleanPhone = '92' . substr($cleanPhone, 1);
                 }
                 $signedUrl = URL::signedRoute('sales.public-pdf', ['sale' => $sale->id]);
-                $msg = "Dear {$sale->party->name}, your invoice #{$sale->id} for amount " . ($settings->currency_symbol ?? 'Rs') . " " . number_format($sale->total_amount, 2) . " has been created.\nInvoice: {$signedUrl}";
+                $currSymbol = $settings->currency_symbol ?? 'Rs';
+                $invoicePrefix = $settings->invoice_prefix ?? '';
+                $saleDue = max(0, $sale->total_amount - $sale->paid_amount);
+                $totalDue = (float)$sale->party->getCurrentBalance();
+                $prevBalance = $totalDue - $saleDue;
+
+                $template = $settings->whatsapp_sale_template;
+                if (!empty($template)) {
+                    $msg = strtr($template, [
+                        '{customer_name}' => $sale->party->name,
+                        '{party_name}' => $sale->party->name,
+                        '{invoice_id}' => $invoicePrefix . $sale->id,
+                        '{date}' => $sale->date,
+                        '{time}' => now()->format('h:i A'),
+                        '{status}' => $saleDue > 0 ? 'Balance Due' : 'Paid',
+                        '{total}' => "{$currSymbol} " . number_format($sale->total_amount, 2),
+                        '{paid_amount}' => "{$currSymbol} " . number_format($sale->paid_amount, 2),
+                        '{discount}' => $sale->discount_amount > 0 ? ("Discount: {$currSymbol} " . number_format($sale->discount_amount, 2) . "\n") : '',
+                        '{previous_balance}' => "{$currSymbol} " . number_format(abs($prevBalance), 2) . ' ' . ($prevBalance >= 0 ? '(Rec)' : '(Pay)'),
+                        '{balance_due}' => "{$currSymbol} " . number_format($saleDue, 2),
+                        '{total_due}' => "{$currSymbol} " . number_format($totalDue, 2) . ' ' . ($totalDue >= 0 ? '(Lena Hai)' : '(Advance)'),
+                        '{customer_total_due}' => "{$currSymbol} " . number_format($totalDue, 2),
+                        '{net_due}' => "{$currSymbol} " . number_format($totalDue, 2),
+                        '{invoice_link}' => $signedUrl,
+                        '{company_name}' => $settings->company_name ?? 'Invenco Wholesaler',
+                    ]);
+
+                    if (!str_contains($template, '{total_due}') && !str_contains($template, '{customer_total_due}') && !str_contains($template, '{net_due}')) {
+                        $dueSnippet = "Total Due (Kul Baaqi): {$currSymbol} " . number_format($totalDue, 2);
+                        if (str_contains($msg, 'Invoice PDF:')) {
+                            $msg = str_replace('Invoice PDF:', "{$dueSnippet}\n\nInvoice PDF:", $msg);
+                        } else {
+                            $msg .= "\n{$dueSnippet}";
+                        }
+                    }
+                } else {
+                    $msg = "Assalam-o-Alaikum {$sale->party->name},\n"
+                         . "Aapka Invoice #{$invoicePrefix}{$sale->id} ban chuka hai.\n"
+                         . "Date: {$sale->date}\n"
+                         . "Total Bill: {$currSymbol} " . number_format($sale->total_amount, 2) . "\n"
+                         . "Paid Amount: {$currSymbol} " . number_format($sale->paid_amount, 2) . "\n"
+                         . ($sale->discount_amount > 0 ? "Discount: {$currSymbol} " . number_format($sale->discount_amount, 2) . "\n" : "")
+                         . "Bill Due: {$currSymbol} " . number_format($saleDue, 2) . "\n"
+                         . "Total Due (Kul Baaqi): {$currSymbol} " . number_format($totalDue, 2) . "\n\n"
+                         . "Invoice PDF: {$signedUrl}\n\n"
+                         . "Shukriya,\n" . ($settings->company_name ?? 'Invenco Wholesaler');
+                }
+
                 $whatsappUrl = "https://wa.me/{$cleanPhone}?text=" . urlencode($msg);
             }
 

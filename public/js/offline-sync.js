@@ -289,6 +289,36 @@
         }
 
         /**
+         * Delete / remove a pending sale from offline queue.
+         */
+        deleteOfflineSale(offlineId) {
+            const initialLen = this.salesQueue.length;
+            this.salesQueue = this.salesQueue.filter(s => s.offline_id !== offlineId && s.id !== offlineId);
+            if (this.salesQueue.length !== initialLen) {
+                this.saveQueue(STORAGE_KEY_SALES, this.salesQueue);
+                this.dispatchStatusEvent();
+                this.showSyncToast('Offline sale queue se delete kar di gayi.');
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * Delete / remove a pending payment from offline queue.
+         */
+        deleteOfflinePayment(offlineId) {
+            const initialLen = this.paymentsQueue.length;
+            this.paymentsQueue = this.paymentsQueue.filter(p => p.offline_id !== offlineId && p.id !== offlineId);
+            if (this.paymentsQueue.length !== initialLen) {
+                this.saveQueue(STORAGE_KEY_PAYMENTS, this.paymentsQueue);
+                this.dispatchStatusEvent();
+                this.showSyncToast('Offline payment queue se delete kar di gayi.');
+                return true;
+            }
+            return false;
+        }
+
+        /**
          * Synchronize pending items to server.
          */
         async syncAll() {

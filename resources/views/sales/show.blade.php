@@ -87,22 +87,38 @@
                                     }
                                 }
                                 $publicPdfUrl = \Illuminate\Support\Facades\URL::signedRoute('sales.public-pdf', ['sale' => $sale->id]);
-                                $saleDue = $sale->total_amount - $sale->paid_amount;
-                                $prevBalance = $sale->party->getCurrentBalance() - $saleDue;
-                                $template = $settings->whatsapp_sale_template ?: "Assalam-o-Alaikum {customer_name}, aapka Invoice #{invoice_id} taiyar hai.\nDate: {date} {time}\nStatus: {status}\nTotal: {total}\n{discount}Previous Balance: {previous_balance}\nBalance Due: {balance_due}\n\nInvoice PDF: {invoice_link}\n\nShukriya,\n{company_name}";
+                                $saleDue = max(0, $sale->total_amount - $sale->paid_amount);
+                                $totalDue = (float)($sale->party ? $sale->party->getCurrentBalance() : $saleDue);
+                                $prevBalance = $totalDue - $saleDue;
+                                $curr = $settings->currency_symbol ?? 'Rs';
+                                $template = $settings->whatsapp_sale_template ?: "Assalam-o-Alaikum {customer_name}, aapka Invoice #{invoice_id} taiyar hai.\nDate: {date} {time}\nStatus: {status}\nTotal: {total}\nPaid: {paid_amount}\n{discount}Previous Balance: {previous_balance}\nBill Due: {balance_due}\nTotal Due: {total_due}\n\nInvoice PDF: {invoice_link}\n\nShukriya,\n{company_name}";
                                 $whatsappMessage = strtr($template, [
-                                    '{customer_name}' => $sale->party->name,
-                                    '{invoice_id}' => $settings->invoice_prefix . $sale->id,
+                                    '{customer_name}' => $sale->party->name ?? 'Valued Customer',
+                                    '{party_name}' => $sale->party->name ?? 'Valued Customer',
+                                    '{invoice_id}' => ($settings->invoice_prefix ?? '') . $sale->id,
                                     '{date}' => $sale->date,
                                     '{time}' => $sale->created_at->timezone(config('app.timezone'))->format('h:i A'),
                                     '{status}' => $saleDue > 0 ? 'Balance Due' : 'Paid',
-                                    '{total}' => ($settings->currency_symbol ?? 'Rs') . ' ' . number_format($sale->total_amount, 2),
-                                    '{discount}' => $sale->discount_amount > 0 ? ('Discount: ' . ($settings->currency_symbol ?? 'Rs') . ' ' . number_format($sale->discount_amount, 2) . "\n") : '',
-                                    '{previous_balance}' => ($settings->currency_symbol ?? 'Rs') . ' ' . number_format(abs($prevBalance), 2) . ' ' . ($prevBalance >= 0 ? '(Rec)' : '(Pay)'),
-                                    '{balance_due}' => ($settings->currency_symbol ?? 'Rs') . ' ' . number_format($saleDue, 2),
+                                    '{total}' => $curr . ' ' . number_format($sale->total_amount, 2),
+                                    '{paid_amount}' => $curr . ' ' . number_format($sale->paid_amount, 2),
+                                    '{discount}' => $sale->discount_amount > 0 ? ('Discount: ' . $curr . ' ' . number_format($sale->discount_amount, 2) . "\n") : '',
+                                    '{previous_balance}' => $curr . ' ' . number_format(abs($prevBalance), 2) . ' ' . ($prevBalance >= 0 ? '(Rec)' : '(Pay)'),
+                                    '{balance_due}' => $curr . ' ' . number_format($saleDue, 2),
+                                    '{total_due}' => $curr . ' ' . number_format($totalDue, 2) . ' ' . ($totalDue >= 0 ? '(Baaqi Lena Hai)' : '(Advance)'),
+                                    '{customer_total_due}' => $curr . ' ' . number_format($totalDue, 2),
+                                    '{net_due}' => $curr . ' ' . number_format($totalDue, 2),
                                     '{invoice_link}' => $publicPdfUrl,
-                                    '{company_name}' => $settings->company_name,
+                                    '{company_name}' => $settings->company_name ?? 'Invenco Wholesaler',
                                 ]);
+
+                                if (!str_contains($template, '{total_due}') && !str_contains($template, '{customer_total_due}') && !str_contains($template, '{net_due}')) {
+                                    $dueSnippet = "Total Due (Kul Baaqi): {$curr} " . number_format($totalDue, 2);
+                                    if (str_contains($whatsappMessage, 'Invoice PDF:')) {
+                                        $whatsappMessage = str_replace('Invoice PDF:', "{$dueSnippet}\n\nInvoice PDF:", $whatsappMessage);
+                                    } else {
+                                        $whatsappMessage .= "\n{$dueSnippet}";
+                                    }
+                                }
                             @endphp
 
                             <button type="button"
