@@ -998,11 +998,11 @@ class RepairController extends Controller
             ]
         );
 
-        if ($request->wantsJson() || $request->ajax()) {
+        if ($request->wantsJson() || $request->ajax() || $request->expectsJson() || $request->isJson() || str_contains($request->header('Accept', ''), 'application/json')) {
             return response()->json([
                 'success' => true,
                 'service' => $service,
-                'message' => 'Nayi service kamiyabi se add ho gayi.'
+                'message' => 'New service added successfully.'
             ]);
         }
 

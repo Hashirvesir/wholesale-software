@@ -288,6 +288,7 @@
                                             <input type="text"
                                                    x-model="device.serviceSearch"
                                                    @focus="device.serviceDropdownOpen = true; device.serviceHighlightedIndex = 0"
+                                                   @click="device.serviceDropdownOpen = true"
                                                    @input="device.serviceDropdownOpen = true; device.serviceHighlightedIndex = 0"
                                                    @keydown.arrow-down.prevent="device.serviceHighlightedIndex = Math.min((device.serviceHighlightedIndex || 0) + 1, getFilteredServices(device).length - 1)"
                                                    @keydown.arrow-up.prevent="device.serviceHighlightedIndex = Math.max((device.serviceHighlightedIndex || 0) - 1, 0)"
@@ -305,7 +306,7 @@
                                         </div>
 
                                         <!-- Live Search Dropdown Menu (Only shows when searching) -->
-                                        <div x-show="device.serviceDropdownOpen && (device.serviceSearch || '').trim().length > 0"
+                                        <div x-show="device.serviceDropdownOpen"
                                              x-cloak
                                              class="absolute z-30 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-1 divide-y divide-gray-100 dark:divide-gray-700/60">
                                             
@@ -331,11 +332,17 @@
                                                 </button>
                                             </template>
 
+                                            <div x-show="device.serviceSearch && !getFilteredServices(device).some(s => s.name.toLowerCase() === device.serviceSearch.trim().toLowerCase())"
+                                                 @click="openQuickAddServiceModal(device, device.serviceSearch); device.serviceDropdownOpen = false"
+                                                 class="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold cursor-pointer text-xs flex items-center gap-1.5 border-t border-indigo-100">
+                                                <span>+ Add "</span><span x-text="device.serviceSearch"></span><span>" as New Service</span>
+                                            </div>
+
                                             <template x-if="getFilteredServices(device).length === 0">
                                                 <div class="p-3 text-center text-xs text-gray-500">
                                                     No matching service found: "<strong class="text-indigo-600" x-text="device.serviceSearch"></strong>"
                                                     <div class="mt-1.5">
-                                                        <button type="button" @click="quickServiceForm.name = device.serviceSearch; openQuickAddServiceModal(device); device.serviceDropdownOpen = false" class="px-3 py-1 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700">
+                                                        <button type="button" @click="openQuickAddServiceModal(device, device.serviceSearch); device.serviceDropdownOpen = false" class="px-3 py-1 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700">
                                                             + Create New Service
                                                         </button>
                                                     </div>
@@ -430,6 +437,7 @@
                                 </div>
 
                                 <!-- Hidden fields -->
+                                <input type="hidden" :name="'devices[' + dIdx + '][services]'" :value="JSON.stringify(device.services || [])">
                                 <input type="hidden" :name="'devices[' + dIdx + '][warranty_days]'" :value="device.warrantyDays || 0">
                                 <input type="hidden" :name="'devices[' + dIdx + '][security_type]'" :value="device.securityType || 'none'">
                                 <input type="hidden" :name="'devices[' + dIdx + '][security_code]'" :value="device.securityCode || ''">
@@ -764,10 +772,10 @@
                     rate: 500
                 },
 
-                openQuickAddServiceModal(device) {
+                openQuickAddServiceModal(device, defaultName = '') {
                     this.quickServiceTargetDevice = device;
                     this.quickServiceForm = {
-                        name: '',
+                        name: defaultName || (device ? (device.serviceSearch || '') : '') || '',
                         category: 'General Repair',
                         rate: 500
                     };
@@ -787,6 +795,8 @@
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
                                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
                             },
                             body: JSON.stringify({
@@ -808,6 +818,20 @@
                         }
                     } catch (e) {
                         console.error(e);
+                    }
+
+                    // Fallback (offline / direct client apply)
+                    const fallbackService = {
+                        id: 'temp_' + Date.now(),
+                        name: name,
+                        category: 'General Repair',
+                        default_labor_cost: rate
+                    };
+                    if (!this.servicesList.find(s => s.name.toLowerCase() === name.toLowerCase())) {
+                        this.servicesList.push(fallbackService);
+                    }
+                    if (this.quickServiceTargetDevice) {
+                        this.toggleService(this.quickServiceTargetDevice, fallbackService);
                     }
                     this.quickServiceModalOpen = false;
                 },
