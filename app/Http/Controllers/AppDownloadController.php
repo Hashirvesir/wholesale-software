@@ -21,6 +21,13 @@ class AppDownloadController extends Controller
         }
 
         if ($platform === 'windows' || $platform === 'exe') {
+            $installerExe = $downloadsDir . '/Invenco-Wholesaler-Setup.exe';
+            if (File::exists($installerExe)) {
+                return response()->download($installerExe, 'Invenco-Wholesaler-Setup.exe', [
+                    'Content-Type' => 'application/octet-stream',
+                ]);
+            }
+
             $specificExe = $downloadsDir . '/Invenco-Setup.exe';
             if (File::exists($specificExe)) {
                 return response()->download($specificExe, 'Invenco-Wholesaler-Setup.exe', [

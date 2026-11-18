@@ -7,6 +7,7 @@
 
     const STORAGE_KEY_SALES = 'invenco_offline_sales_queue';
     const STORAGE_KEY_PAYMENTS = 'invenco_offline_payments_queue';
+    const STORAGE_KEY_CUSTOMERS = 'invenco_offline_customers_queue';
     const STORAGE_KEY_MASTER = 'invenco_offline_master_data';
     const STORAGE_KEY_LAST_SYNC = 'invenco_offline_last_sync';
 
@@ -17,6 +18,7 @@
             this.lastSyncTime = localStorage.getItem(STORAGE_KEY_LAST_SYNC) || null;
             this.salesQueue = this.loadQueue(STORAGE_KEY_SALES);
             this.paymentsQueue = this.loadQueue(STORAGE_KEY_PAYMENTS);
+            this.customersQueue = this.loadQueue(STORAGE_KEY_CUSTOMERS);
             this.masterData = this.loadMasterData();
             this.pingTimer = null;
 
@@ -160,7 +162,7 @@
         }
 
         getPendingCount() {
-            return this.salesQueue.length + this.paymentsQueue.length;
+            return this.salesQueue.length + this.paymentsQueue.length + this.customersQueue.length;
         }
 
         dispatchStatusEvent() {
@@ -170,6 +172,7 @@
                 pendingCount: this.getPendingCount(),
                 salesCount: this.salesQueue.length,
                 paymentsCount: this.paymentsQueue.length,
+                customersCount: this.customersQueue.length,
                 lastSyncTime: this.lastSyncTime
             };
 
@@ -245,6 +248,47 @@
         }
 
         /**
+         * Enqueue an offline customer.
+         */
+        saveOfflineCustomer(customerData) {
+            const offlineId = 'OFFLINE-CUST-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7);
+            const openingBal = parseFloat(customerData.opening_balance) || 0;
+            const balType = customerData.balance_type || 'debit';
+            const enriched = {
+                offline_id: offlineId,
+                id: offlineId,
+                name: customerData.name,
+                phone: customerData.phone || '',
+                address: customerData.address || '',
+                price_tier: customerData.price_tier || 'retail',
+                opening_balance: openingBal,
+                balance_type: balType,
+                current_balance: (balType === 'credit' ? -1 : 1) * openingBal,
+                is_offline: true,
+                client_created_at: new Date().toISOString()
+            };
+
+            this.customersQueue.push(enriched);
+            this.saveQueue(STORAGE_KEY_CUSTOMERS, this.customersQueue);
+
+            // Also dynamically append to cached masterData.customers if available
+            if (this.masterData && Array.isArray(this.masterData.customers)) {
+                this.masterData.customers.unshift(enriched);
+                try {
+                    localStorage.setItem(STORAGE_KEY_MASTER, JSON.stringify(this.masterData));
+                } catch(e){}
+            }
+
+            this.showSyncToast(`Customer "${enriched.name}" offline save ho gaya! Online aane par sync ho jayega.`);
+
+            if (this.isOnline) {
+                this.syncAll();
+            }
+
+            return enriched;
+        }
+
+        /**
          * Synchronize pending items to server.
          */
         async syncAll() {
@@ -259,6 +303,7 @@
             const csrfToken = tokenEl ? tokenEl.getAttribute('content') : '';
 
             const payload = {
+                customers: this.customersQueue,
                 sales: this.salesQueue,
                 payments: this.paymentsQueue
             };
@@ -278,6 +323,27 @@
                 if (res.ok) {
                     const result = await res.json();
 
+                    // Remove successfully synced customers
+                    if (result.synced_customers && result.synced_customers.length > 0) {
+                        const syncedCustIds = new Set(result.synced_customers.map(c => c.offline_id));
+                        this.customersQueue = this.customersQueue.filter(c => !syncedCustIds.has(c.offline_id));
+                        this.saveQueue(STORAGE_KEY_CUSTOMERS, this.customersQueue);
+
+                        // If any offline sales were tied to an offline customer ID, update party_id to real server_id
+                        result.synced_customers.forEach(sc => {
+                            let updated = false;
+                            this.salesQueue.forEach(s => {
+                                if (s.party_id === sc.offline_id) {
+                                    s.party_id = sc.server_id;
+                                    updated = true;
+                                }
+                            });
+                            if (updated) {
+                                this.saveQueue(STORAGE_KEY_SALES, this.salesQueue);
+                            }
+                        });
+                    }
+
                     // Remove successfully synced sales
                     if (result.synced_sales && result.synced_sales.length > 0) {
                         const syncedIds = new Set(result.synced_sales.map(s => s.offline_id));
@@ -296,7 +362,8 @@
                     localStorage.setItem(STORAGE_KEY_LAST_SYNC, this.lastSyncTime);
 
                     // Show success notification if items were synced
-                    const totalSynced = (result.synced_sales ? result.synced_sales.length : 0) +
+                    const totalSynced = (result.synced_customers ? result.synced_customers.length : 0) +
+                                        (result.synced_sales ? result.synced_sales.length : 0) +
                                         (result.synced_payments ? result.synced_payments.length : 0);
 
                     if (totalSynced > 0) {

@@ -775,6 +775,15 @@
                     }
                     this.savingCustomer = true;
                     try {
+                        const isOffline = !navigator.onLine || (window.OfflineSync && !window.OfflineSync.isOnline);
+                        if (isOffline && window.OfflineSync) {
+                            const offCust = window.OfflineSync.saveOfflineCustomer(this.quickCustomerForm);
+                            this.customersList.unshift(offCust);
+                            this.selectCustomer(offCust);
+                            this.quickCustomerModalOpen = false;
+                            return;
+                        }
+
                         const res = await fetch("{{ route('repairs.customer.quick-store') }}", {
                             method: 'POST',
                             headers: {
@@ -794,7 +803,14 @@
                             alert(data.message || 'Customer shamil nahi ho saka.');
                         }
                     } catch (err) {
-                        alert('Error: ' + err.message);
+                        if (window.OfflineSync) {
+                            const offCust = window.OfflineSync.saveOfflineCustomer(this.quickCustomerForm);
+                            this.customersList.unshift(offCust);
+                            this.selectCustomer(offCust);
+                            this.quickCustomerModalOpen = false;
+                        } else {
+                            alert('Error: ' + err.message);
+                        }
                     } finally {
                         this.savingCustomer = false;
                     }

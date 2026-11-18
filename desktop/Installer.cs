@@ -148,16 +148,28 @@ namespace InvencoInstaller
         {
             try
             {
-                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-                string shortcutPath = Path.Combine(desktopPath, "Invenco Wholesaler.lnk");
-
                 Type t = Type.GetTypeFromCLSID(new Guid("72C24DD5-D70A-438B-8A42-98424B88AFB8")); // WScript.Shell
                 dynamic shell = Activator.CreateInstance(t);
+
+                // 1. Desktop Shortcut
+                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+                string shortcutPath = Path.Combine(desktopPath, "Invenco Wholesaler.lnk");
                 dynamic shortcut = shell.CreateShortcut(shortcutPath);
                 shortcut.TargetPath = targetPath;
                 shortcut.WorkingDirectory = Path.GetDirectoryName(targetPath);
                 shortcut.Description = "Invenco Wholesaler Software";
+                shortcut.IconLocation = targetPath + ",0";
                 shortcut.Save();
+
+                // 2. Windows Start Menu Shortcut (So it appears in Windows Search & Pin to Start)
+                string programsPath = Environment.GetFolderPath(Environment.SpecialFolder.Programs);
+                string startMenuShortcut = Path.Combine(programsPath, "Invenco Wholesaler.lnk");
+                dynamic startShortcut = shell.CreateShortcut(startMenuShortcut);
+                startShortcut.TargetPath = targetPath;
+                startShortcut.WorkingDirectory = Path.GetDirectoryName(targetPath);
+                startShortcut.Description = "Invenco Wholesaler Software";
+                startShortcut.IconLocation = targetPath + ",0";
+                startShortcut.Save();
             }
             catch {}
         }

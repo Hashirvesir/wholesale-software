@@ -7,7 +7,7 @@
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder"
+    "dist": "electron-builder --win nsis"
   },
   "build": {
     "appId": "com.invenco.wholesaler",
@@ -17,17 +17,19 @@
     },
     "win": {
       "target": [
-        "portable"
+        "nsis"
       ],
-      "icon": "icon.png",
-      "artifactName": "Invenco-Setup.exe"
+      "icon": "icon.ico",
+      "artifactName": "Invenco-Wholesaler-Setup.exe"
     },
     "nsis": {
       "oneClick": false,
+      "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Invenco Wholesaler"
+      "shortcutName": "Invenco Wholesaler",
+      "uninstallDisplayName": "Invenco Wholesaler Software"
     }
   },
   "devDependencies": {

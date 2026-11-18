@@ -1170,6 +1170,15 @@
                 async saveQuickCustomer() {
                     this.savingCustomer = true;
                     try {
+                        const isOffline = !navigator.onLine || (window.OfflineSync && !window.OfflineSync.isOnline);
+                        if (isOffline && window.OfflineSync) {
+                            const offCust = window.OfflineSync.saveOfflineCustomer(this.newCustomer);
+                            this.customers.unshift(offCust);
+                            this.selectCustomer(offCust);
+                            this.showCustomerModal = false;
+                            return;
+                        }
+
                         const res = await fetch('{{ route("pos.quick-add-customer") }}', {
                             method: 'POST',
                             headers: {
@@ -1189,7 +1198,14 @@
                             alert(data.message || 'Failed to save customer');
                         }
                     } catch (err) {
-                        alert('Error saving customer: ' + err.message);
+                        if (window.OfflineSync) {
+                            const offCust = window.OfflineSync.saveOfflineCustomer(this.newCustomer);
+                            this.customers.unshift(offCust);
+                            this.selectCustomer(offCust);
+                            this.showCustomerModal = false;
+                        } else {
+                            alert('Error saving customer: ' + err.message);
+                        }
                     } finally {
                         this.savingCustomer = false;
                     }

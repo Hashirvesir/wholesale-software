@@ -2,6 +2,11 @@ const { app, BrowserWindow, ipcMain, Menu, shell, dialog } = require('electron')
 const path = require('path');
 const fs = require('fs');
 
+// Set Application User Model ID for Windows Taskbar grouping, shortcuts & search
+if (process.platform === 'win32') {
+    app.setAppUserModelId('com.invenco.wholesaler');
+}
+
 let mainWindow = null;
 const configFile = path.join(app.getPath('userData'), 'invenco-store-config.json');
 
@@ -32,7 +37,9 @@ function createWindow() {
         minWidth: 1024,
         minHeight: 600,
         title: 'Invenco Wholesaler Software',
-        icon: path.join(__dirname, 'icon.png'),
+        icon: process.platform === 'win32' && fs.existsSync(path.join(__dirname, 'icon.ico'))
+            ? path.join(__dirname, 'icon.ico')
+            : path.join(__dirname, 'icon.png'),
         autoHideMenuBar: true,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),

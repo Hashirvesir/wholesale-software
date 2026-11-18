@@ -32,4 +32,5 @@ Thumbs.db
 /public/downloads/*
 !/public/downloads/README.txt
 !/public/downloads/Invenco-Setup.exe
+!/public/downloads/Invenco-Wholesaler-Setup.exe
 !/public/downloads/Invenco-Wholesaler.apk

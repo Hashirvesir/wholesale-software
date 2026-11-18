@@ -118,15 +118,18 @@ class OfflineSyncController extends Controller
     }
 
     /**
-     * Sync queued offline sales and payments to the database.
+     * Sync queued offline sales, payments, and customers to the database.
      */
     public function sync(Request $request)
     {
+        $customersQueue = $request->input('customers', []);
         $salesQueue = $request->input('sales', []);
         $paymentsQueue = $request->input('payments', []);
 
+        $syncedCustomers = [];
         $syncedSales = [];
         $syncedPayments = [];
+        $customerMap = []; // offline_id => real server Party id
         $errors = [];
 
         $settings = Setting::first();
@@ -135,11 +138,74 @@ class OfflineSyncController extends Controller
         $cogsAccount = ChartOfAccount::where('name', 'COGS')->first();
         $inventoryAccount = ChartOfAccount::where('name', 'Inventory')->first();
 
-        // 1. Process Sales Queue
+        // 1. Process Offline Customers Queue First
+        foreach ($customersQueue as $rawCust) {
+            $offlineId = $rawCust['offline_id'] ?? null;
+            if (!$offlineId) {
+                continue;
+            }
+
+            try {
+                $phone = !empty($rawCust['phone']) ? trim($rawCust['phone']) : null;
+                $existing = null;
+
+                if ($phone) {
+                    $existing = Party::where('phone', $phone)->where('type', 'customer')->first();
+                }
+
+                if (!$existing) {
+                    $party = Party::create([
+                        'name' => $rawCust['name'],
+                        'type' => 'customer',
+                        'price_tier' => $rawCust['price_tier'] ?? 'retail',
+                        'phone' => $phone,
+                        'address' => $rawCust['address'] ?? null,
+                        'opening_balance' => (float)($rawCust['opening_balance'] ?? 0),
+                        'balance_type' => $rawCust['balance_type'] ?? 'debit',
+                        'status' => true,
+                    ]);
+
+                    $this->logActivity('Synced Offline Customer', 'Parties', $party->id, null, $party->toArray());
+
+                    $syncedCustomers[] = [
+                        'offline_id' => $offlineId,
+                        'server_id' => $party->id,
+                        'name' => $party->name,
+                        'phone' => $party->phone,
+                        'current_balance' => (float)$party->getCurrentBalance(),
+                    ];
+                    $customerMap[$offlineId] = $party->id;
+                } else {
+                    $syncedCustomers[] = [
+                        'offline_id' => $offlineId,
+                        'server_id' => $existing->id,
+                        'name' => $existing->name,
+                        'phone' => $existing->phone,
+                        'current_balance' => (float)$existing->getCurrentBalance(),
+                        'already_synced' => true,
+                    ];
+                    $customerMap[$offlineId] = $existing->id;
+                }
+            } catch (\Throwable $e) {
+                Log::error("Offline customer sync error [{$offlineId}]: " . $e->getMessage());
+                $errors[] = [
+                    'type' => 'customer',
+                    'offline_id' => $offlineId,
+                    'message' => $e->getMessage(),
+                ];
+            }
+        }
+
+        // 2. Process Sales Queue
         foreach ($salesQueue as $rawSale) {
             $offlineId = $rawSale['offline_id'] ?? null;
             if (!$offlineId) {
                 continue;
+            }
+
+            // Remap offline customer ID if needed
+            if (!empty($rawSale['party_id']) && isset($customerMap[$rawSale['party_id']])) {
+                $rawSale['party_id'] = $customerMap[$rawSale['party_id']];
             }
 
             // Idempotency check: Already synced earlier?
@@ -333,11 +399,16 @@ class OfflineSyncController extends Controller
             }
         }
 
-        // 2. Process Payments Queue
+        // 3. Process Payments Queue
         foreach ($paymentsQueue as $rawPayment) {
             $offlineId = $rawPayment['offline_id'] ?? null;
             if (!$offlineId) {
                 continue;
+            }
+
+            // Remap offline customer ID if needed
+            if (!empty($rawPayment['party_id']) && isset($customerMap[$rawPayment['party_id']])) {
+                $rawPayment['party_id'] = $customerMap[$rawPayment['party_id']];
             }
 
             $existing = Payment::where('offline_id', $offlineId)->first();
@@ -455,10 +526,11 @@ class OfflineSyncController extends Controller
 
         return response()->json([
             'success' => count($errors) === 0,
+            'synced_customers' => $syncedCustomers,
             'synced_sales' => $syncedSales,
             'synced_payments' => $syncedPayments,
             'errors' => $errors,
-            'message' => 'Offline sync completed. ' . count($syncedSales) . ' sales and ' . count($syncedPayments) . ' payments synchronized.',
+            'message' => 'Offline sync completed. ' . count($syncedCustomers) . ' customers, ' . count($syncedSales) . ' sales and ' . count($syncedPayments) . ' payments synchronized.',
         ]);
     }
 }
