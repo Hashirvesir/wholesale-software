@@ -545,7 +545,9 @@
                     },
                     syncNow() {
                         if (window.OfflineSync) {
-                            window.OfflineSync.syncAll();
+                            window.OfflineSync.checkConnection(true).then(() => {
+                                window.OfflineSync.syncAll();
+                            });
                         }
                     },
                     downloadCache() {

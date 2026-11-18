@@ -67,12 +67,29 @@
 
             // 2. Network status event listeners
             window.addEventListener('online', () => {
+                // Instantly update online flag so UI responds without delay
+                this.isOnline = true;
+                this.dispatchStatusEvent();
+                // Verify with server ping and trigger sync
                 this.checkConnection(true);
             });
 
             window.addEventListener('offline', () => {
                 this.isOnline = false;
                 this.dispatchStatusEvent();
+            });
+
+            // Focus & Visibility listeners: auto-reconnect when user returns to window/tab
+            window.addEventListener('focus', () => {
+                if (navigator.onLine) {
+                    this.checkConnection(true);
+                }
+            });
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible' && navigator.onLine) {
+                    this.checkConnection(true);
+                }
             });
 
             // 3. Periodic real ping check (every 15s)
@@ -88,34 +105,57 @@
         }
 
         async checkConnection(triggerSyncIfOnline = false) {
+            // If browser itself reports offline, definitely offline
             if (!navigator.onLine) {
-                this.isOnline = false;
-                this.dispatchStatusEvent();
+                if (this.isOnline) {
+                    this.isOnline = false;
+                    this.dispatchStatusEvent();
+                }
                 return false;
             }
 
+            const wasOffline = !this.isOnline;
+            let reachedServer = false;
+
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 4000);
+                const timeoutId = setTimeout(() => controller.abort(), 6000);
 
-                const res = await fetch('/api/offline/ping', {
+                const res = await fetch('/api/offline/ping?_t=' + Date.now(), {
                     method: 'GET',
                     headers: { 'Accept': 'application/json' },
+                    cache: 'no-store',
                     signal: controller.signal
                 });
                 clearTimeout(timeoutId);
 
-                const wasOffline = !this.isOnline;
-                this.isOnline = res.ok;
-
-                if (this.isOnline && (wasOffline || triggerSyncIfOnline || this.getPendingCount() > 0)) {
-                    this.syncAll();
-                }
+                // Any HTTP response (200-499) means connection to the server is active
+                reachedServer = res.ok || (res.status >= 200 && res.status < 500);
             } catch (e) {
-                this.isOnline = false;
+                // If primary ping fails (e.g. timeout on slow network reconnect),
+                // attempt lightweight fallback ping to /up healthcheck
+                try {
+                    const fallbackController = new AbortController();
+                    const fbTimeout = setTimeout(() => fallbackController.abort(), 4000);
+                    const fbRes = await fetch('/up?_t=' + Date.now(), {
+                        method: 'GET',
+                        cache: 'no-store',
+                        signal: fallbackController.signal
+                    });
+                    clearTimeout(fbTimeout);
+                    reachedServer = fbRes.ok || (fbRes.status >= 200 && fbRes.status < 500);
+                } catch (fbErr) {
+                    reachedServer = false;
+                }
             }
 
+            this.isOnline = reachedServer;
             this.dispatchStatusEvent();
+
+            if (this.isOnline && (wasOffline || triggerSyncIfOnline || this.getPendingCount() > 0)) {
+                this.syncAll();
+            }
+
             return this.isOnline;
         }
 
@@ -140,8 +180,10 @@
             if (!this.isOnline) return false;
 
             try {
-                const res = await fetch('/api/offline/master-data', {
-                    headers: { 'Accept': 'application/json' }
+                const res = await fetch('/api/offline/master-data?_t=' + Date.now(), {
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'same-origin',
+                    cache: 'no-store'
                 });
 
                 if (res.ok) {
@@ -229,6 +271,7 @@
                         'Accept': 'application/json',
                         'X-CSRF-TOKEN': csrfToken
                     },
+                    credentials: 'same-origin',
                     body: JSON.stringify(payload)
                 });
 

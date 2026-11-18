@@ -29,12 +29,14 @@ Route::get('/', function () {
 
 Route::get('/downloads/{platform}', [\App\Http\Controllers\AppDownloadController::class, 'download'])->name('downloads.app');
 
+// Fast unauthenticated ping endpoint for offline/online connectivity detection
+Route::get('/api/offline/ping', [\App\Http\Controllers\OfflineSyncController::class, 'ping'])->name('offline.ping');
+
 Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 Route::get('/dashboard/quick-stats', [\App\Http\Controllers\DashboardController::class, 'quickStats'])->middleware(['auth', 'verified'])->name('dashboard.quick-stats');
 
 Route::middleware('auth')->group(function () {
     // Offline Mode & Background Sync Routes
-    Route::get('/api/offline/ping', [\App\Http\Controllers\OfflineSyncController::class, 'ping'])->name('offline.ping');
     Route::get('/api/offline/master-data', [\App\Http\Controllers\OfflineSyncController::class, 'masterData'])->name('offline.master-data');
     Route::post('/api/offline/sync', [\App\Http\Controllers\OfflineSyncController::class, 'sync'])->name('offline.sync');
     Route::view('/offline', 'offline')->name('offline');
