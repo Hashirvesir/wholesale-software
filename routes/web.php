@@ -149,8 +149,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports/sales-analysis', [ReportController::class, 'salesAnalysis'])->name('reports.sales-analysis')->middleware('permission:view sales analysis report');
     Route::get('/reports/returns-summary', [ReportController::class, 'returnsSummary'])->name('reports.returns-summary')->middleware('permission:view returns summary');
     Route::get('/reports/cargo-charges', [ReportController::class, 'cargoChargesReport'])->name('reports.cargo-charges')->middleware('permission:view cargo charges report');
-    Route::get('/reports/salesman-performance', [ReportController::class, 'salesmanPerformance'])->name('reports.salesman-performance')->middleware('permission:view sales');
-    Route::get('/reports/customer-product-last-price', [ReportController::class, 'customerProductLastPrice'])->name('reports.customer-product-last-price')->middleware('permission:view sales');
+    Route::get('/reports/salesman-performance', [ReportController::class, 'salesmanPerformance'])->name('reports.salesman-performance')->middleware('permission:view salesman performance report|view sales analysis report|view sales');
+    Route::get('/reports/customer-product-last-price', [ReportController::class, 'customerProductLastPrice'])->name('reports.customer-product-last-price')->middleware('permission:view sales analysis report|view sales');
 
     // Quick Add Routes (Returning JSON for Alpine.js)
     Route::post('/quick-add-category', function (Request $request) {

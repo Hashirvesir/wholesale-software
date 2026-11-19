@@ -122,7 +122,7 @@
                     @endcanany
 
                     <!-- Masters Dropdown -->
-                    @canany(['view products', 'view categories', 'view brands', 'view units', 'view warehouses', 'view parties', 'view opening stocks'])
+                    @canany(['view products', 'print barcodes', 'view categories', 'view brands', 'view units', 'view warehouses', 'view parties', 'view opening stocks'])
                         <div class="hidden xl:flex xl:items-center">
                             <x-dropdown align="left" width="48">
                                 <x-slot name="trigger">
@@ -136,6 +136,8 @@
                                 <x-slot name="content">
                                     @can('view products')
                                         <x-dropdown-link :href="route('products.index')">{{ __('Products Catalog') }}</x-dropdown-link>
+                                    @endcan
+                                    @can('print barcodes')
                                         <x-dropdown-link :href="route('products.print-labels')">{{ __('Print Barcodes') }}</x-dropdown-link>
                                     @endcan
                                     @can('view categories')
@@ -163,7 +165,7 @@
                     @endcanany
 
                     <!-- Reports Dropdown -->
-                    @canany(['view account ledger', 'view party ledger', 'view trial balance', 'view profit loss', 'view balance sheet', 'view dead stock', 'view stock alert', 'view products summary', 'view aging report', 'view daily collection report', 'view expense report', 'view sales analysis report', 'view returns summary', 'view cargo charges report', 'view activity logs'])
+                    @canany(['view account ledger', 'view party ledger', 'view trial balance', 'view profit loss', 'view balance sheet', 'view dead stock', 'view stock alert', 'view products summary', 'view aging report', 'view daily collection report', 'view expense report', 'view sales analysis report', 'view salesman performance report', 'view returns summary', 'view cargo charges report', 'view activity logs'])
                         <div class="hidden xl:flex xl:items-center">
                             <x-dropdown align="left" width="64" content-classes="py-1.5 bg-white dark:bg-gray-700 max-h-[75vh] overflow-y-auto">
                                 <x-slot name="trigger">
@@ -212,9 +214,13 @@
                                     @endcan
                                     @can('view sales analysis report')
                                         <x-dropdown-link :href="route('reports.sales-analysis')">{{ __('Sales Analysis Report') }}</x-dropdown-link>
-                                        <x-dropdown-link :href="route('reports.salesman-performance')">{{ __('Salesman & Recovery Report') }}</x-dropdown-link>
-                                        <x-dropdown-link :href="route('reports.customer-product-last-price')">{{ __('Customer Product Last Price') }}</x-dropdown-link>
                                     @endcan
+                                    @canany(['view salesman performance report', 'view sales analysis report'])
+                                        <x-dropdown-link :href="route('reports.salesman-performance')">{{ __('Salesman & Recovery Report') }}</x-dropdown-link>
+                                    @endcanany
+                                    @canany(['view sales analysis report', 'view sales'])
+                                        <x-dropdown-link :href="route('reports.customer-product-last-price')">{{ __('Customer Product Last Price') }}</x-dropdown-link>
+                                    @endcanany
                                     @can('view returns summary')
                                         <x-dropdown-link :href="route('reports.returns-summary')">{{ __('Returns Summary') }}</x-dropdown-link>
                                     @endcan
@@ -289,7 +295,7 @@
                     @endcan
 
                     <!-- POS Counter Screen Button -->
-                    @can('view sales')
+                    @can('view pos')
                         <a href="{{ route('pos.index') }}"
                             class="flex items-center gap-1.5 px-2 2xl:px-3 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 rounded-xl transition-all duration-150 shrink-0"
                             title="POS Counter Screen (F1)">
@@ -300,15 +306,18 @@
                     @endcan
 
                     <!-- Mobile Repairs Button -->
-                    <a href="{{ route('repairs.index') }}"
-                        class="flex items-center gap-1.5 px-2 2xl:px-3 py-1.5 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:hover:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800 rounded-xl transition-all duration-150 shrink-0"
-                        title="Mobile Repairing Lab">
-                        <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 002 2z"/></svg>
-                        <span class="hidden 2xl:inline">Mobile Repairs</span>
-                        <span class="xl:inline 2xl:hidden">Repairs</span>
-                    </a>
+                    @can('view repairs')
+                        <a href="{{ route('repairs.index') }}"
+                            class="flex items-center gap-1.5 px-2 2xl:px-3 py-1.5 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:hover:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800 rounded-xl transition-all duration-150 shrink-0"
+                            title="Mobile Repairing Lab">
+                            <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 002 2z"/></svg>
+                            <span class="hidden 2xl:inline">Mobile Repairs</span>
+                            <span class="xl:inline 2xl:hidden">Repairs</span>
+                        </a>
+                    @endcan
 
                     <!-- Quick Financial Snapshot Trigger -->
+                    @canany(['view profit loss', 'view balance sheet', 'view account ledger', 'view trial balance'])
                     <div x-data="{
                         showSnapshot: false,
                         loading: false,
@@ -334,7 +343,7 @@
                                         }
                                     } catch(e){}
                                     this.loading = false;
-                                });
+                                    });
                         }
                     }">
                         <button type="button" @click="showSnapshot = true; fetchStats()"
@@ -513,11 +522,13 @@
                             </div>
                         </template>
                     </div>
+                    @endcanany
 
                 <!-- Divider -->
                 <div class="h-5 w-px bg-gray-200 dark:bg-gray-700 mx-0.5"></div>
 
                 <!-- Offline / Online Sync Indicator -->
+                @can('access offline mode')
                 <div x-data="{
                     open: false,
                     isOnline: navigator.onLine,
@@ -643,6 +654,9 @@
                         </div>
                     </div>
                 </div>
+                @endcan
+
+                <!-- Dark Mode Toggle -->
 
                 <!-- Dark Mode Toggle -->
                 <button @click="toggleDarkMode()"
@@ -680,9 +694,11 @@
                             {{ __('Profile') }}
                         </x-dropdown-link>
 
-                        <x-dropdown-link :href="route('settings.edit')">
-                            {{ __('Settings') }}
-                        </x-dropdown-link>
+                        @canany(['view settings', 'manage settings'])
+                            <x-dropdown-link :href="route('settings.edit')">
+                                {{ __('Settings') }}
+                            </x-dropdown-link>
+                        @endcanany
 
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
@@ -700,7 +716,7 @@
             <!-- Mobile Action Bar (POS, Search, Dark Mode, Hamburger) -->
             <div class="flex items-center space-x-1.5 xl:hidden">
                 <!-- Mobile POS Button -->
-                @can('view sales')
+                @can('view pos')
                     <a href="{{ route('pos.index') }}"
                         class="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-white bg-[#252ebf] hover:bg-[#1e2599] rounded-xl shadow-xs transition active:scale-95"
                         title="POS Counter">
@@ -903,7 +919,7 @@
             @endcanany
 
             <!-- Accordion Section: Masters -->
-            @canany(['view units', 'view categories', 'view brands', 'view warehouses', 'view products', 'view opening stocks', 'view parties'])
+            @canany(['view units', 'view categories', 'view brands', 'view warehouses', 'view products', 'print barcodes', 'view opening stocks', 'view parties'])
                 <div class="border-t border-gray-100 dark:border-gray-700/80">
                     <button @click="toggle('masters')" type="button"
                         class="w-full flex items-center justify-between px-4 py-3 text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition cursor-pointer">
@@ -914,13 +930,14 @@
                             <span>{{ __('Masters & Catalog') }}</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-[10px] px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-500 font-mono font-bold">8</span>
                             <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="activeSection === 'masters' ? 'rotate-180 text-[#252ebf]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </div>
                     </button>
                     <div x-show="activeSection === 'masters'" x-cloak class="px-3 pb-2 space-y-1 bg-gray-50/40 dark:bg-gray-900/30">
                         @can('view products')
                             <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.index')">{{ __('Products Catalog') }}</x-responsive-nav-link>
+                        @endcan
+                        @can('print barcodes')
                             <x-responsive-nav-link :href="route('products.print-labels')" :active="request()->routeIs('products.print-labels')">{{ __('Print Barcodes') }}</x-responsive-nav-link>
                         @endcan
                         @can('view categories')
@@ -946,7 +963,7 @@
             @endcanany
 
             <!-- Accordion Section: Reports -->
-            @canany(['view account ledger', 'view party ledger', 'view trial balance', 'view profit loss', 'view balance sheet', 'view dead stock', 'view products summary', 'view stock alert', 'view aging report', 'view daily collection report', 'view expense report', 'view sales analysis report', 'view returns summary', 'view cargo charges report', 'view activity logs'])
+            @canany(['view account ledger', 'view party ledger', 'view trial balance', 'view profit loss', 'view balance sheet', 'view dead stock', 'view products summary', 'view stock alert', 'view aging report', 'view daily collection report', 'view expense report', 'view sales analysis report', 'view salesman performance report', 'view returns summary', 'view cargo charges report', 'view activity logs'])
                 <div class="border-t border-gray-100 dark:border-gray-700/80">
                     <button @click="toggle('reports')" type="button"
                         class="w-full flex items-center justify-between px-4 py-3 text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition cursor-pointer">
@@ -957,7 +974,6 @@
                             <span>{{ __('Reports & Analytics') }}</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-[10px] px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-500 font-mono font-bold">16</span>
                             <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="activeSection === 'reports' ? 'rotate-180 text-[#252ebf]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </div>
                     </button>
@@ -982,8 +998,10 @@
                         @endcan
                         @can('view sales analysis report')
                             <x-responsive-nav-link :href="route('reports.sales-analysis')" :active="request()->routeIs('reports.sales-analysis')">{{ __('Sales Analysis Report') }}</x-responsive-nav-link>
-                            <x-responsive-nav-link :href="route('reports.salesman-performance')" :active="request()->routeIs('reports.salesman-performance')">{{ __('Salesman & Recovery Report') }}</x-responsive-nav-link>
                         @endcan
+                        @canany(['view salesman performance report', 'view sales analysis report'])
+                            <x-responsive-nav-link :href="route('reports.salesman-performance')" :active="request()->routeIs('reports.salesman-performance')">{{ __('Salesman & Recovery Report') }}</x-responsive-nav-link>
+                        @endcanany
                         @can('view products summary')
                             <x-responsive-nav-link :href="route('reports.products-summary')" :active="request()->routeIs('reports.products-summary')">{{ __('Product Ledger') }}</x-responsive-nav-link>
                         @endcan
@@ -1005,7 +1023,9 @@
                         @can('view cargo charges report')
                             <x-responsive-nav-link :href="route('reports.cargo-charges')" :active="request()->routeIs('reports.cargo-charges')">{{ __('Cargo Charges Report') }}</x-responsive-nav-link>
                         @endcan
-                        <x-responsive-nav-link :href="route('reports.customer-product-last-price')" :active="request()->routeIs('reports.customer-product-last-price')">{{ __('Customer Product Last Price') }}</x-responsive-nav-link>
+                        @canany(['view sales analysis report', 'view sales'])
+                            <x-responsive-nav-link :href="route('reports.customer-product-last-price')" :active="request()->routeIs('reports.customer-product-last-price')">{{ __('Customer Product Last Price') }}</x-responsive-nav-link>
+                        @endcanany
                         @can('view activity logs')
                             <x-responsive-nav-link :href="route('activity-logs.index')" :active="request()->routeIs('activity-logs.*')">{{ __('Audit Logs') }}</x-responsive-nav-link>
                         @endcan
@@ -1041,6 +1061,7 @@
             @endcanany
 
             <!-- Mobile Offline Sync Status Bar -->
+            @can('access offline mode')
             <div class="p-3 m-2 rounded-2xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-xs">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
@@ -1056,6 +1077,7 @@
                     </button>
                 </div>
             </div>
+            @endcan
 
             <!-- Profile & Settings (Mobile Bottom) -->
             <div class="p-2 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/40 space-y-1">
@@ -1064,10 +1086,12 @@
                     <span>{{ __('Profile Settings') }}</span>
                 </x-responsive-nav-link>
 
+                @canany(['view settings', 'manage settings'])
                 <x-responsive-nav-link :href="route('settings.edit')" :active="request()->routeIs('settings.*')" class="flex items-center gap-2.5">
                     <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     <span>{{ __('App Settings') }}</span>
                 </x-responsive-nav-link>
+                @endcanany
 
                 <!-- Authentication -->
                 <form method="POST" action="{{ route('logout') }}">
