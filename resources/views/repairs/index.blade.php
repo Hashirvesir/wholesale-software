@@ -15,14 +15,17 @@
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                     <a href="{{ route('repair-services.index') }}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 font-bold text-xs rounded-xl shadow-xs transition-all">
-                        <span>🔧 Services & Rates</span>
+                        <span>Services & Rates</span>
                     </a>
                     <a href="{{ route('repair-brands.index') }}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 font-bold text-xs rounded-xl shadow-xs transition-all">
-                        <span>📱 Brands & Models</span>
+                        <span>Brands & Models</span>
+                    </a>
+                    <a href="{{ route('settings.edit') }}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 font-bold text-xs rounded-xl shadow-xs transition-all" title="Configure invoice terms, warranty policy & phone numbers">
+                        <span>Invoice & Terms</span>
                     </a>
                     <a href="{{ route('repairs.create') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all active:scale-95">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        <span>{{ __('New Repair / Mobile Jama Karein') }}</span>
+                        <span>{{ __('New Repair / Intake') }}</span>
                     </a>
                 </div>
             </div>

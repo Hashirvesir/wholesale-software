@@ -197,12 +197,16 @@
         <div class="company-header text-center">
             <h1>{{ $settings->company_name ?? 'INVENCO REPAIR LAB' }}</h1>
             <p>{{ $settings->company_address ?? ($settings->address ?? 'Main Mobile Market, Electronics Center') }}</p>
-            <p>
-                @if(!empty($settings->company_phone))
-                    PH: {{ $settings->company_phone }} &bull;
-                @endif
-                INVENCO: +92 324 3980274
-            </p>
+            @php
+                $headerPhones = array_filter([
+                    $settings->company_phone ?? null,
+                    $settings->company_phone_2 ?? null,
+                    $settings->company_phone_3 ?? null,
+                ]);
+            @endphp
+            @if(!empty($headerPhones))
+                <p>PH: {{ implode(' &bull; ', $headerPhones) }}</p>
+            @endif
         </div>
 
         <!-- Receipt Title -->
@@ -290,15 +294,21 @@
             <svg class="barcode" jsbarcode-value="{{ $repair->order_no }}" jsbarcode-format="CODE128" jsbarcode-width="1.6" jsbarcode-height="36" jsbarcode-fontSize="10"></svg>
         </div>
 
-        <!-- Terms & Conditions (Monochrome Bold) -->
+        <!-- Terms & Conditions (Configurable in Settings) -->
+        @php
+            $defaultReceiptTerms = "1. Mobile wapsi lene ke waqt yeh slip pesh karna lazmi hai.\n2. Checking warranty sirf counter tak ki hai (Counter se nikalne ke baad dukaandar kisi cheez ka zimmedar nahi hoga).\n3. Slip gum hone ki soorat mein CNIC copy aur tasdeeq lazmi hogi.\n4. Phone data (photos, contacts) backup customer ki zimmedari hai.\n5. 30 din baad mobile ki dukaan zimmedar nahi hogi.";
+            $receiptTerms = !empty($settings->repair_receipt_terms) ? $settings->repair_receipt_terms : $defaultReceiptTerms;
+        @endphp
         <div class="terms-box">
             <span class="bold uppercase">TERMS & CONDITIONS:</span><br>
-            1. Mobile wapsi lene ke waqt yeh slip pesh karna lazmi hai.<br>
-            2. Checking warranty sirf counter tak ki hai (Counter se nikalne ke baad dukaandar kisi cheez ka zimmedar nahi hoga).<br>
-            3. Slip gum hone ki soorat mein CNIC copy aur tasdeeq lazmi hogi.<br>
-            4. Phone data (photos, contacts) backup customer ki zimmedari hai.<br>
-            5. 30 din baad mobile ki dukaan zimmedar nahi hogi.
+            {!! nl2br(e($receiptTerms)) !!}
         </div>
+
+        @if(!empty($settings->repair_custom_note))
+            <div style="margin-top: 5px; text-align: center; font-size: 9px; font-weight: 800; border-top: 1px dotted #000; padding-top: 3px;">
+                {{ $settings->repair_custom_note }}
+            </div>
+        @endif
 
         @php
             $hasApprovalRisk = $repair->devices->contains(fn($d) => ($d->approval_type ?? 'without_approval') === 'approval');

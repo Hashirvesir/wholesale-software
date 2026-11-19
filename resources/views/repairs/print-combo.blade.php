@@ -466,15 +466,16 @@
                 @if(!empty($settings->company_address))
                     <p>{{ $settings->company_address }}</p>
                 @endif
-                <p>
-                    @if(!empty($settings->company_phone))
-                        PHONE: {{ $settings->company_phone }} &bull;
-                    @endif
-                    INVENCO: +92 324 3980274
-                    @if(!empty($settings->company_email))
-                        | {{ $settings->company_email }}
-                    @endif
-                </p>
+                @php
+                    $comboPhones = array_filter([
+                        $settings->company_phone ?? null,
+                        $settings->company_phone_2 ?? null,
+                        $settings->company_phone_3 ?? null,
+                    ]);
+                @endphp
+                @if(!empty($comboPhones))
+                    <p>PHONE: {{ implode(' &bull; ', $comboPhones) }}</p>
+                @endif
             </div>
 
             <!-- Title -->
@@ -583,15 +584,21 @@
                 <svg class="barcode" jsbarcode-value="{{ $repair->order_no }}" jsbarcode-format="CODE128" jsbarcode-width="1.6" jsbarcode-height="34" jsbarcode-fontSize="10"></svg>
             </div>
 
-            <!-- Terms & Conditions (Monochrome Bold) -->
+            <!-- Terms & Conditions (Configurable in Settings) -->
+            @php
+                $defaultComboTerms = "1. Mobile wapsi lene ke waqt yeh slip pesh karna lazmi hai.\n2. Checking warranty sirf counter tak ki hai (Counter se nikalne ke baad dukaandar kisi cheez ka zimmedar nahi hoga).\n3. Slip gum hone ki soorat mein CNIC copy aur tasdeeq lazmi hogi.\n4. Phone data (photos, contacts) backup customer ki zimmedari hai.\n5. 30 din baad mobile ki dukaan zimmedar nahi hogi.";
+                $comboTerms = !empty($settings->repair_receipt_terms) ? $settings->repair_receipt_terms : $defaultComboTerms;
+            @endphp
             <div class="terms-box">
                 <span class="bold uppercase">TERMS & CONDITIONS:</span><br>
-                1. Mobile wapsi lene ke waqt yeh slip pesh karna lazmi hai.<br>
-                2. Checking warranty sirf counter tak ki hai (Counter se nikalne ke baad dukaandar kisi cheez ka zimmedar nahi hoga).<br>
-                3. Slip gum hone ki soorat mein CNIC copy aur tasdeeq lazmi hogi.<br>
-                4. Phone data (photos, contacts) backup customer ki zimmedari hai.<br>
-                5. 30 din baad mobile ki dukaan zimmedar nahi hogi.
+                {!! nl2br(e($comboTerms)) !!}
             </div>
+
+            @if(!empty($settings->repair_custom_note))
+                <div style="margin-top: 4px; text-align: center; font-size: 9px; font-weight: 800; border-top: 1px dotted #000; padding-top: 2px;">
+                    {{ $settings->repair_custom_note }}
+                </div>
+            @endif
 
             @php
                 $hasApprovalRisk = $repair->devices->contains(fn($d) => ($d->approval_type ?? 'without_approval') === 'approval');

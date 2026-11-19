@@ -46,14 +46,6 @@
                                         <x-input-error class="mt-2" :messages="$errors->get('company_name')" />
                                     </div>
                                     <div>
-                                        <x-input-label for="company_phone" value="Phone Number"
-                                            class="text-xs font-bold uppercase text-gray-500" />
-                                        <x-text-input id="company_phone" name="company_phone" type="text"
-                                            class="mt-1 block w-full border-gray-200 dark:border-gray-700 rounded-xl focus:ring-primary-500"
-                                            :value="old('company_phone', $setting->company_phone)" />
-                                        <x-input-error class="mt-2" :messages="$errors->get('company_phone')" />
-                                    </div>
-                                    <div>
                                         <x-input-label for="company_email" value="Email Address"
                                             class="text-xs font-bold uppercase text-gray-500" />
                                         <x-text-input id="company_email" name="company_email" type="email"
@@ -61,7 +53,49 @@
                                             :value="old('company_email', $setting->company_email)" />
                                         <x-input-error class="mt-2" :messages="$errors->get('company_email')" />
                                     </div>
-                                    <div>
+
+                                    <!-- 2-3 Contact Phone Numbers -->
+                                    <div class="col-span-1 md:col-span-2">
+                                        <div class="p-4 bg-gray-50/70 dark:bg-gray-900/60 rounded-2xl border border-gray-100 dark:border-gray-700/60 space-y-3">
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                                                    Shop / Lab Contact Numbers (Printed on Invoices & Slips)
+                                                </span>
+                                                <span class="text-[10px] text-gray-400 font-medium">Add up to 3 numbers</span>
+                                            </div>
+                                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div>
+                                                    <x-input-label for="company_phone" value="Phone 1 (Primary / Call)"
+                                                        class="text-[11px] font-bold uppercase text-gray-500" />
+                                                    <x-text-input id="company_phone" name="company_phone" type="text"
+                                                        placeholder="e.g. 0300-1234567"
+                                                        class="mt-1 block w-full border-gray-200 dark:border-gray-700 rounded-xl focus:ring-primary-500 text-xs font-bold"
+                                                        :value="old('company_phone', $setting->company_phone)" />
+                                                    <x-input-error class="mt-1" :messages="$errors->get('company_phone')" />
+                                                </div>
+                                                <div>
+                                                    <x-input-label for="company_phone_2" value="Phone 2 (WhatsApp / Mobile)"
+                                                        class="text-[11px] font-bold uppercase text-gray-500" />
+                                                    <x-text-input id="company_phone_2" name="company_phone_2" type="text"
+                                                        placeholder="e.g. 0321-7654321"
+                                                        class="mt-1 block w-full border-gray-200 dark:border-gray-700 rounded-xl focus:ring-primary-500 text-xs font-bold"
+                                                        :value="old('company_phone_2', $setting->company_phone_2)" />
+                                                    <x-input-error class="mt-1" :messages="$errors->get('company_phone_2')" />
+                                                </div>
+                                                <div>
+                                                    <x-input-label for="company_phone_3" value="Phone 3 (Alternative / Lab)"
+                                                        class="text-[11px] font-bold uppercase text-gray-500" />
+                                                    <x-text-input id="company_phone_3" name="company_phone_3" type="text"
+                                                        placeholder="e.g. 0345-9988776"
+                                                        class="mt-1 block w-full border-gray-200 dark:border-gray-700 rounded-xl focus:ring-primary-500 text-xs font-bold"
+                                                        :value="old('company_phone_3', $setting->company_phone_3)" />
+                                                    <x-input-error class="mt-1" :messages="$errors->get('company_phone_3')" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-span-1 md:col-span-2">
                                         <x-input-label for="company_logo" value="Company Logo"
                                             class="text-xs font-bold uppercase text-gray-500" />
                                         <input id="company_logo" name="company_logo" type="file"
@@ -123,6 +157,60 @@
                                             {{ old('show_sale_time', $setting->show_sale_time) ? 'checked' : '' }}>
                                         <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500 dark:peer-focus:ring-primary-600 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
                                     </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Repairing & Job Sheet Settings -->
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-indigo-100 dark:border-gray-700 overflow-hidden">
+                            <div
+                                class="p-6 border-b border-indigo-50 dark:border-gray-700 bg-indigo-50/40 dark:bg-gray-900/50 flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-black uppercase tracking-widest text-indigo-700 dark:text-indigo-400 flex items-center gap-2">
+                                        <span>Repairing Invoice & Terms Settings</span>
+                                    </h4>
+                                    <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                                        Customize the warranty policy, claim notes, terms & conditions printed on Repair Invoices and Customer Slips.
+                                    </p>
+                                </div>
+                                <span class="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg bg-indigo-600 text-white shadow-2xs">
+                                    Repair Lab
+                                </span>
+                            </div>
+                            <div class="p-8 space-y-6">
+                                <div>
+                                    <x-input-label for="repair_invoice_terms" value="Repair Invoice Terms & Warranty Policy"
+                                        class="text-xs font-bold uppercase text-gray-700 dark:text-gray-300" />
+                                    <p class="text-[11px] text-gray-400 italic mb-1.5">
+                                        Printed at the bottom of the final Delivery Invoice & Cash Memo. Har line ek alag point ban kar print hogi.
+                                    </p>
+                                    <textarea id="repair_invoice_terms" name="repair_invoice_terms" rows="4"
+                                        class="mt-1 block w-full border-gray-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 font-mono text-xs leading-relaxed"
+                                        placeholder="- Checking warranty sirf counter tak ki hai...&#10;- Physical damage ya display lines ki koi warranty nahi hai...">{{ old('repair_invoice_terms', $setting->repair_invoice_terms) }}</textarea>
+                                    <x-input-error class="mt-2" :messages="$errors->get('repair_invoice_terms')" />
+                                </div>
+
+                                <div>
+                                    <x-input-label for="repair_receipt_terms" value="Customer Intake Slip Terms & Conditions"
+                                        class="text-xs font-bold uppercase text-gray-700 dark:text-gray-300" />
+                                    <p class="text-[11px] text-gray-400 italic mb-1.5">
+                                        Printed on the initial customer token / intake receipt slip (Customer Copy).
+                                    </p>
+                                    <textarea id="repair_receipt_terms" name="repair_receipt_terms" rows="5"
+                                        class="mt-1 block w-full border-gray-200 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 font-mono text-xs leading-relaxed"
+                                        placeholder="1. Mobile wapsi lene ke waqt yeh slip pesh karna lazmi hai...&#10;2. 30 din baad dukaan zimmedar nahi hogi...">{{ old('repair_receipt_terms', $setting->repair_receipt_terms) }}</textarea>
+                                    <x-input-error class="mt-2" :messages="$errors->get('repair_receipt_terms')" />
+                                </div>
+
+                                <div>
+                                    <x-input-label for="repair_custom_note" value="Repair Footer Custom Note (Optional)"
+                                        class="text-xs font-bold uppercase text-gray-700 dark:text-gray-300" />
+                                    <x-text-input id="repair_custom_note" name="repair_custom_note" type="text"
+                                        class="mt-1 block w-full border-gray-200 dark:border-gray-700 rounded-xl focus:ring-indigo-500 text-xs font-bold"
+                                        placeholder="e.g. JazakAllah for choosing us! / Computerized testing certified."
+                                        :value="old('repair_custom_note', $setting->repair_custom_note)" />
+                                    <x-input-error class="mt-2" :messages="$errors->get('repair_custom_note')" />
                                 </div>
                             </div>
                         </div>

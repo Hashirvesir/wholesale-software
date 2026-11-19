@@ -207,12 +207,16 @@
         <div class="company-header text-center">
             <h1>{{ $settings->company_name ?? 'INVENCO REPAIR LAB' }}</h1>
             <p>{{ $settings->company_address ?? ($settings->address ?? 'Main Mobile Market, Electronics Center') }}</p>
-            <p>
-                @if(!empty($settings->company_phone))
-                    PH: {{ $settings->company_phone }} &bull;
-                @endif
-                INVENCO: +92 324 3980274
-            </p>
+            @php
+                $headerPhones = array_filter([
+                    $settings->company_phone ?? null,
+                    $settings->company_phone_2 ?? null,
+                    $settings->company_phone_3 ?? null,
+                ]);
+            @endphp
+            @if(!empty($headerPhones))
+                <p>PH: {{ implode(' &bull; ', $headerPhones) }}</p>
+            @endif
         </div>
 
         <!-- Invoice Title -->
@@ -312,13 +316,21 @@
             <svg class="barcode" jsbarcode-value="{{ $repair->order_no }}" jsbarcode-format="CODE128" jsbarcode-width="1.6" jsbarcode-height="34" jsbarcode-fontSize="10"></svg>
         </div>
 
-        <!-- Warranty Policy (Monochrome Bold) -->
+        <!-- Warranty Policy (Configurable in Settings) -->
+        @php
+            $defaultInvoiceTerms = "- Checking warranty sirf counter tak ki hai (Counter se nikalne ke baad dukaandar kisi cheez ka zimmedar nahi hoga).\n- Physical damage, broken screen, display lines/dots, ya water damage ki koi warranty nahi hai.\n- Har qisam ke claim ke liye yeh original printed invoice pesh karna lazmi hai.";
+            $invoiceTerms = !empty($settings->repair_invoice_terms) ? $settings->repair_invoice_terms : $defaultInvoiceTerms;
+        @endphp
         <div class="warranty-box">
-            <span class="bold uppercase">WARRANTY POLICY:</span><br>
-            - Checking warranty sirf counter tak ki hai (Counter se nikalne ke baad dukaandar kisi cheez ka zimmedar nahi hoga).<br>
-            - Physical damage, broken screen, display lines/dots, ya water damage ki koi warranty nahi hai.<br>
-            - Har qisam ke claim ke liye yeh original printed invoice pesh karna lazmi hai.
+            <span class="bold uppercase">WARRANTY POLICY & TERMS:</span><br>
+            {!! nl2br(e($invoiceTerms)) !!}
         </div>
+
+        @if(!empty($settings->repair_custom_note))
+            <div style="margin-top: 5px; text-align: center; font-size: 9.5px; font-weight: 800; border-top: 1px dotted #000; padding-top: 3px;">
+                {{ $settings->repair_custom_note }}
+            </div>
+        @endif
 
         @php
             $hasApprovalRisk = $repair->devices->contains(fn($d) => ($d->approval_type ?? 'without_approval') === 'approval');
