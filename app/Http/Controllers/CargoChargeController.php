@@ -20,8 +20,8 @@ class CargoChargeController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:view cargo charges', only: ['index', 'show', 'invoice']),
-            new Middleware('permission:create cargo charges', except: ['index', 'show', 'invoice']),
+            new Middleware('permission:view cargo charges', only: ['index', 'show', 'invoice', 'downloadPdf', 'thermalPrint']),
+            new Middleware('permission:create cargo charges', except: ['index', 'show', 'invoice', 'downloadPdf', 'thermalPrint']),
         ];
     }
     public function index()
@@ -48,6 +48,25 @@ class CargoChargeController extends Controller implements HasMiddleware
         $settings = \App\Models\Setting::first();
 
         return view('cargo_charges.invoice', compact('cargoCharge', 'settings'));
+    }
+
+    public function downloadPdf(CargoCharge $cargoCharge)
+    {
+        $cargoCharge->load(['purchase.party', 'purchase.items.product', 'cargoParty']);
+        $settings = \App\Models\Setting::first();
+        $currentBalance = $cargoCharge->cargoParty ? $cargoCharge->cargoParty->getCurrentBalance() : 0;
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('cargo_charges.pdf', compact('cargoCharge', 'settings', 'currentBalance'));
+        return $pdf->download('cargo-voucher-' . $cargoCharge->id . '.pdf');
+    }
+
+    public function thermalPrint(CargoCharge $cargoCharge)
+    {
+        $cargoCharge->load(['purchase.party', 'purchase.items.product', 'cargoParty']);
+        $settings = \App\Models\Setting::first();
+        $currentBalance = $cargoCharge->cargoParty ? $cargoCharge->cargoParty->getCurrentBalance() : 0;
+
+        return view('cargo_charges.thermal', compact('cargoCharge', 'settings', 'currentBalance'));
     }
 
     public function create(Request $request)

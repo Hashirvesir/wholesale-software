@@ -75,6 +75,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/quotations/{quotation}/pdf', [QuotationController::class, 'downloadPdf'])->name('quotations.pdf')->middleware('permission:view quotations');
     Route::resource('quotations', QuotationController::class)->middleware('permission:view quotations');
     Route::get('/cargo-charges/{cargo_charge}/invoice', [CargoChargeController::class, 'invoice'])->name('cargo-charges.invoice')->middleware('permission:view cargo charges');
+    Route::get('/cargo-charges/{cargo_charge}/pdf', [CargoChargeController::class, 'downloadPdf'])->name('cargo-charges.pdf')->middleware('permission:view cargo charges');
+    Route::get('/cargo-charges/{cargo_charge}/thermal', [CargoChargeController::class, 'thermalPrint'])->name('cargo-charges.thermal')->middleware('permission:view cargo charges');
     Route::resource('cargo-charges', CargoChargeController::class)->middleware('permission:view cargo charges');
     Route::get('/payments/party-pending-invoices', [PaymentController::class, 'partyPendingInvoices'])->name('payments.party-pending-invoices')->middleware('permission:view payments');
     Route::resource('payments', PaymentController::class)->middleware('permission:view payments');
