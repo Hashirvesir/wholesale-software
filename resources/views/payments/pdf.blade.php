@@ -213,15 +213,20 @@
                 <div
                     style="font-weight: bold; text-transform: uppercase; color: #888; font-size: 10px; margin-bottom: 5px;">
                     Party Information</div>
-                <div style="font-size: 16px; font-weight: bold;">{{ $payment->party->name }}</div>
-                <div>{{ $payment->party->phone }}</div>
-                <div>{{ $payment->party->address }}</div>
-                <div style="margin-top: 5px;">
-                    <span
-                        style="background-color: #e0e7ff; color: #3730a3; padding: 3px 8px; border-radius: 3px; font-size: 10px; font-weight: bold;">
-                        {{ strtoupper($payment->party->type) }}
-                    </span>
-                </div>
+                @if ($payment->party)
+                    <div style="font-size: 16px; font-weight: bold;">{{ $payment->party->name }}</div>
+                    <div>{{ $payment->party->phone }}</div>
+                    <div>{{ $payment->party->address }}</div>
+                    <div style="margin-top: 5px;">
+                        <span
+                            style="background-color: #e0e7ff; color: #3730a3; padding: 3px 8px; border-radius: 3px; font-size: 10px; font-weight: bold;">
+                            {{ strtoupper($payment->party->type) }}
+                        </span>
+                    </div>
+                @else
+                    <div style="font-size: 16px; font-weight: bold; color: #059669;">Direct Account Payment</div>
+                    <div style="color: #666; font-size: 11px;">Direct transaction without party</div>
+                @endif
             </div>
             <div class="right-box">
                 <div
@@ -239,7 +244,11 @@
             <div class="info-row">
                 <div class="info-label">Transaction Type</div>
                 <div class="info-value">
-                    {{ $payment->payment_type === 'received' ? 'Payment Received from Party' : 'Payment Paid to Party' }}
+                    @if ($payment->party)
+                        {{ $payment->payment_type === 'received' ? 'Payment Received from Party' : 'Payment Paid to Party' }}
+                    @else
+                        {{ $payment->payment_type === 'received' ? 'Direct Payment Received into Account' : 'Direct Payment Paid from Account' }}
+                    @endif
                 </div>
             </div>
 
@@ -248,20 +257,22 @@
                 {{ $settings->currency_symbol }} {{ number_format($payment->amount, 2) }}
             </div>
 
-            <div class="info-row">
-                <div class="info-label">Current Party Balance</div>
-                <div class="info-value">
-                    @php
-                        $balance = $payment->party->getCurrentBalance();
-                        $balanceColor = $balance >= 0 ? '#dc2626' : '#059669';
-                        $balanceType = $balance >= 0 ? 'Receivable' : 'Payable';
-                    @endphp
-                    <span style="color: {{ $balanceColor }}; font-weight: bold;">
-                        {{ $settings->currency_symbol }} {{ number_format(abs($balance), 2) }}
-                        ({{ $balanceType }})
-                    </span>
+            @if ($payment->party)
+                <div class="info-row">
+                    <div class="info-label">Current Party Balance</div>
+                    <div class="info-value">
+                        @php
+                            $balance = $payment->party->getCurrentBalance();
+                            $balanceColor = $balance >= 0 ? '#dc2626' : '#059669';
+                            $balanceType = $balance >= 0 ? 'Receivable' : 'Payable';
+                        @endphp
+                        <span style="color: {{ $balanceColor }}; font-weight: bold;">
+                            {{ $settings->currency_symbol }} {{ number_format(abs($balance), 2) }}
+                            ({{ $balanceType }})
+                        </span>
+                    </div>
                 </div>
-            </div>
+            @endif
         </div>
 
         @if ($payment->note)
@@ -274,14 +285,26 @@
         <div class="transaction-explanation">
             <div class="transaction-explanation-title">📋 Accounting Entry:</div>
             <div class="transaction-explanation-text">
-                @if ($payment->payment_type === 'received')
-                    <strong>Payment Received Transaction:</strong><br>
-                    • {{ $payment->account->name }} account has been <strong>Debited</strong> (Cash/Bank increased)<br>
-                    • {{ $payment->party->name }}'s account has been <strong>Credited</strong> (Receivable decreased)
+                @if ($payment->party)
+                    @if ($payment->payment_type === 'received')
+                        <strong>Payment Received Transaction:</strong><br>
+                        • {{ $payment->account->name }} account has been <strong>Debited</strong> (Cash/Bank increased)<br>
+                        • {{ $payment->party->name }}'s account has been <strong>Credited</strong> (Receivable decreased)
+                    @else
+                        <strong>Payment Paid Transaction:</strong><br>
+                        • {{ $payment->party->name }}'s account has been <strong>Debited</strong> (Payable decreased)<br>
+                        • {{ $payment->account->name }} account has been <strong>Credited</strong> (Cash/Bank decreased)
+                    @endif
                 @else
-                    <strong>Payment Paid Transaction:</strong><br>
-                    • {{ $payment->party->name }}'s account has been <strong>Debited</strong> (Payable decreased)<br>
-                    • {{ $payment->account->name }} account has been <strong>Credited</strong> (Cash/Bank decreased)
+                    @if ($payment->payment_type === 'received')
+                        <strong>Direct Payment Received Transaction:</strong><br>
+                        • {{ $payment->account->name }} account has been <strong>Debited</strong> (Cash/Bank increased)<br>
+                        • Income / Receipt balancing ledger has been <strong>Credited</strong>
+                    @else
+                        <strong>Direct Payment Paid Transaction:</strong><br>
+                        • Expense / Disbursement balancing ledger has been <strong>Debited</strong><br>
+                        • {{ $payment->account->name }} account has been <strong>Credited</strong> (Cash/Bank decreased)
+                    @endif
                 @endif
             </div>
         </div>

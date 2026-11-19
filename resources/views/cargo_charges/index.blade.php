@@ -67,7 +67,9 @@
                                         </td>
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 uppercase font-bold">
-                                            {{ $charge->cargoParty->name }}
+                                            <a href="{{ route('cargo-charges.show', $charge) }}" class="text-primary-600 hover:underline">
+                                                {{ $charge->cargoParty->name }}
+                                            </a>
                                         </td>
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
@@ -93,6 +95,19 @@
                                                     </button>
                                                 </x-slot>
                                                 <x-slot name="content">
+                                                    <x-dropdown-link :href="route('cargo-charges.show', $charge)" class="flex items-center">
+                                                        <svg class="w-4 h-4 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                        </svg>
+                                                        {{ __('View Voucher') }}
+                                                    </x-dropdown-link>
+                                                    <x-dropdown-link :href="route('cargo-charges.invoice', $charge)" class="flex items-center">
+                                                        <svg class="w-4 h-4 mr-2 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                                        </svg>
+                                                        {{ __('Print Invoice') }}
+                                                    </x-dropdown-link>
                                                     <x-dropdown-link :href="route('cargo-charges.edit', $charge)" class="flex items-center">
                                                         <svg class="w-4 h-4 mr-2 text-yellow-500" fill="none"
                                                             stroke="currentColor" viewBox="0 0 24 24">

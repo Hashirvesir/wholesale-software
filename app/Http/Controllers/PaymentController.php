@@ -34,13 +34,17 @@ class PaymentController extends Controller implements HasMiddleware
     {
         $query = Payment::with(['party', 'account', 'warehouse']);
 
-        // Search by Party Name or Payment ID
+        // Search by Party Name, Payment ID, Note, or Account
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('id', 'like', "%{$search}%")
+                  ->orWhere('note', 'like', "%{$search}%")
                   ->orWhereHas('party', function($qp) use ($search) {
                       $qp->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('account', function($qa) use ($search) {
+                      $qa->where('name', 'like', "%{$search}%");
                   });
             });
         }
@@ -180,8 +184,10 @@ class PaymentController extends Controller implements HasMiddleware
 
     public function store(Request $request)
     {
+        $isDirect = $request->boolean('is_direct_payment') || empty($request->party_id);
+
         $request->validate([
-            'party_id' => 'required|exists:parties,id',
+            'party_id' => $isDirect ? 'nullable' : 'required|exists:parties,id',
             'warehouse_id' => 'nullable|exists:warehouses,id',
             'from_account_id' => 'required|exists:chart_of_accounts,id',
             'amount' => 'required|numeric|min:0.01',
@@ -193,16 +199,92 @@ class PaymentController extends Controller implements HasMiddleware
         ], [
             'date.before_or_equal' => 'Payment date cannot be in the future.',
             'date.after_or_equal' => 'Please enter a valid payment date.',
+            'party_id.required' => 'Please select a party or toggle Direct Account Payment.',
         ]);
 
-        $payment = DB::transaction(function () use ($request) {
+        $payment = DB::transaction(function () use ($request, $isDirect) {
             $settings = \App\Models\Setting::first();
             $warehouseId = $request->warehouse_id ?: ($settings->shop_warehouse_id ?? \App\Models\Warehouse::first()->id ?? 1);
 
             $paymentData = $request->all();
             $paymentData['warehouse_id'] = $warehouseId;
             $paymentData['salesman_id'] = $request->salesman_id ?? auth()->id();
+            $paymentData['is_direct_payment'] = $isDirect;
+            if ($isDirect) {
+                $paymentData['party_id'] = null;
+            }
             $payment = Payment::create($paymentData);
+
+            if ($isDirect) {
+                // Direct Account Payment without party:
+                // Affects Cash/Bank account ledger directly.
+                if ($payment->payment_type === 'received') {
+                    $balancingAcc = ChartOfAccount::firstOrCreate(
+                        ['name' => 'Direct Payments / Other Receipts'],
+                        ['type' => 'Income', 'status' => true]
+                    );
+
+                    // 1. Debit Cash/Bank Account (Direct inflow)
+                    LedgerEntry::create([
+                        'account_id' => $payment->from_account_id,
+                        'party_id' => null,
+                        'warehouse_id' => $warehouseId,
+                        'debit' => $payment->amount,
+                        'credit' => 0,
+                        'date' => $payment->date,
+                        'reference_type' => 'payment',
+                        'reference_id' => $payment->id,
+                        'note' => $payment->note ? $payment->note : 'Direct Payment Received into Account',
+                    ]);
+
+                    // 2. Credit Balancing Revenue Account
+                    LedgerEntry::create([
+                        'account_id' => $balancingAcc->id,
+                        'party_id' => null,
+                        'warehouse_id' => $warehouseId,
+                        'debit' => 0,
+                        'credit' => $payment->amount,
+                        'date' => $payment->date,
+                        'reference_type' => 'payment',
+                        'reference_id' => $payment->id,
+                        'note' => $payment->note ? $payment->note : 'Direct Payment Received',
+                    ]);
+                } else {
+                    $balancingAcc = ChartOfAccount::where('name', 'Operating Expenses')->first()
+                        ?: ChartOfAccount::firstOrCreate(
+                            ['name' => 'Direct Payments / Expenses'],
+                            ['type' => 'Expense', 'status' => true]
+                        );
+
+                    // 1. Debit Balancing Expense Account
+                    LedgerEntry::create([
+                        'account_id' => $balancingAcc->id,
+                        'party_id' => null,
+                        'warehouse_id' => $warehouseId,
+                        'debit' => $payment->amount,
+                        'credit' => 0,
+                        'date' => $payment->date,
+                        'reference_type' => 'payment',
+                        'reference_id' => $payment->id,
+                        'note' => $payment->note ? $payment->note : 'Direct Payment Paid from Account',
+                    ]);
+
+                    // 2. Credit Cash/Bank Account (Direct outflow)
+                    LedgerEntry::create([
+                        'account_id' => $payment->from_account_id,
+                        'party_id' => null,
+                        'warehouse_id' => $warehouseId,
+                        'debit' => 0,
+                        'credit' => $payment->amount,
+                        'date' => $payment->date,
+                        'reference_type' => 'payment',
+                        'reference_id' => $payment->id,
+                        'note' => $payment->note ? $payment->note : 'Direct Payment Paid',
+                    ]);
+                }
+
+                return $payment;
+            }
 
             $party = Party::findOrFail($payment->party_id);
 
@@ -272,23 +354,120 @@ class PaymentController extends Controller implements HasMiddleware
                 ]);
             }
 
-            // Allocate payment to unpaid invoices / repair orders
-            $unallocated = (float) $payment->amount;
-            $manualAllocations = $request->input('allocations', []);
+            // Allocate payment to unpaid invoices / repair orders (only for party payments)
+            if (! $isDirect && $payment->party_id) {
+                $unallocated = (float) $payment->amount;
+                $manualAllocations = $request->input('allocations', []);
 
-            if (!empty($manualAllocations) && is_array($manualAllocations)) {
-                foreach ($manualAllocations as $type => $records) {
-                    if (!is_array($records)) continue;
-                    foreach ($records as $targetId => $allocAmt) {
-                        $allocAmt = (float) $allocAmt;
-                        if ($allocAmt <= 0 || $unallocated <= 0) continue;
-                        $amountToApply = min($allocAmt, $unallocated);
+                if (!empty($manualAllocations) && is_array($manualAllocations)) {
+                    foreach ($manualAllocations as $type => $records) {
+                        if (!is_array($records)) continue;
+                        foreach ($records as $targetId => $allocAmt) {
+                            $allocAmt = (float) $allocAmt;
+                            if ($allocAmt <= 0 || $unallocated <= 0) continue;
+                            $amountToApply = min($allocAmt, $unallocated);
 
-                        if ($type === 'repair') {
-                            $repair = RepairOrder::where('id', $targetId)->where('party_id', $payment->party_id)->first();
-                            if ($repair && (float)$repair->balance_amount > 0) {
-                                $actual = min($amountToApply, (float)$repair->balance_amount);
-                                $repair->advance_amount += $actual;
+                            if ($type === 'repair') {
+                                $repair = RepairOrder::where('id', $targetId)->where('party_id', $payment->party_id)->first();
+                                if ($repair && (float)$repair->balance_amount > 0) {
+                                    $actual = min($amountToApply, (float)$repair->balance_amount);
+                                    $repair->advance_amount += $actual;
+                                    $repair->balance_amount = max(0, (float)$repair->total_amount - (float)$repair->advance_amount);
+                                    $repair->save();
+
+                                    PaymentAllocation::create([
+                                        'payment_id' => $payment->id,
+                                        'allocatable_type' => RepairOrder::class,
+                                        'allocatable_id' => $repair->id,
+                                        'amount' => $actual,
+                                    ]);
+                                    $unallocated -= $actual;
+                                }
+                            } elseif ($type === 'sale') {
+                                $sale = Sale::where('id', $targetId)->where('party_id', $payment->party_id)->first();
+                                if ($sale) {
+                                    $due = max(0, ((float)$sale->total_amount - (float)$sale->discount_amount) - (float)$sale->paid_amount);
+                                    if ($due > 0) {
+                                        $actual = min($amountToApply, $due);
+                                        $sale->paid_amount += $actual;
+                                        $sale->save();
+
+                                        PaymentAllocation::create([
+                                            'payment_id' => $payment->id,
+                                            'allocatable_type' => Sale::class,
+                                            'allocatable_id' => $sale->id,
+                                            'amount' => $actual,
+                                        ]);
+                                        $unallocated -= $actual;
+                                    }
+                                }
+                            } elseif ($type === 'purchase') {
+                                $purchase = Purchase::where('id', $targetId)->where('party_id', $payment->party_id)->first();
+                                if ($purchase) {
+                                    $due = max(0, ((float)$purchase->total_amount - (float)$purchase->discount_amount) - (float)$purchase->paid_amount);
+                                    if ($due > 0) {
+                                        $actual = min($amountToApply, $due);
+                                        $purchase->paid_amount += $actual;
+                                        $purchase->save();
+
+                                        PaymentAllocation::create([
+                                            'payment_id' => $payment->id,
+                                            'allocatable_type' => Purchase::class,
+                                            'allocatable_id' => $purchase->id,
+                                            'amount' => $actual,
+                                        ]);
+                                        $unallocated -= $actual;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Auto-settle remainder using FIFO if any unallocated amount remains
+                if ($unallocated > 0) {
+                    if ($payment->payment_type === 'received') {
+                        $pendingRepairs = RepairOrder::where('party_id', $payment->party_id)
+                            ->where('balance_amount', '>', 0)
+                            ->orderBy('received_date', 'asc')
+                            ->orderBy('id', 'asc')
+                            ->get();
+
+                        $pendingSales = Sale::where('party_id', $payment->party_id)
+                            ->whereRaw('paid_amount < (total_amount - discount_amount)')
+                            ->orderBy('date', 'asc')
+                            ->orderBy('id', 'asc')
+                            ->get();
+
+                        $combined = collect();
+                        foreach ($pendingRepairs as $r) {
+                            $combined->push([
+                                'type' => 'repair',
+                                'sort_date' => $r->received_date ? $r->received_date->toDateTimeString() : $r->created_at->toDateTimeString(),
+                                'due' => (float)$r->balance_amount,
+                                'model' => $r,
+                            ]);
+                        }
+                        foreach ($pendingSales as $s) {
+                            $due = max(0, ((float)$s->total_amount - (float)$s->discount_amount) - (float)$s->paid_amount);
+                            $combined->push([
+                                'type' => 'sale',
+                                'sort_date' => $s->date ? $s->date . ' 00:00:00' : $s->created_at->toDateTimeString(),
+                                'due' => $due,
+                                'model' => $s,
+                            ]);
+                        }
+
+                        $sorted = $combined->sortBy('sort_date');
+
+                        foreach ($sorted as $item) {
+                            if ($unallocated <= 0) break;
+                            $alloc = min($unallocated, $item['due']);
+                            if ($alloc <= 0) continue;
+
+                            if ($item['type'] === 'repair') {
+                                $repair = $item['model'];
+                                $repair->advance_amount += $alloc;
                                 $repair->balance_amount = max(0, (float)$repair->total_amount - (float)$repair->advance_amount);
                                 $repair->save();
 
@@ -296,143 +475,48 @@ class PaymentController extends Controller implements HasMiddleware
                                     'payment_id' => $payment->id,
                                     'allocatable_type' => RepairOrder::class,
                                     'allocatable_id' => $repair->id,
-                                    'amount' => $actual,
+                                    'amount' => $alloc,
                                 ]);
-                                $unallocated -= $actual;
-                            }
-                        } elseif ($type === 'sale') {
-                            $sale = Sale::where('id', $targetId)->where('party_id', $payment->party_id)->first();
-                            if ($sale) {
-                                $due = max(0, ((float)$sale->total_amount - (float)$sale->discount_amount) - (float)$sale->paid_amount);
-                                if ($due > 0) {
-                                    $actual = min($amountToApply, $due);
-                                    $sale->paid_amount += $actual;
-                                    $sale->save();
+                            } elseif ($item['type'] === 'sale') {
+                                $sale = $item['model'];
+                                $sale->paid_amount += $alloc;
+                                $sale->save();
 
-                                    PaymentAllocation::create([
-                                        'payment_id' => $payment->id,
-                                        'allocatable_type' => Sale::class,
-                                        'allocatable_id' => $sale->id,
-                                        'amount' => $actual,
-                                    ]);
-                                    $unallocated -= $actual;
-                                }
+                                PaymentAllocation::create([
+                                    'payment_id' => $payment->id,
+                                    'allocatable_type' => Sale::class,
+                                    'allocatable_id' => $sale->id,
+                                    'amount' => $alloc,
+                                ]);
                             }
-                        } elseif ($type === 'purchase') {
-                            $purchase = Purchase::where('id', $targetId)->where('party_id', $payment->party_id)->first();
-                            if ($purchase) {
-                                $due = max(0, ((float)$purchase->total_amount - (float)$purchase->discount_amount) - (float)$purchase->paid_amount);
-                                if ($due > 0) {
-                                    $actual = min($amountToApply, $due);
-                                    $purchase->paid_amount += $actual;
-                                    $purchase->save();
 
-                                    PaymentAllocation::create([
-                                        'payment_id' => $payment->id,
-                                        'allocatable_type' => Purchase::class,
-                                        'allocatable_id' => $purchase->id,
-                                        'amount' => $actual,
-                                    ]);
-                                    $unallocated -= $actual;
-                                }
-                            }
+                            $unallocated -= $alloc;
                         }
-                    }
-                }
-            }
+                    } elseif ($payment->payment_type === 'paid') {
+                        $pendingPurchases = Purchase::where('party_id', $payment->party_id)
+                            ->whereRaw('paid_amount < (total_amount - discount_amount)')
+                            ->orderBy('date', 'asc')
+                            ->orderBy('id', 'asc')
+                            ->get();
 
-            // Auto-settle remainder using FIFO if any unallocated amount remains
-            if ($unallocated > 0) {
-                if ($payment->payment_type === 'received') {
-                    $pendingRepairs = RepairOrder::where('party_id', $payment->party_id)
-                        ->where('balance_amount', '>', 0)
-                        ->orderBy('received_date', 'asc')
-                        ->orderBy('id', 'asc')
-                        ->get();
+                        foreach ($pendingPurchases as $purchase) {
+                            if ($unallocated <= 0) break;
+                            $due = max(0, ((float)$purchase->total_amount - (float)$purchase->discount_amount) - (float)$purchase->paid_amount);
+                            if ($due <= 0) continue;
 
-                    $pendingSales = Sale::where('party_id', $payment->party_id)
-                        ->whereRaw('paid_amount < (total_amount - discount_amount)')
-                        ->orderBy('date', 'asc')
-                        ->orderBy('id', 'asc')
-                        ->get();
-
-                    $combined = collect();
-                    foreach ($pendingRepairs as $r) {
-                        $combined->push([
-                            'type' => 'repair',
-                            'sort_date' => $r->received_date ? $r->received_date->toDateTimeString() : $r->created_at->toDateTimeString(),
-                            'due' => (float)$r->balance_amount,
-                            'model' => $r,
-                        ]);
-                    }
-                    foreach ($pendingSales as $s) {
-                        $due = max(0, ((float)$s->total_amount - (float)$s->discount_amount) - (float)$s->paid_amount);
-                        $combined->push([
-                            'type' => 'sale',
-                            'sort_date' => $s->date ? $s->date . ' 00:00:00' : $s->created_at->toDateTimeString(),
-                            'due' => $due,
-                            'model' => $s,
-                        ]);
-                    }
-
-                    $sorted = $combined->sortBy('sort_date');
-
-                    foreach ($sorted as $item) {
-                        if ($unallocated <= 0) break;
-                        $alloc = min($unallocated, $item['due']);
-                        if ($alloc <= 0) continue;
-
-                        if ($item['type'] === 'repair') {
-                            $repair = $item['model'];
-                            $repair->advance_amount += $alloc;
-                            $repair->balance_amount = max(0, (float)$repair->total_amount - (float)$repair->advance_amount);
-                            $repair->save();
+                            $alloc = min($unallocated, $due);
+                            $purchase->paid_amount += $alloc;
+                            $purchase->save();
 
                             PaymentAllocation::create([
                                 'payment_id' => $payment->id,
-                                'allocatable_type' => RepairOrder::class,
-                                'allocatable_id' => $repair->id,
+                                'allocatable_type' => Purchase::class,
+                                'allocatable_id' => $purchase->id,
                                 'amount' => $alloc,
                             ]);
-                        } elseif ($item['type'] === 'sale') {
-                            $sale = $item['model'];
-                            $sale->paid_amount += $alloc;
-                            $sale->save();
 
-                            PaymentAllocation::create([
-                                'payment_id' => $payment->id,
-                                'allocatable_type' => Sale::class,
-                                'allocatable_id' => $sale->id,
-                                'amount' => $alloc,
-                            ]);
+                            $unallocated -= $alloc;
                         }
-
-                        $unallocated -= $alloc;
-                    }
-                } elseif ($payment->payment_type === 'paid') {
-                    $pendingPurchases = Purchase::where('party_id', $payment->party_id)
-                        ->whereRaw('paid_amount < (total_amount - discount_amount)')
-                        ->orderBy('date', 'asc')
-                        ->orderBy('id', 'asc')
-                        ->get();
-
-                    foreach ($pendingPurchases as $purchase) {
-                        if ($unallocated <= 0) break;
-                        $due = max(0, ((float)$purchase->total_amount - (float)$purchase->discount_amount) - (float)$purchase->paid_amount);
-                        if ($due <= 0) continue;
-
-                        $alloc = min($unallocated, $due);
-                        $purchase->paid_amount += $alloc;
-                        $purchase->save();
-
-                        PaymentAllocation::create([
-                            'payment_id' => $payment->id,
-                            'allocatable_type' => Purchase::class,
-                            'allocatable_id' => $purchase->id,
-                            'amount' => $alloc,
-                        ]);
-
-                        $unallocated -= $alloc;
                     }
                 }
             }
@@ -508,10 +592,8 @@ class PaymentController extends Controller implements HasMiddleware
         $payment->load(['party', 'account', 'warehouse']);
         $settings = \App\Models\Setting::first();
         
-        $currentBalance = $payment->party->getCurrentBalance();
+        $currentBalance = $payment->party ? $payment->party->getCurrentBalance() : 0;
         // Previous balance = Current balance minus the impact of THIS specifically recorded payment
-        // For 'received' (receipt), party was credited (credit > 0), so previous balance was higher (more debit/receivable).
-        // For 'paid' (payment), party was debited (debit > 0), so previous balance was lower (more credit/payable).
         $impact = ($payment->payment_type === 'received') ? -$payment->amount : $payment->amount;
         $previousBalance = $currentBalance - $impact;
 

@@ -20,14 +20,34 @@ class CargoChargeController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:view cargo charges', only: ['index']),
-            new Middleware('permission:create cargo charges', except: ['index']),
+            new Middleware('permission:view cargo charges', only: ['index', 'show', 'invoice']),
+            new Middleware('permission:create cargo charges', except: ['index', 'show', 'invoice']),
         ];
     }
     public function index()
     {
         $cargoCharges = CargoCharge::with(['purchase', 'cargoParty'])->latest()->paginate(10);
         return view('cargo_charges.index', compact('cargoCharges'));
+    }
+
+    public function show(CargoCharge $cargoCharge)
+    {
+        $cargoCharge->load(['purchase.party', 'purchase.items.product', 'cargoParty']);
+        $ledgerEntries = LedgerEntry::with('account')
+            ->where('reference_type', 'cargo')
+            ->where('reference_id', $cargoCharge->id)
+            ->get();
+        $settings = \App\Models\Setting::first();
+
+        return view('cargo_charges.show', compact('cargoCharge', 'ledgerEntries', 'settings'));
+    }
+
+    public function invoice(CargoCharge $cargoCharge)
+    {
+        $cargoCharge->load(['purchase.party', 'purchase.items.product', 'cargoParty']);
+        $settings = \App\Models\Setting::first();
+
+        return view('cargo_charges.invoice', compact('cargoCharge', 'settings'));
     }
 
     public function create(Request $request)

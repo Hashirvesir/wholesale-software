@@ -41,44 +41,68 @@
                     <form action="{{ route('payments.store') }}" method="POST" @submit.prevent="submitForm">
                         @csrf
 
-                        <!-- Top Row: Payment Type Selection -->
-                        <div class="mb-6 p-4 rounded-xl bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700">
-                            <label class="block text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
-                                Transaction Direction / Type *
-                            </label>
-                            <div class="grid grid-cols-2 gap-4">
-                                <label class="cursor-pointer relative">
-                                    <input type="radio" name="payment_type" value="received" x-model="type" @change="fetchPendingInvoices()" class="sr-only">
-                                    <div class="p-3.5 text-center rounded-xl border-2 transition flex items-center justify-center gap-2"
-                                        :class="type === 'received' ?
-                                            'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-black shadow-sm' :
-                                            'border-gray-200 dark:border-gray-700 text-gray-400 hover:border-gray-300'">
-                                        <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                                        </svg>
-                                        <span class="text-xs uppercase tracking-wider">Payment Received (Customer / Inflow)</span>
-                                    </div>
+                        <!-- Top Row: Payment Type Selection & Direct Toggle -->
+                        <div class="mb-6 p-4 rounded-xl bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700 space-y-4">
+                            <div>
+                                <label class="block text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
+                                    Transaction Direction / Type *
                                 </label>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <label class="cursor-pointer relative">
+                                        <input type="radio" name="payment_type" value="received" x-model="type" @change="fetchPendingInvoices()" class="sr-only">
+                                        <div class="p-3.5 text-center rounded-xl border-2 transition flex items-center justify-center gap-2"
+                                            :class="type === 'received' ?
+                                                'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-black shadow-sm' :
+                                                'border-gray-200 dark:border-gray-700 text-gray-400 hover:border-gray-300'">
+                                            <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                                            </svg>
+                                            <span class="text-xs uppercase tracking-wider">Payment Received (Inflow / Deposit)</span>
+                                        </div>
+                                    </label>
 
-                                <label class="cursor-pointer relative">
-                                    <input type="radio" name="payment_type" value="paid" x-model="type" @change="fetchPendingInvoices()" class="sr-only">
-                                    <div class="p-3.5 text-center rounded-xl border-2 transition flex items-center justify-center gap-2"
-                                        :class="type === 'paid' ?
-                                            'border-rose-500 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-black shadow-sm' :
-                                            'border-gray-200 dark:border-gray-700 text-gray-400 hover:border-gray-300'">
-                                        <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                    <label class="cursor-pointer relative">
+                                        <input type="radio" name="payment_type" value="paid" x-model="type" @change="fetchPendingInvoices()" class="sr-only">
+                                        <div class="p-3.5 text-center rounded-xl border-2 transition flex items-center justify-center gap-2"
+                                            :class="type === 'paid' ?
+                                                'border-rose-500 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-black shadow-sm' :
+                                                'border-gray-200 dark:border-gray-700 text-gray-400 hover:border-gray-300'">
+                                            <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                            </svg>
+                                            <span class="text-xs uppercase tracking-wider">Payment Paid (Outflow / Expense)</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Direct Account Payment Toggle -->
+                            <div class="pt-3 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div>
+                                    <div class="text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-200 flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                                         </svg>
-                                        <span class="text-xs uppercase tracking-wider">Payment Paid (Vendor / Outflow)</span>
+                                        <span>Direct Account Payment (No Customer / Vendor Required)</span>
                                     </div>
+                                    <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                                        Enable this if you received or paid money directly into Cash/Bank account without selecting any party. It will directly post into the Account Ledger.
+                                    </p>
+                                </div>
+
+                                <label class="inline-flex items-center cursor-pointer select-none shrink-0">
+                                    <input type="checkbox" x-model="isDirectPayment" @change="toggleDirectPayment()" class="sr-only peer">
+                                    <input type="hidden" name="is_direct_payment" :value="isDirectPayment ? '1' : '0'">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-600"></div>
+                                    <span class="ml-2.5 text-xs font-black uppercase tracking-wider" :class="isDirectPayment ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-400'" x-text="isDirectPayment ? 'Enabled' : 'Disabled'"></span>
                                 </label>
                             </div>
                         </div>
 
                         <!-- Basic Info Form Grid -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
-                            <!-- Party Search -->
-                            <div class="relative md:col-span-2" @click.away="partySearchOpen = false">
+                            <!-- Party Search (Hidden if isDirectPayment) -->
+                            <div class="relative md:col-span-2" x-show="!isDirectPayment" @click.away="partySearchOpen = false">
                                 <label class="block text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
                                     Party (Customer / Vendor / Cargo) *
                                 </label>
@@ -88,14 +112,14 @@
                                         @keydown="handlePartySearchKey($event)"
                                         class="w-full text-xs font-bold rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500 shadow-sm pl-9"
                                         :class="{ 'border-rose-500 ring-1 ring-rose-500': errors.party_id }"
-                                        placeholder="Search customer, vendor, or cargo agent..." autocomplete="off" required>
+                                        placeholder="Search customer, vendor, or cargo agent..." autocomplete="off">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                         </svg>
                                     </div>
                                 </div>
-                                <input type="hidden" name="party_id" :value="party_id">
+                                <input type="hidden" name="party_id" :value="isDirectPayment ? '' : party_id">
 
                                 <!-- Party Dropdown Results -->
                                 <div x-show="partySearchOpen && getFilteredParties().length > 0" x-cloak
@@ -128,6 +152,23 @@
                                         </span>
                                     </div>
                                 </template>
+                            </div>
+
+                            <!-- Direct Account Notice (Shown when isDirectPayment) -->
+                            <div class="md:col-span-2 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 flex items-start gap-3" x-show="isDirectPayment" x-cloak>
+                                <div class="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 shrink-0">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-black uppercase text-emerald-800 dark:text-emerald-200">
+                                        Direct Account Payment Active
+                                    </div>
+                                    <p class="text-xs text-emerald-700 dark:text-emerald-300 mt-0.5">
+                                        No customer or supplier selection required. Select your Cash or Bank account and enter the amount. This entry will be credited/debited straight to the Account Ledger.
+                                    </p>
+                                </div>
                             </div>
 
                             <!-- Transaction Date -->
@@ -203,7 +244,7 @@
                         </div>
 
                         <!-- Pending Invoices / Repairs Settle Card -->
-                        <div x-show="party_id && pendingInvoices.length > 0" x-cloak class="mb-6 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+                        <div x-show="!isDirectPayment && party_id && pendingInvoices.length > 0" x-cloak class="mb-6 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
                             <div class="p-4 bg-gray-50 dark:bg-gray-900/60 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                 <div>
                                     <h4 class="text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-300 flex items-center gap-2">
@@ -279,10 +320,14 @@
                                     {{ $settings->currency_symbol ?? 'Rs' }}
                                     <span x-text="amount ? Number(amount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'"></span>
                                 </div>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" x-show="party_id && from_account_id">
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" x-show="from_account_id">
                                     Recording <span class="font-bold uppercase" :class="type === 'received' ? 'text-emerald-600' : 'text-rose-600'" x-text="type"></span>
-                                    <span x-text="type === 'received' ? 'from' : 'to'"></span> <span class="font-bold text-gray-900 dark:text-gray-100" x-text="partySearch"></span>
-                                    via <span class="font-bold text-gray-900 dark:text-gray-100" x-text="accountSearch"></span>
+                                    <template x-if="isDirectPayment">
+                                        <span>direct payment via <span class="font-bold text-gray-900 dark:text-gray-100" x-text="accountSearch"></span></span>
+                                    </template>
+                                    <template x-if="!isDirectPayment && party_id">
+                                        <span><span x-text="type === 'received' ? 'from' : 'to'"></span> <span class="font-bold text-gray-900 dark:text-gray-100" x-text="partySearch"></span> via <span class="font-bold text-gray-900 dark:text-gray-100" x-text="accountSearch"></span></span>
+                                    </template>
                                 </p>
                             </div>
 
@@ -312,6 +357,7 @@
         function paymentForm() {
             return {
                 submitting: false,
+                isDirectPayment: false,
                 parties: @json($parties),
                 accounts: @json($accounts),
                 partySearch: '',
@@ -334,6 +380,16 @@
                     party_id: false,
                     from_account_id: false,
                     amount: false
+                },
+
+                toggleDirectPayment() {
+                    if (this.isDirectPayment) {
+                        this.party_id = '';
+                        this.partySearch = '';
+                        this.selectedPartyBalance = 0;
+                        this.pendingInvoices = [];
+                        this.errors.party_id = false;
+                    }
                 },
 
                 get totalOutstanding() {
@@ -451,7 +507,7 @@
                 submitForm(e) {
                     if (this.submitting) return;
                     this.errors = {
-                        party_id: !this.party_id,
+                        party_id: !this.isDirectPayment && !this.party_id,
                         from_account_id: !this.from_account_id,
                         amount: this.amount <= 0
                     };
@@ -463,13 +519,14 @@
                     // Check if offline: Save payment in local offline queue
                     if (!navigator.onLine || (window.OfflineSync && !window.OfflineSync.isOnline)) {
                         const offlinePayment = {
-                            party_id: this.party_id,
+                            party_id: this.isDirectPayment ? null : this.party_id,
+                            is_direct_payment: this.isDirectPayment ? 1 : 0,
                             warehouse_id: document.querySelector('select[name="warehouse_id"]')?.value || null,
                             from_account_id: this.from_account_id,
                             amount: parseFloat(this.amount) || 0,
                             payment_type: this.type,
                             date: document.querySelector('input[name="date"]')?.value || new Date().toISOString().split('T')[0],
-                            note: document.querySelector('textarea[name="note"]')?.value || ''
+                            note: document.querySelector('input[name="note"]')?.value || ''
                         };
 
                         if (window.OfflineSync) {

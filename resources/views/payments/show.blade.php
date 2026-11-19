@@ -69,6 +69,7 @@
                             </a>
 
                             @php
+                                $partyName = $payment->party ? $payment->party->name : 'Direct Account Payment';
                                 $rawPhone = preg_replace('/\D/', '', $payment->party->phone ?? '');
                                 $waPhone = null;
                                 if ($rawPhone !== '') {
@@ -80,14 +81,14 @@
                                         $waPhone = '92' . $rawPhone;
                                     }
                                 }
-                                $partyBal = $payment->party->getCurrentBalance();
+                                $partyBal = $payment->party ? $payment->party->getCurrentBalance() : 0;
                                 $publicPdfUrl = \Illuminate\Support\Facades\URL::signedRoute('payments.public-pdf', ['payment' => $payment->id]);
-                                $waText = "Assalam-o-Alaikum {$payment->party->name},\nPayment Voucher #{$payment->id} recorded:\nType: " . ($payment->payment_type === 'received' ? 'Received' : 'Paid') . "\nAmount: " . ($settings->currency_symbol ?? 'Rs') . " " . number_format($payment->amount, 2) . "\nAccount: {$payment->account->name}\nDate: {$payment->date}\nCurrent Balance: " . ($settings->currency_symbol ?? 'Rs') . " " . number_format(abs($partyBal), 2) . " " . ($partyBal >= 0 ? '(Receivable)' : '(Payable)') . "\n\nVoucher PDF: {$publicPdfUrl}\n\nShukriya,\n{$settings->company_name}";
+                                $waText = "Assalam-o-Alaikum " . ($payment->party ? $payment->party->name : '') . ",\nPayment Voucher #{$payment->id} recorded:\nType: " . ($payment->payment_type === 'received' ? 'Received' : 'Paid') . "\nAmount: " . ($settings->currency_symbol ?? 'Rs') . " " . number_format($payment->amount, 2) . "\nAccount: {$payment->account->name}\nDate: {$payment->date}" . ($payment->party ? "\nCurrent Balance: " . ($settings->currency_symbol ?? 'Rs') . " " . number_format(abs($partyBal), 2) . " " . ($partyBal >= 0 ? '(Receivable)' : '(Payable)') : '') . "\n\nVoucher PDF: {$publicPdfUrl}\n\nShukriya,\n{$settings->company_name}";
                             @endphp
 
                             <button type="button"
                                 onclick="window.shareDoc({
-                                    title: 'Payment Voucher #{{ $payment->id }} - {{ addslashes($payment->party->name) }}',
+                                    title: 'Payment Voucher #{{ $payment->id }} - {{ addslashes($partyName) }}',
                                     text: '{{ addslashes(str_replace("\n", '\n', $waText)) }}',
                                     url: '{{ $publicPdfUrl }}'
                                 })"
@@ -127,27 +128,43 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-6">
                         <!-- Party Info Card -->
                         <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700">
-                            <div class="flex justify-between items-start mb-2">
-                                <h4 class="text-[11px] font-black uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                    Party Details
-                                </h4>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-primary-100 text-primary-800 dark:bg-primary-950/60 dark:text-primary-300">
-                                    {{ $payment->party->type }}
-                                </span>
-                            </div>
-                            <div class="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase">{{ $payment->party->name }}</div>
-                            <div class="text-xs text-gray-500 mt-0.5">Phone: {{ $payment->party->phone ?? 'N/A' }}</div>
-                            @if ($payment->party->address)
-                                <div class="text-xs text-gray-500 mt-0.5">{{ $payment->party->address }}</div>
-                            @endif
+                            @if ($payment->party)
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="text-[11px] font-black uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                        Party Details
+                                    </h4>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-primary-100 text-primary-800 dark:bg-primary-950/60 dark:text-primary-300">
+                                        {{ $payment->party->type }}
+                                    </span>
+                                </div>
+                                <div class="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase">{{ $payment->party->name }}</div>
+                                <div class="text-xs text-gray-500 mt-0.5">Phone: {{ $payment->party->phone ?? 'N/A' }}</div>
+                                @if ($payment->party->address)
+                                    <div class="text-xs text-gray-500 mt-0.5">{{ $payment->party->address }}</div>
+                                @endif
 
-                            <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 text-xs font-bold text-gray-600 dark:text-gray-400 flex justify-between items-center">
-                                <span>Current Balance:</span>
-                                <span class="{{ $partyBal >= 0 ? 'text-red-500' : 'text-emerald-500' }}">
-                                    {{ $settings->currency_symbol ?? 'Rs' }} {{ number_format(abs($partyBal), 2) }}
-                                    {{ $partyBal >= 0 ? '(Due)' : '(Advance)' }}
-                                </span>
-                            </div>
+                                <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 text-xs font-bold text-gray-600 dark:text-gray-400 flex justify-between items-center">
+                                    <span>Current Balance:</span>
+                                    <span class="{{ $partyBal >= 0 ? 'text-red-500' : 'text-emerald-500' }}">
+                                        {{ $settings->currency_symbol ?? 'Rs' }} {{ number_format(abs($partyBal), 2) }}
+                                        {{ $partyBal >= 0 ? '(Due)' : '(Advance)' }}
+                                    </span>
+                                </div>
+                            @else
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="text-[11px] font-black uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                        Party Details
+                                    </h4>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                        Direct Entry
+                                    </span>
+                                </div>
+                                <div class="text-sm font-black text-emerald-700 dark:text-emerald-400 uppercase flex items-center gap-1.5">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                    Direct Account Payment
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">This payment is not tied to any customer or vendor party. It reflects directly in the {{ $payment->account->name }} account ledger.</div>
+                            @endif
                         </div>
 
                         <!-- Account & Location Card -->

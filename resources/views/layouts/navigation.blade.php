@@ -213,6 +213,7 @@
                                     @can('view sales analysis report')
                                         <x-dropdown-link :href="route('reports.sales-analysis')">{{ __('Sales Analysis Report') }}</x-dropdown-link>
                                         <x-dropdown-link :href="route('reports.salesman-performance')">{{ __('Salesman & Recovery Report') }}</x-dropdown-link>
+                                        <x-dropdown-link :href="route('reports.customer-product-last-price')">{{ __('Customer Product Last Price') }}</x-dropdown-link>
                                     @endcan
                                     @can('view returns summary')
                                         <x-dropdown-link :href="route('reports.returns-summary')">{{ __('Returns Summary') }}</x-dropdown-link>
@@ -1004,6 +1005,7 @@
                         @can('view cargo charges report')
                             <x-responsive-nav-link :href="route('reports.cargo-charges')" :active="request()->routeIs('reports.cargo-charges')">{{ __('Cargo Charges Report') }}</x-responsive-nav-link>
                         @endcan
+                        <x-responsive-nav-link :href="route('reports.customer-product-last-price')" :active="request()->routeIs('reports.customer-product-last-price')">{{ __('Customer Product Last Price') }}</x-responsive-nav-link>
                         @can('view activity logs')
                             <x-responsive-nav-link :href="route('activity-logs.index')" :active="request()->routeIs('activity-logs.*')">{{ __('Audit Logs') }}</x-responsive-nav-link>
                         @endcan

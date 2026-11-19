@@ -74,6 +74,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/quotations/{quotation}/status', [QuotationController::class, 'updateStatus'])->name('quotations.status')->middleware('permission:edit quotations');
     Route::get('/quotations/{quotation}/pdf', [QuotationController::class, 'downloadPdf'])->name('quotations.pdf')->middleware('permission:view quotations');
     Route::resource('quotations', QuotationController::class)->middleware('permission:view quotations');
+    Route::get('/cargo-charges/{cargo_charge}/invoice', [CargoChargeController::class, 'invoice'])->name('cargo-charges.invoice')->middleware('permission:view cargo charges');
     Route::resource('cargo-charges', CargoChargeController::class)->middleware('permission:view cargo charges');
     Route::get('/payments/party-pending-invoices', [PaymentController::class, 'partyPendingInvoices'])->name('payments.party-pending-invoices')->middleware('permission:view payments');
     Route::resource('payments', PaymentController::class)->middleware('permission:view payments');
@@ -147,6 +148,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports/returns-summary', [ReportController::class, 'returnsSummary'])->name('reports.returns-summary')->middleware('permission:view returns summary');
     Route::get('/reports/cargo-charges', [ReportController::class, 'cargoChargesReport'])->name('reports.cargo-charges')->middleware('permission:view cargo charges report');
     Route::get('/reports/salesman-performance', [ReportController::class, 'salesmanPerformance'])->name('reports.salesman-performance')->middleware('permission:view sales');
+    Route::get('/reports/customer-product-last-price', [ReportController::class, 'customerProductLastPrice'])->name('reports.customer-product-last-price')->middleware('permission:view sales');
 
     // Quick Add Routes (Returning JSON for Alpine.js)
     Route::post('/quick-add-category', function (Request $request) {

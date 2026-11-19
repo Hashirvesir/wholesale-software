@@ -119,7 +119,7 @@
         </div>
         <div class="row">
             <span><strong>Party:</strong></span>
-            <span>{{ $payment->party->name }}</span>
+            <span>{{ $payment->party ? $payment->party->name : 'Direct Account Payment' }}</span>
         </div>
         <div class="row">
             <span><strong>Account:</strong></span>
@@ -128,20 +128,24 @@
     </div>
 
     <div class="mb-2">
-        <div class="row font-bold">
-            <span>Prev. Balance:</span>
-            <span>{{ $settings->currency_symbol }} {{ number_format(abs($previousBalance), 2) }}
-                {{ $previousBalance >= 0 ? '(Rec)' : '(Pay)' }}</span>
-        </div>
+        @if ($payment->party)
+            <div class="row font-bold">
+                <span>Prev. Balance:</span>
+                <span>{{ $settings->currency_symbol }} {{ number_format(abs($previousBalance), 2) }}
+                    {{ $previousBalance >= 0 ? '(Rec)' : '(Pay)' }}</span>
+            </div>
+        @endif
         <div class="row font-bold">
             <span>Amount Paid:</span>
             <span>{{ $settings->currency_symbol }} {{ number_format($payment->amount, 2) }}</span>
         </div>
-        <div class="row font-bold" style="border-top: 1px solid #000; padding-top: 5px; margin-top: 5px;">
-            <span>New Balance:</span>
-            <span>{{ $settings->currency_symbol }} {{ number_format(abs($currentBalance), 2) }}
-                {{ $currentBalance >= 0 ? '(Rec)' : '(Pay)' }}</span>
-        </div>
+        @if ($payment->party)
+            <div class="row font-bold" style="border-top: 1px solid #000; padding-top: 5px; margin-top: 5px;">
+                <span>New Balance:</span>
+                <span>{{ $settings->currency_symbol }} {{ number_format(abs($currentBalance), 2) }}
+                    {{ $currentBalance >= 0 ? '(Rec)' : '(Pay)' }}</span>
+            </div>
+        @endif
     </div>
 
     <div class="border-b"></div>

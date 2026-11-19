@@ -1855,4 +1855,213 @@ class ReportController extends Controller
             'settings'
         ));
     }
+
+    public function customerProductLastPrice(Request $request)
+    {
+        $customers = Party::whereIn('type', ['customer', 'client'])
+            ->where('status', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'phone']);
+
+        $selectedCustomerId = $request->customer_id;
+        $searchProduct = $request->search;
+        $startDate = $request->start_date;
+        $endDate = $request->end_date;
+
+        $baseQuery = DB::table('sale_items')
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->join('products', 'sale_items.product_id', '=', 'products.id')
+            ->join('parties', 'sales.party_id', '=', 'parties.id')
+            ->whereNotNull('sales.party_id');
+
+        if ($selectedCustomerId) {
+            $baseQuery->where('sales.party_id', $selectedCustomerId);
+        }
+        if ($startDate) {
+            $baseQuery->where('sales.date', '>=', $startDate);
+        }
+        if ($endDate) {
+            $baseQuery->where('sales.date', '<=', $endDate);
+        }
+        if ($searchProduct) {
+            $baseQuery->where(function ($q) use ($searchProduct) {
+                $q->where('products.name', 'like', "%{$searchProduct}%")
+                  ->orWhere('products.sku', 'like', "%{$searchProduct}%");
+            });
+        }
+
+        $query = (clone $baseQuery)
+            ->select(
+                'sales.party_id',
+                'sale_items.product_id',
+                'parties.name as customer_name',
+                'parties.phone as customer_phone',
+                'products.name as product_name',
+                'products.sku as product_sku',
+                'products.sale_price as standard_price',
+                DB::raw('MAX(sales.id) as last_sale_id'),
+                DB::raw('MAX(sales.date) as last_sale_date'),
+                DB::raw('SUM(sale_items.qty) as total_qty'),
+                DB::raw('SUM(sale_items.total) as total_amount'),
+                DB::raw('COUNT(DISTINCT sales.id) as total_invoices')
+            )
+            ->groupBy(
+                'sales.party_id',
+                'sale_items.product_id',
+                'parties.name',
+                'parties.phone',
+                'products.name',
+                'products.sku',
+                'products.sale_price'
+            )
+            ->orderBy('last_sale_date', 'desc')
+            ->orderBy('last_sale_id', 'desc');
+
+        $settings = Setting::first();
+
+        // Check for CSV export
+        if ($request->get('export') === 'csv') {
+            $records = $query->get();
+            $saleIds = $records->pluck('last_sale_id')->unique();
+            $productIds = $records->pluck('product_id')->unique();
+
+            $lastItems = \App\Models\SaleItem::whereIn('sale_id', $saleIds)
+                ->whereIn('product_id', $productIds)
+                ->get()
+                ->keyBy(fn($item) => $item->sale_id . '-' . $item->product_id);
+
+            foreach ($records as $row) {
+                $lastItem = $lastItems->get($row->last_sale_id . '-' . $row->product_id);
+                $row->last_price = $lastItem ? (float)$lastItem->price : 0;
+                $row->last_qty = $lastItem ? (float)$lastItem->qty : 0;
+            }
+
+            $filename = 'customer-product-last-price-' . now()->format('Y-m-d') . '.csv';
+
+            $headers = [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            ];
+
+            $callback = function () use ($records, $settings) {
+                $file = fopen('php://output', 'w');
+                fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+                fputcsv($file, [
+                    'Customer Name',
+                    'Phone',
+                    'Product Name',
+                    'SKU',
+                    'Last Sale Date',
+                    'Last Invoice #',
+                    'Last Price (' . ($settings->currency_symbol ?? 'Rs') . ')',
+                    'Last Qty',
+                    'Standard Price (' . ($settings->currency_symbol ?? 'Rs') . ')',
+                    'Price Difference',
+                    'Lifetime Qty',
+                    'Lifetime Spend (' . ($settings->currency_symbol ?? 'Rs') . ')'
+                ]);
+
+                foreach ($records as $row) {
+                    $diff = (float)$row->last_price - (float)$row->standard_price;
+                    fputcsv($file, [
+                        $row->customer_name,
+                        $row->customer_phone,
+                        $row->product_name,
+                        $row->product_sku,
+                        $row->last_sale_date,
+                        'INV-' . str_pad($row->last_sale_id, 5, '0', STR_PAD_LEFT),
+                        number_format($row->last_price, 2, '.', ''),
+                        $row->last_qty,
+                        number_format($row->standard_price, 2, '.', ''),
+                        ($diff >= 0 ? '+' : '') . number_format($diff, 2, '.', ''),
+                        $row->total_qty,
+                        number_format($row->total_amount, 2, '.', ''),
+                    ]);
+                }
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, $headers);
+        }
+
+        // Check for PDF export
+        if ($request->has('pdf')) {
+            @ini_set('memory_limit', '512M');
+            @set_time_limit(300);
+
+            // Cap at 500 records if exporting all customers without filter to prevent memory exhaustion
+            $pdfQuery = clone $query;
+            if (!$selectedCustomerId && !$searchProduct) {
+                $pdfQuery->limit(500);
+            }
+            $records = $pdfQuery->get();
+
+            $saleIds = $records->pluck('last_sale_id')->unique();
+            $productIds = $records->pluck('product_id')->unique();
+
+            $lastItems = \App\Models\SaleItem::whereIn('sale_id', $saleIds)
+                ->whereIn('product_id', $productIds)
+                ->get()
+                ->keyBy(fn($item) => $item->sale_id . '-' . $item->product_id);
+
+            foreach ($records as $row) {
+                $lastItem = $lastItems->get($row->last_sale_id . '-' . $row->product_id);
+                $row->last_price = $lastItem ? (float)$lastItem->price : 0;
+                $row->last_qty = $lastItem ? (float)$lastItem->qty : 0;
+            }
+
+            $selectedCustomer = $selectedCustomerId ? Party::find($selectedCustomerId) : null;
+            $pdf = Pdf::loadView('reports.pdf.customer_product_last_price', compact(
+                'records',
+                'customers',
+                'selectedCustomer',
+                'selectedCustomerId',
+                'searchProduct',
+                'startDate',
+                'endDate',
+                'settings'
+            ))->setPaper('a4', 'landscape');
+
+            return $pdf->download('customer-product-last-price-' . now()->format('Y-m-d') . '.pdf');
+        }
+
+        // Paginated for Web View
+        $paginated = $query->paginate(25)->withQueryString();
+
+        $saleIds = collect($paginated->items())->pluck('last_sale_id')->unique();
+        $productIds = collect($paginated->items())->pluck('product_id')->unique();
+
+        $lastItems = \App\Models\SaleItem::whereIn('sale_id', $saleIds)
+            ->whereIn('product_id', $productIds)
+            ->get()
+            ->keyBy(fn($item) => $item->sale_id . '-' . $item->product_id);
+
+        foreach ($paginated->items() as $row) {
+            $lastItem = $lastItems->get($row->last_sale_id . '-' . $row->product_id);
+            $row->last_price = $lastItem ? (float)$lastItem->price : 0;
+            $row->last_qty = $lastItem ? (float)$lastItem->qty : 0;
+        }
+
+        $records = $paginated;
+        $selectedCustomer = $selectedCustomerId ? Party::find($selectedCustomerId) : null;
+
+        // Metrics for summary cards
+        $totalPairsCount = $paginated->total();
+        $pageTotalQty = collect($paginated->items())->sum('total_qty');
+        $pageTotalSpend = collect($paginated->items())->sum('total_amount');
+
+        return view('reports.customer_product_last_price', compact(
+            'records',
+            'customers',
+            'selectedCustomer',
+            'selectedCustomerId',
+            'searchProduct',
+            'startDate',
+            'endDate',
+            'totalPairsCount',
+            'pageTotalQty',
+            'pageTotalSpend',
+            'settings'
+        ));
+    }
 }

@@ -155,10 +155,17 @@
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 font-bold">
-                                            <a href="{{ route('payments.show', $payment) }}"
-                                                class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition hover:underline">
-                                                {{ $payment->party->name }}
-                                            </a>
+                                            @if ($payment->party)
+                                                <a href="{{ route('payments.show', $payment) }}"
+                                                    class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition hover:underline">
+                                                    {{ $payment->party->name }}
+                                                </a>
+                                            @else
+                                                <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-black text-xs bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                                    Direct Account
+                                                </span>
+                                            @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
