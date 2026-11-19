@@ -204,12 +204,13 @@
                                                         {{ __('View Payment') }}
                                                     </x-dropdown-link>
                                                         @php
+                                                            $idxPartyName = $payment->party ? $payment->party->name : 'Direct Account Payment';
                                                             $idxPaySignedUrl = \Illuminate\Support\Facades\URL::signedRoute('payments.public-pdf', ['payment' => $payment->id]);
-                                                            $idxPayText = "Payment Voucher #{$payment->id}\nParty: {$payment->party->name}\nType: " . ($payment->payment_type === 'received' ? 'Received' : 'Paid') . "\nAmount: Rs " . number_format($payment->amount, 2) . "\nVoucher PDF: {$idxPaySignedUrl}";
+                                                            $idxPayText = "Payment Voucher #{$payment->id}\nParty: {$idxPartyName}\nType: " . ($payment->payment_type === 'received' ? 'Received' : 'Paid') . "\nAmount: Rs " . number_format($payment->amount, 2) . "\nVoucher PDF: {$idxPaySignedUrl}";
                                                         @endphp
                                                         <button type="button"
                                                             onclick="window.shareDoc({
-                                                                title: 'Payment Voucher #{{ $payment->id }} - {{ addslashes($payment->party->name) }}',
+                                                                title: 'Payment Voucher #{{ $payment->id }} - {{ addslashes($idxPartyName) }}',
                                                                 text: '{{ addslashes(str_replace("\n", '\n', $idxPayText)) }}',
                                                                 url: '{{ $idxPaySignedUrl }}'
                                                             })"
@@ -286,7 +287,11 @@
                                 <div class="flex items-center justify-between">
                                     <div>
                                         <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100">
-                                            {{ $payment->party->name }}
+                                            @if ($payment->party)
+                                                {{ $payment->party->name }}
+                                            @else
+                                                <span class="text-emerald-600 dark:text-emerald-400 font-bold">Direct Account</span>
+                                            @endif
                                         </h4>
                                         <span class="text-xs text-gray-500 dark:text-gray-400">Via: {{ $payment->account->name }}</span>
                                     </div>
