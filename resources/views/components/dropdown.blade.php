@@ -9,6 +9,11 @@ $alignmentClasses = match ($align) {
 
 $width = match ($width) {
     '48' => 'w-48',
+    '56' => 'w-56',
+    '60' => 'w-60',
+    '64' => 'w-64',
+    '72' => 'w-72',
+    '80' => 'w-80',
     default => $width,
 };
 @endphp
@@ -27,7 +32,7 @@ $width = match ($width) {
             x-transition:leave-end="opacity-0 scale-95"
             class="absolute z-50 mt-2 {{ $width }} rounded-md shadow-lg {{ $alignmentClasses }}"
             style="display: none;"
-            @click="open = false">
+            @click="if ($event.target.closest('a, button')) open = false">
         <div class="rounded-md ring-1 ring-black ring-opacity-5 {{ $contentClasses }}">
             {{ $content }}
         </div>

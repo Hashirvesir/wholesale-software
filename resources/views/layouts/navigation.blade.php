@@ -31,7 +31,7 @@
                     <!-- Trading Dropdown -->
                     @canany(['view sales', 'view pos', 'view repairs', 'view repair services', 'view repair brands', 'view quotations', 'view purchases', 'view purchase orders', 'view stock transfers', 'view stock adjustments', 'view cargo charges'])
                         <div class="hidden xl:flex xl:items-center">
-                            <x-dropdown align="left" width="48">
+                            <x-dropdown align="left" width="56" content-classes="py-1 bg-white dark:bg-gray-700 max-h-[80vh] overflow-y-auto">
                                 <x-slot name="trigger">
                                     <button class="inline-flex items-center gap-1 px-1.5 pt-1 border-b-2 border-transparent text-xs font-semibold leading-5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none transition duration-150 ease-in-out h-16 uppercase tracking-wider cursor-pointer">
                                         <div>{{ __('Trading') }}</div>
@@ -165,7 +165,7 @@
                     <!-- Reports Dropdown -->
                     @canany(['view account ledger', 'view party ledger', 'view trial balance', 'view profit loss', 'view balance sheet', 'view dead stock', 'view stock alert', 'view products summary', 'view aging report', 'view daily collection report', 'view expense report', 'view sales analysis report', 'view returns summary', 'view cargo charges report', 'view activity logs'])
                         <div class="hidden xl:flex xl:items-center">
-                            <x-dropdown align="left" width="48">
+                            <x-dropdown align="left" width="64" content-classes="py-1.5 bg-white dark:bg-gray-700 max-h-[75vh] overflow-y-auto">
                                 <x-slot name="trigger">
                                     <button class="inline-flex items-center gap-1 px-1.5 pt-1 border-b-2 border-transparent text-xs font-semibold leading-5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none transition duration-150 ease-in-out h-16 uppercase tracking-wider cursor-pointer">
                                         <div>{{ __('Reports') }}</div>
