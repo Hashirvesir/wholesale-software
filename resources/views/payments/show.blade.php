@@ -229,10 +229,18 @@
                             </div>
                         </div>
                         <div class="text-right text-xs text-gray-500 dark:text-gray-400 max-w-sm">
-                            @if ($payment->payment_type === 'received')
-                                Inflow credited to party ledger and debited to cash/bank account.
+                            @if ($payment->party)
+                                @if ($payment->payment_type === 'received')
+                                    Inflow credited to party ledger and debited to cash/bank account.
+                                @else
+                                    Outflow debited to party ledger and credited from cash/bank account.
+                                @endif
                             @else
-                                Outflow debited to party ledger and credited from cash/bank account.
+                                @if ($payment->payment_type === 'received')
+                                    Direct inflow debited to cash/bank account ledger.
+                                @else
+                                    Direct outflow credited from cash/bank account ledger.
+                                @endif
                             @endif
                         </div>
                     </div>
@@ -322,10 +330,18 @@
                         </svg>
                         <div>
                             <span class="font-black uppercase tracking-wider block mb-0.5">Automated Double-Entry Accounting Posted:</span>
-                            @if ($payment->payment_type === 'received')
-                                Cash/Bank Account <strong>[{{ $payment->account->name }}]</strong> has been <span class="text-emerald-600 font-bold">DEBITED</span>, and Party <strong>[{{ $payment->party->name }}]</strong> has been <span class="text-emerald-600 font-bold">CREDITED</span>.
+                            @if ($payment->party)
+                                @if ($payment->payment_type === 'received')
+                                    Cash/Bank Account <strong>[{{ $payment->account->name }}]</strong> has been <span class="text-emerald-600 font-bold">DEBITED</span>, and Party <strong>[{{ $payment->party->name }}]</strong> has been <span class="text-emerald-600 font-bold">CREDITED</span>.
+                                @else
+                                    Party <strong>[{{ $payment->party->name }}]</strong> has been <span class="text-rose-600 font-bold">DEBITED</span>, and Cash/Bank Account <strong>[{{ $payment->account->name }}]</strong> has been <span class="text-rose-600 font-bold">CREDITED</span>.
+                                @endif
                             @else
-                                Party <strong>[{{ $payment->party->name }}]</strong> has been <span class="text-rose-600 font-bold">DEBITED</span>, and Cash/Bank Account <strong>[{{ $payment->account->name }}]</strong> has been <span class="text-rose-600 font-bold">CREDITED</span>.
+                                @if ($payment->payment_type === 'received')
+                                    Cash/Bank Account <strong>[{{ $payment->account->name }}]</strong> has been <span class="text-emerald-600 font-bold">DEBITED</span> directly, and Balancing Income/Receipts Account has been <span class="text-emerald-600 font-bold">CREDITED</span>.
+                                @else
+                                    Balancing Expense Account has been <span class="text-rose-600 font-bold">DEBITED</span>, and Cash/Bank Account <strong>[{{ $payment->account->name }}]</strong> has been <span class="text-rose-600 font-bold">CREDITED</span> directly.
+                                @endif
                             @endif
                         </div>
                     </div>
