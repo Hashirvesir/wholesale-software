@@ -533,8 +533,14 @@
                             window.OfflineSync.saveOfflinePayment(offlinePayment);
                         }
 
-                        alert('Offline Mode: Payment saved to local queue! It will automatically sync to the server when connection is restored.');
-                        window.location.href = '{{ route("payments.index") }}';
+                        if (confirm('Offline Mode: Payment saved to local queue! It will sync automatically when back online.\n\nClick OK to record another payment, or Cancel to go to Payments list.')) {
+                            this.amount = '';
+                            if (document.querySelector('input[name="note"]')) {
+                                document.querySelector('input[name="note"]').value = '';
+                            }
+                        } else {
+                            window.location.href = '{{ route("payments.index") }}';
+                        }
                         return;
                     }
 

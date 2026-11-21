@@ -248,10 +248,13 @@ class OfflineSyncController extends Controller
                     }
                     $invoicePaidAmount = min($total, $totalPaid + $advanceUsed);
 
+                    $salesmanId = $rawSale['salesman_id'] ?? auth()->id();
+
                     $sale = Sale::create([
                         'offline_id' => $offlineId,
                         'party_id' => $partyId,
                         'warehouse_id' => $warehouseId,
+                        'salesman_id' => $salesmanId,
                         'account_id' => $payments[0]['account_id'] ?? null,
                         'date' => $saleDate,
                         'total_amount' => $total,
@@ -432,18 +435,23 @@ class OfflineSyncController extends Controller
 
             try {
                 $payment = DB::transaction(function () use ($rawPayment, $offlineId) {
-                    $party = Party::findOrFail($rawPayment['party_id']);
+                    $isDirect = !empty($rawPayment['is_direct_payment']) || empty($rawPayment['party_id']);
+                    $partyId = $isDirect ? null : $rawPayment['party_id'];
+                    $party = $partyId ? Party::find($partyId) : null;
                     $warehouseId = $rawPayment['warehouse_id'] ?? Warehouse::first()->id ?? 1;
                     $fromAccount = ChartOfAccount::findOrFail($rawPayment['from_account_id']);
                     $amount = (float)$rawPayment['amount'];
                     $paymentType = $rawPayment['payment_type'] ?? 'received';
                     $date = $rawPayment['date'] ?? now()->toDateString();
                     $note = ($rawPayment['note'] ?? '') . ' [Offline Synced]';
+                    $salesmanId = $rawPayment['salesman_id'] ?? auth()->id();
 
                     $payment = Payment::create([
                         'offline_id' => $offlineId,
-                        'party_id' => $party->id,
+                        'party_id' => $party ? $party->id : null,
+                        'is_direct_payment' => $isDirect ? 1 : 0,
                         'warehouse_id' => $warehouseId,
+                        'salesman_id' => $salesmanId,
                         'from_account_id' => $fromAccount->id,
                         'amount' => $amount,
                         'payment_type' => $paymentType,
@@ -451,66 +459,134 @@ class OfflineSyncController extends Controller
                         'note' => $note,
                     ]);
 
-                    $receivableAcc = ChartOfAccount::where('name', 'Accounts Receivable')->first();
-                    $payableAcc = ChartOfAccount::where('name', 'Accounts Payable')->first();
+                    if ($isDirect || !$party) {
+                        // Direct Account Payment without party
+                        if ($paymentType === 'received') {
+                            $balancingAcc = ChartOfAccount::firstOrCreate(
+                                ['name' => 'Direct Payments / Other Receipts'],
+                                ['type' => 'Income', 'status' => true]
+                            );
 
-                    $targetAcc = ($party->type === 'customer') ? $receivableAcc : $payableAcc;
-
-                    if ($paymentType === 'received') {
-                        // Debit cash/bank account
-                        LedgerEntry::create([
-                            'account_id' => $fromAccount->id,
-                            'party_id' => null,
-                            'warehouse_id' => $warehouseId,
-                            'debit' => $amount,
-                            'credit' => 0,
-                            'date' => $date,
-                            'reference_type' => 'payment',
-                            'reference_id' => $payment->id,
-                            'note' => "Offline Payment received from {$party->name}",
-                        ]);
-
-                        // Credit party AR/AP
-                        if ($targetAcc) {
+                            // 1. Debit Cash/Bank Account (Direct inflow)
                             LedgerEntry::create([
-                                'account_id' => $targetAcc->id,
-                                'party_id' => $party->id,
-                                'warehouse_id' => $warehouseId,
-                                'debit' => 0,
-                                'credit' => $amount,
-                                'date' => $date,
-                                'reference_type' => 'payment',
-                                'reference_id' => $payment->id,
-                                'note' => "Offline Payment from {$party->name}",
-                            ]);
-                        }
-                    } else {
-                        // Paid
-                        if ($targetAcc) {
-                            LedgerEntry::create([
-                                'account_id' => $targetAcc->id,
-                                'party_id' => $party->id,
+                                'account_id' => $fromAccount->id,
+                                'party_id' => null,
                                 'warehouse_id' => $warehouseId,
                                 'debit' => $amount,
                                 'credit' => 0,
                                 'date' => $date,
                                 'reference_type' => 'payment',
                                 'reference_id' => $payment->id,
-                                'note' => "Offline Payment to {$party->name}",
+                                'note' => $payment->note ?: 'Direct Payment Received into Account',
+                            ]);
+
+                            // 2. Credit Balancing Revenue Account
+                            LedgerEntry::create([
+                                'account_id' => $balancingAcc->id,
+                                'party_id' => null,
+                                'warehouse_id' => $warehouseId,
+                                'debit' => 0,
+                                'credit' => $amount,
+                                'date' => $date,
+                                'reference_type' => 'payment',
+                                'reference_id' => $payment->id,
+                                'note' => $payment->note ?: 'Direct Payment Received',
+                            ]);
+                        } else {
+                            $balancingAcc = ChartOfAccount::where('name', 'Operating Expenses')->first()
+                                ?: ChartOfAccount::firstOrCreate(
+                                    ['name' => 'Direct Payments / Expenses'],
+                                    ['type' => 'Expense', 'status' => true]
+                                );
+
+                            // 1. Debit Balancing Expense Account
+                            LedgerEntry::create([
+                                'account_id' => $balancingAcc->id,
+                                'party_id' => null,
+                                'warehouse_id' => $warehouseId,
+                                'debit' => $amount,
+                                'credit' => 0,
+                                'date' => $date,
+                                'reference_type' => 'payment',
+                                'reference_id' => $payment->id,
+                                'note' => $payment->note ?: 'Direct Payment Paid from Account',
+                            ]);
+
+                            // 2. Credit Cash/Bank Account (Direct outflow)
+                            LedgerEntry::create([
+                                'account_id' => $fromAccount->id,
+                                'party_id' => null,
+                                'warehouse_id' => $warehouseId,
+                                'debit' => 0,
+                                'credit' => $amount,
+                                'date' => $date,
+                                'reference_type' => 'payment',
+                                'reference_id' => $payment->id,
+                                'note' => $payment->note ?: 'Direct Payment Paid from Account',
                             ]);
                         }
+                    } else {
+                        // Standard Party payment
+                        $receivableAcc = ChartOfAccount::where('name', 'Accounts Receivable')->first();
+                        $payableAcc = ChartOfAccount::where('name', 'Accounts Payable')->first();
+                        $targetAcc = ($party->type === 'customer') ? $receivableAcc : $payableAcc;
 
-                        LedgerEntry::create([
-                            'account_id' => $fromAccount->id,
-                            'party_id' => null,
-                            'warehouse_id' => $warehouseId,
-                            'debit' => 0,
-                            'credit' => $amount,
-                            'date' => $date,
-                            'reference_type' => 'payment',
-                            'reference_id' => $payment->id,
-                            'note' => "Offline Payment paid to {$party->name}",
-                        ]);
+                        if ($paymentType === 'received') {
+                            // Debit cash/bank account
+                            LedgerEntry::create([
+                                'account_id' => $fromAccount->id,
+                                'party_id' => null,
+                                'warehouse_id' => $warehouseId,
+                                'debit' => $amount,
+                                'credit' => 0,
+                                'date' => $date,
+                                'reference_type' => 'payment',
+                                'reference_id' => $payment->id,
+                                'note' => "Offline Payment received from {$party->name}",
+                            ]);
+
+                            // Credit party AR/AP
+                            if ($targetAcc) {
+                                LedgerEntry::create([
+                                    'account_id' => $targetAcc->id,
+                                    'party_id' => $party->id,
+                                    'warehouse_id' => $warehouseId,
+                                    'debit' => 0,
+                                    'credit' => $amount,
+                                    'date' => $date,
+                                    'reference_type' => 'payment',
+                                    'reference_id' => $payment->id,
+                                    'note' => "Offline Payment from {$party->name}",
+                                ]);
+                            }
+                        } else {
+                            // Paid
+                            if ($targetAcc) {
+                                LedgerEntry::create([
+                                    'account_id' => $targetAcc->id,
+                                    'party_id' => $party->id,
+                                    'warehouse_id' => $warehouseId,
+                                    'debit' => $amount,
+                                    'credit' => 0,
+                                    'date' => $date,
+                                    'reference_type' => 'payment',
+                                    'reference_id' => $payment->id,
+                                    'note' => "Offline Payment to {$party->name}",
+                                ]);
+                            }
+
+                            LedgerEntry::create([
+                                'account_id' => $fromAccount->id,
+                                'party_id' => null,
+                                'warehouse_id' => $warehouseId,
+                                'debit' => 0,
+                                'credit' => $amount,
+                                'date' => $date,
+                                'reference_type' => 'payment',
+                                'reference_id' => $payment->id,
+                                'note' => "Offline Payment paid to {$party->name}",
+                            ]);
+                        }
                     }
 
                     $this->logActivity('Synced Offline Payment', 'Payments', $payment->id, null, $payment->toArray());

@@ -184,11 +184,11 @@ class OfflineSyncTest extends TestCase
             ->first();
         $this->assertEquals(40, $stock->qty);
 
-        // Check Ledger Entries (Customer Debit, Sales Revenue Credit, Cash Debit)
+        // Check Ledger Entries (Customer Debit, Sales Revenue Credit, Cash Debit, AR Credit)
         $entries = LedgerEntry::where('reference_type', 'sale')
             ->where('reference_id', $sale->id)
             ->get();
-        $this->assertCount(2, $entries);
+        $this->assertCount(4, $entries);
     }
 
     public function test_sync_endpoint_successfully_creates_offline_payment(): void
@@ -224,6 +224,48 @@ class OfflineSyncTest extends TestCase
         $this->assertNotNull($payment);
         $this->assertEquals(15000.00, (float)$payment->amount);
         $this->assertEquals('received', $payment->payment_type);
+    }
+
+    public function test_sync_endpoint_successfully_creates_offline_direct_payment_without_party(): void
+    {
+        $offlineDirectPayId = 'OFFLINE-DIRPAY-TEST-777';
+
+        $payload = [
+            'sales' => [],
+            'payments' => [
+                [
+                    'offline_id' => $offlineDirectPayId,
+                    'party_id' => null,
+                    'is_direct_payment' => true,
+                    'warehouse_id' => $this->warehouse->id,
+                    'from_account_id' => $this->cashAccount->id,
+                    'amount' => 5000.00,
+                    'payment_type' => 'received',
+                    'date' => now()->toDateString(),
+                    'note' => 'Direct counter receipt',
+                ],
+            ],
+        ];
+
+        $response = $this->actingAs($this->user)->postJson(route('offline.sync'), $payload);
+
+        $response->assertOk();
+        $response->assertJson([
+            'success' => true,
+        ]);
+        $response->assertJsonCount(1, 'synced_payments');
+
+        $payment = Payment::where('offline_id', $offlineDirectPayId)->first();
+        $this->assertNotNull($payment);
+        $this->assertNull($payment->party_id);
+        $this->assertTrue((bool)$payment->is_direct_payment);
+        $this->assertEquals(5000.00, (float)$payment->amount);
+
+        // Check Ledger Entries for Direct Payment
+        $entries = LedgerEntry::where('reference_type', 'payment')
+            ->where('reference_id', $payment->id)
+            ->get();
+        $this->assertCount(2, $entries);
     }
 
     public function test_sync_endpoint_is_idempotent_no_duplicate_records(): void

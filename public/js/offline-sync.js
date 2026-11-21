@@ -154,8 +154,9 @@
             this.isOnline = reachedServer;
             this.dispatchStatusEvent();
 
-            if (this.isOnline && (wasOffline || triggerSyncIfOnline || this.getPendingCount() > 0)) {
-                this.syncAll();
+            const hasRecentError = this.lastErrorTimestamp && (Date.now() - this.lastErrorTimestamp < 60000);
+            if (this.isOnline && (wasOffline || triggerSyncIfOnline || (this.getPendingCount() > 0 && !hasRecentError))) {
+                this.syncAll(triggerSyncIfOnline);
             }
 
             return this.isOnline;
@@ -321,10 +322,14 @@
         /**
          * Synchronize pending items to server.
          */
-        async syncAll() {
+        async syncAll(force = false) {
             if (this.isSyncing) return;
             if (this.getPendingCount() === 0) return;
             if (!this.isOnline) return;
+
+            if (force) {
+                this.lastErrorTimestamp = null;
+            }
 
             this.isSyncing = true;
             this.dispatchStatusEvent();
@@ -402,12 +407,26 @@
                         this.fetchMasterData();
                     }
 
+                    // Check if server reported errors on any items
+                    if (result.errors && result.errors.length > 0) {
+                        this.lastErrorTimestamp = Date.now();
+                        const firstErr = result.errors[0];
+                        this.showSyncErrorToast(`Sync Issue: ${firstErr.message || 'Some items failed to sync'}`);
+                    } else {
+                        this.lastErrorTimestamp = null;
+                    }
+
                     window.dispatchEvent(new CustomEvent('offline-sync-completed', { detail: result }));
                 } else {
                     console.error('Offline sync failed HTTP status:', res.status);
+                    this.lastErrorTimestamp = Date.now();
+                    if (res.status === 401) {
+                        this.showSyncErrorToast('Session expired. Please log in again to sync offline data.');
+                    }
                 }
             } catch (err) {
                 console.error('Offline sync network error:', err);
+                this.lastErrorTimestamp = Date.now();
             } finally {
                 this.isSyncing = false;
                 this.dispatchStatusEvent();
@@ -427,6 +446,21 @@
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 500);
             }, 4000);
+        }
+
+        showSyncErrorToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-5 right-5 z-[9999] bg-rose-600 text-white px-5 py-3 rounded-2xl shadow-2xl text-xs font-black flex items-center gap-3';
+            toast.innerHTML = `
+                <svg class="w-5 h-5 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.transition = 'opacity 0.5s ease';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 500);
+            }, 6000);
         }
     }
 

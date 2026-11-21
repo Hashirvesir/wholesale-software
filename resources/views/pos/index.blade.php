@@ -969,22 +969,43 @@
                 lastChangeReturn: 0,
 
                 initPos() {
-                    // LocalStorage offline master cache fallback
+                    // Check if fresh offline master data is available in localStorage
                     try {
-                        if (this.customers && this.customers.length > 0) {
-                            localStorage.setItem('invenco_pos_cached_customers', JSON.stringify(this.customers));
-                        } else {
-                            const cachedCust = localStorage.getItem('invenco_pos_cached_customers');
-                            if (cachedCust) this.customers = JSON.parse(cachedCust);
-                        }
+                        const masterRaw = localStorage.getItem('invenco_offline_master_data');
+                        const masterData = masterRaw ? JSON.parse(masterRaw) : (window.OfflineSync?.masterData || null);
 
-                        if (this.products && this.products.length > 0) {
+                        if (masterData && Array.isArray(masterData.products) && masterData.products.length > 0) {
+                            this.products = masterData.products;
+                            localStorage.setItem('invenco_pos_cached_products', JSON.stringify(this.products));
+                        } else if (this.products && this.products.length > 0) {
                             localStorage.setItem('invenco_pos_cached_products', JSON.stringify(this.products));
                         } else {
                             const cachedProd = localStorage.getItem('invenco_pos_cached_products');
                             if (cachedProd) this.products = JSON.parse(cachedProd);
                         }
+
+                        if (masterData && Array.isArray(masterData.customers) && masterData.customers.length > 0) {
+                            this.customers = masterData.customers;
+                            localStorage.setItem('invenco_pos_cached_customers', JSON.stringify(this.customers));
+                        } else if (this.customers && this.customers.length > 0) {
+                            localStorage.setItem('invenco_pos_cached_customers', JSON.stringify(this.customers));
+                        } else {
+                            const cachedCust = localStorage.getItem('invenco_pos_cached_customers');
+                            if (cachedCust) this.customers = JSON.parse(cachedCust);
+                        }
                     } catch (e) {}
+
+                    // Listen for offline sync completion to refresh POS master data seamlessly
+                    window.addEventListener('offline-sync-completed', () => {
+                        try {
+                            const updatedMaster = localStorage.getItem('invenco_offline_master_data');
+                            if (updatedMaster) {
+                                const parsed = JSON.parse(updatedMaster);
+                                if (parsed.products) this.products = parsed.products;
+                                if (parsed.customers) this.customers = parsed.customers;
+                            }
+                        } catch(err) {}
+                    });
 
                     // Initialize active customer
                     this.selectedCustomer = this.customers.find(c => c.id == this.party_id) || null;
@@ -1628,6 +1649,31 @@
                     try {
                         const offlineSale = window.OfflineSync ? window.OfflineSync.saveOfflineSale(payload) : null;
                         
+                        // Deduct stock locally so cashier immediately sees updated stock and does not oversell
+                        if (payload.items && Array.isArray(payload.items)) {
+                            payload.items.forEach(item => {
+                                const prod = this.products.find(p => p.id == item.product_id);
+                                if (prod && prod.warehouse_stocks) {
+                                    const currStock = parseFloat(prod.warehouse_stocks[this.warehouse_id]) || 0;
+                                    prod.warehouse_stocks[this.warehouse_id] = currStock - (parseFloat(item.qty) || 0);
+                                }
+                            });
+                            try {
+                                localStorage.setItem('invenco_pos_cached_products', JSON.stringify(this.products));
+                            } catch(e){}
+                        }
+
+                        // Update local customer balance if on credit
+                        if (this.selectedCustomer && !this.isWalkIn()) {
+                            const netTotal = this.grandTotal();
+                            const totalPaid = this.totalPaid();
+                            const unpaid = Math.max(0, netTotal - totalPaid);
+                            this.selectedCustomer.current_balance = (parseFloat(this.selectedCustomer.current_balance) || 0) + unpaid;
+                            try {
+                                localStorage.setItem('invenco_pos_cached_customers', JSON.stringify(this.customers));
+                            } catch(e){}
+                        }
+
                         let offWaUrl = '';
                         if (this.selectedCustomer && this.selectedCustomer.phone) {
                             let cleanPhone = (this.selectedCustomer.phone || '').replace(/\D/g, '');

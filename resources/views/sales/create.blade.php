@@ -1062,8 +1062,25 @@
                             window.OfflineSync.saveOfflineSale(offlinePayload);
                         }
 
-                        alert('Offline Mode: Sale saved to local queue! It will automatically sync to the server when connection is restored.');
-                        window.location.href = '{{ route("sales.index") }}';
+                        if (confirm('Offline Mode: Sale saved to local queue! It will sync automatically when back online.\n\nClick OK to start a new sale, or Cancel to go to Sales list.')) {
+                            this.items = [{
+                                product_id: '',
+                                search: '',
+                                open: false,
+                                qty: 1,
+                                price: 0,
+                                error: false,
+                                highlightedIndex: -1,
+                                lastPrice: null
+                            }];
+                            this.discount_amount = 0;
+                            this.payments = [{ account_id: '', amount: 0 }];
+                            if (document.querySelector('textarea[name="note"]')) {
+                                document.querySelector('textarea[name="note"]').value = '';
+                            }
+                        } else {
+                            window.location.href = '{{ route("sales.index") }}';
+                        }
                         return;
                     }
 

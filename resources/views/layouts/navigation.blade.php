@@ -528,7 +528,7 @@
                 <div class="h-5 w-px bg-gray-200 dark:bg-gray-700 mx-0.5"></div>
 
                 <!-- Offline / Online Sync Indicator -->
-                @can('access offline mode')
+                @canany(['access offline mode', 'create sales', 'create pos sale', 'create payments'])
                 <div x-data="{
                     open: false,
                     isOnline: navigator.onLine,
@@ -629,6 +629,27 @@
                                                 <div class="text-[10px] text-gray-500 font-mono" x-text="'Total: Rs ' + (s.total_amount || 0)"></div>
                                             </div>
                                             <button type="button" @click="if(confirm('Is offline sale ko cancel/delete karna chahte hain?')) { window.OfflineSync.deleteOfflineSale(s.offline_id); }"
+                                                class="px-2 py-0.5 text-[10px] font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition">
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- Pending Offline Payments List with Delete option -->
+                        <template x-if="paymentsCount > 0">
+                            <div class="mb-3">
+                                <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Queue Mein Pending Payments:</div>
+                                <div class="max-h-32 overflow-y-auto space-y-1.5 p-1.5 bg-purple-50/60 dark:bg-purple-950/40 rounded-xl border border-purple-200/80 dark:border-purple-800/80">
+                                    <template x-for="p in (window.OfflineSync ? window.OfflineSync.paymentsQueue : [])" :key="p.offline_id">
+                                        <div class="flex items-center justify-between text-[11px] p-1.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 shadow-2xs">
+                                            <div class="truncate mr-2">
+                                                <span class="font-bold text-gray-800 dark:text-gray-200" x-text="p.party_name || (p.is_direct_payment ? 'Direct Account' : 'Payment')"></span>
+                                                <div class="text-[10px] text-gray-500 font-mono" x-text="(p.payment_type || 'received').toUpperCase() + ': Rs ' + (p.amount || 0)"></div>
+                                            </div>
+                                            <button type="button" @click="if(confirm('Is offline payment ko cancel/delete karna chahte hain?')) { window.OfflineSync.deleteOfflinePayment(p.offline_id); }"
                                                 class="px-2 py-0.5 text-[10px] font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition">
                                                 Delete
                                             </button>
@@ -1061,7 +1082,7 @@
             @endcanany
 
             <!-- Mobile Offline Sync Status Bar -->
-            @can('access offline mode')
+            @canany(['access offline mode', 'create sales', 'create pos sale', 'create payments'])
             <div class="p-3 m-2 rounded-2xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-xs">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">

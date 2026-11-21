@@ -17,13 +17,27 @@ const OFFLINE_ROUTES = [
     '/reports/party-ledger',
 ];
 
-// 1. Install event: pre-cache static assets
+// 1. Install event: pre-cache static assets and essential offline routes
 self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(STATIC_ASSETS).catch((err) => {
+        caches.open(CACHE_NAME).then(async (cache) => {
+            try {
+                await cache.addAll(STATIC_ASSETS);
+            } catch (err) {
                 console.warn('Service worker pre-caching non-fatal warning:', err);
-            });
+            }
+
+            // Pre-cache essential offline routes individually so failures don't abort install
+            for (const route of OFFLINE_ROUTES) {
+                try {
+                    const res = await fetch(route);
+                    if (res && res.status === 200) {
+                        await cache.put(route, res);
+                    }
+                } catch (e) {
+                    // Non-fatal if user is not yet logged in during worker install
+                }
+            }
         }).then(() => self.skipWaiting())
     );
 });

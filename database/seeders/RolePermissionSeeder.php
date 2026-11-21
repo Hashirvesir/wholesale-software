@@ -168,6 +168,8 @@ class RolePermissionSeeder extends Seeder
             'print barcodes', 'export data',
             // Reports
             'view daily collection report', 'view expense report', 'view sales analysis report',
+            // Offline Mode
+            'access offline mode',
         ]);
 
         // 3. Technician Role (Karigar / Repair Specialist)
@@ -189,6 +191,7 @@ class RolePermissionSeeder extends Seeder
             'view quotations', 'create quotations',
             'view products', 'view parties',
             'view repairs', 'create repairs', 'print repairs',
+            'access offline mode',
         ]);
 
         // 5. Accountant Role
