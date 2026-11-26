@@ -22,8 +22,14 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'warehouse_id',
         'commission_rate',
     ];
+
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class);
+    }
 
     public function sales()
     {

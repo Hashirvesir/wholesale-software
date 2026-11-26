@@ -68,7 +68,7 @@
                                     </svg>
                                     <h4 class="text-sm font-bold text-blue-900 dark:text-blue-200 uppercase tracking-wider">Credit Terms & Overdue Control</h4>
                                 </div>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                     <div>
                                         <x-input-label for="price_tier" :value="__('Default Pricing Tier')" />
                                         <select id="price_tier" name="price_tier"
@@ -77,21 +77,35 @@
                                             <option value="retail" {{ old('price_tier') == 'retail' ? 'selected' : '' }}>Retail Rate (Aam Grahak)</option>
                                             <option value="dealer" {{ old('price_tier') == 'dealer' ? 'selected' : '' }}>Dealer / Bulk Rate</option>
                                         </select>
-                                        <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Rates will automatically apply when billing this customer.</p>
+                                        <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Rates auto-apply when billing.</p>
                                         <x-input-error :messages="$errors->get('price_tier')" class="mt-2" />
+                                    </div>
+                                    <div>
+                                        <x-input-label for="salesman_id" :value="__('Assigned Salesman')" />
+                                        <select id="salesman_id" name="salesman_id"
+                                            class="block mt-1 w-full border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-sm transition duration-150">
+                                            <option value="">-- No Salesman --</option>
+                                            @foreach ($salesmen as $sm)
+                                                <option value="{{ $sm->id }}" {{ old('salesman_id') == $sm->id ? 'selected' : '' }}>
+                                                    {{ $sm->name }} {{ $sm->phone ? '('.$sm->phone.')' : '' }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Salesman who deals this customer.</p>
+                                        <x-input-error :messages="$errors->get('salesman_id')" class="mt-2" />
                                     </div>
                                     <div>
                                         <x-input-label for="credit_limit" :value="__('Credit Limit (Rs.)')" />
                                         <x-text-input id="credit_limit" class="block mt-1 w-full bg-white dark:bg-gray-900" type="number"
                                             step="0.01" min="0" name="credit_limit" :value="old('credit_limit', '0.00')" placeholder="0.00 (0 = No limit)" />
-                                        <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Maximum allowed outstanding debt before alerts are triggered.</p>
+                                        <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Maximum allowed debt.</p>
                                         <x-input-error :messages="$errors->get('credit_limit')" class="mt-2" />
                                     </div>
                                     <div>
-                                        <x-input-label for="credit_days" :value="__('Payment Due Period (Days)')" />
+                                        <x-input-label for="credit_days" :value="__('Due Period (Days)')" />
                                         <x-text-input id="credit_days" class="block mt-1 w-full bg-white dark:bg-gray-900" type="number"
-                                            step="1" min="0" name="credit_days" :value="old('credit_days', '0')" placeholder="0 (0 = Immediate / No due days)" />
-                                        <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Invoices remaining unpaid beyond this number of days will be marked overdue.</p>
+                                            step="1" min="0" name="credit_days" :value="old('credit_days', '0')" placeholder="0 = No due days" />
+                                        <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Overdue alert after X days.</p>
                                         <x-input-error :messages="$errors->get('credit_days')" class="mt-2" />
                                     </div>
                                 </div>

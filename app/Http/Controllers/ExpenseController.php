@@ -55,6 +55,32 @@ class ExpenseController extends Controller implements HasMiddleware
 
     public function create()
     {
+        // Self-heal: ensure all active expense accounts from COA have a matching category
+        $expenseAccounts = ChartOfAccount::where('type', 'Expense')
+            ->whereNotIn('name', ['Purchase', 'COGS'])
+            ->where('status', true)
+            ->get();
+
+        foreach ($expenseAccounts as $acc) {
+            $cat = ExpenseCategory::where('account_id', $acc->id)->first();
+            if (!$cat) {
+                $cat = ExpenseCategory::where('name', $acc->name)->first();
+            }
+
+            if ($cat) {
+                if (!$cat->account_id) {
+                    $cat->update(['account_id' => $acc->id, 'status' => $acc->status]);
+                }
+            } else {
+                ExpenseCategory::create([
+                    'name' => $acc->name,
+                    'account_id' => $acc->id,
+                    'description' => 'Auto-synced from Chart of Accounts',
+                    'status' => $acc->status,
+                ]);
+            }
+        }
+
         $categories = ExpenseCategory::where('status', true)->get();
         // Paid from: Assets excluding Inventory and Receivables
         $paymentAccounts = ChartOfAccount::where('type', 'Asset')

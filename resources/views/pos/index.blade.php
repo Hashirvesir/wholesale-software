@@ -32,6 +32,7 @@
                 <div class="hidden lg:flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400 font-semibold">
                     <span class="bg-gray-100 dark:bg-gray-700/70 px-2 py-0.5 rounded border border-gray-200 dark:border-gray-600"><kbd class="font-bold text-gray-800 dark:text-gray-200">F1</kbd> Scan / Search</span>
                     <span class="bg-gray-100 dark:bg-gray-700/70 px-2 py-0.5 rounded border border-gray-200 dark:border-gray-600"><kbd class="font-bold text-gray-800 dark:text-gray-200">F2</kbd> Customer</span>
+                    <span class="bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300"><kbd class="font-black text-emerald-700 dark:text-emerald-300">F3</kbd> Payment</span>
                     <span class="bg-gray-100 dark:bg-gray-700/70 px-2 py-0.5 rounded border border-gray-200 dark:border-gray-600"><kbd class="font-bold text-gray-800 dark:text-gray-200">F4</kbd> Pay & Thermal</span>
                     <span class="bg-gray-100 dark:bg-gray-700/70 px-2 py-0.5 rounded border border-gray-200 dark:border-gray-600"><kbd class="font-bold text-gray-800 dark:text-gray-200">F7</kbd> Hold</span>
                     <span class="bg-gray-100 dark:bg-gray-700/70 px-2 py-0.5 rounded border border-gray-200 dark:border-gray-600"><kbd class="font-bold text-gray-800 dark:text-gray-200">F8</kbd> Discount</span>
@@ -112,8 +113,8 @@
                     <div class="bg-white dark:bg-gray-800 rounded-xl p-3.5 shadow-sm border border-gray-200 dark:border-gray-700">
                         <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
 
-                            <!-- Customer Selection (7 cols) -->
-                            <div class="sm:col-span-7 relative" @click.away="customerDropdownOpen = false">
+                            <!-- Customer Selection (5 cols) -->
+                            <div class="sm:col-span-5 relative" @click.away="customerDropdownOpen = false">
                                 <div class="flex items-center justify-between mb-1">
                                     <label class="text-[11px] font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1">
                                         <span>Customer (F2)</span>
@@ -136,13 +137,23 @@
 
                                 <div class="relative">
                                     <input type="text" x-ref="customerInput" x-model="customerSearch"
-                                        @focus="customerDropdownOpen = true" @input="customerDropdownOpen = true"
+                                        @focus="customerDropdownOpen = true; $event.target.select()"
+                                        @click="customerDropdownOpen = true; $event.target.select()"
+                                        @input="customerDropdownOpen = true"
                                         @keydown="handleCustomerKey($event)"
-                                        class="w-full text-xs font-semibold rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-emerald-500 focus:ring-emerald-500 pr-10 shadow-sm transition"
+                                        class="w-full text-xs font-semibold rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-emerald-500 focus:ring-emerald-500 pr-16 shadow-sm transition"
                                         placeholder="Search customer by name or phone (F2)..." autocomplete="off" />
 
-                                    <div class="absolute right-2 top-2 text-gray-400">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                    <div class="absolute right-2 top-2 flex items-center gap-1">
+                                        <button type="button" x-show="customerSearch"
+                                            @click="customerSearch = ''; selectedCustomer = null; party_id = ''; customerDropdownOpen = true; $refs.customerInput.focus()"
+                                            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs px-1 font-black cursor-pointer"
+                                            title="Clear Customer">
+                                            &times;
+                                        </button>
+                                        <div class="text-gray-400 pointer-events-none">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -225,10 +236,32 @@
                                 <label class="block text-[11px] font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
                                     Stock Source
                                 </label>
-                                <select x-model="warehouse_id" @change="onWarehouseChange()"
+                                @if (auth()->user()?->warehouse_id)
+                                    <div class="w-full text-xs font-bold rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 py-2 px-3 flex items-center justify-between">
+                                        <span>{{ auth()->user()->warehouse->name ?? 'Assigned Shop' }}</span>
+                                        <span class="text-[9px] uppercase font-black bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded">Assigned</span>
+                                    </div>
+                                    <input type="hidden" x-model="warehouse_id">
+                                @else
+                                    <select x-model="warehouse_id" @change="onWarehouseChange()"
+                                        class="w-full text-xs font-semibold rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-emerald-500 focus:ring-emerald-500 shadow-sm transition">
+                                        @foreach ($warehouses as $warehouse)
+                                            <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
+                                        @endforeach
+                                    </select>
+                                @endif
+                            </div>
+
+                            <!-- Salesman (2 cols) -->
+                            <div class="sm:col-span-2">
+                                <label class="block text-[11px] font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
+                                    Salesman
+                                </label>
+                                <select x-model="salesman_id"
                                     class="w-full text-xs font-semibold rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-emerald-500 focus:ring-emerald-500 shadow-sm transition">
-                                    @foreach ($warehouses as $warehouse)
-                                        <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
+                                    <option value="">-- None --</option>
+                                    @foreach ($salesmen as $sm)
+                                        <option value="{{ $sm->id }}">{{ $sm->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -287,6 +320,7 @@
                                 class="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 max-h-72 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
                                 <template x-for="(p, pIdx) in filteredProducts()" :key="p.id">
                                     <div @click="addProductToCart(p)"
+                                        :id="'product-item-' + pIdx"
                                         class="p-2.5 cursor-pointer hover:bg-emerald-50 dark:hover:bg-gray-700/70 flex items-center justify-between transition-colors duration-150"
                                         :class="productHighlightedIndex === pIdx ? 'bg-emerald-100/70 dark:bg-gray-700' : ''">
                                         <div class="flex items-center gap-3">
@@ -417,8 +451,12 @@
                                                         class="w-6 h-6 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 active:scale-95 transition-all font-bold text-gray-700 dark:text-gray-200 flex items-center justify-center text-xs shadow-sm">
                                                         -
                                                     </button>
-                                                    <input type="number" x-model.number="item.qty" step="0.01" min="0.01"
+                                                    <input type="number"
+                                                        :id="'cart-qty-' + idx"
+                                                        x-model.number="item.qty" step="0.01" min="0.01"
                                                         @input="recalculate()"
+                                                        @keydown.enter.prevent="focusItemPrice(idx)"
+                                                        @keydown.escape.prevent="focusBarcode()"
                                                         class="w-14 text-center py-1 px-1 text-xs font-bold rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm transition" />
                                                     <button type="button" @click="incrementQty(idx)"
                                                         class="w-6 h-6 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 active:scale-95 transition-all font-bold text-gray-700 dark:text-gray-200 flex items-center justify-center text-xs shadow-sm">
@@ -427,14 +465,18 @@
                                                 </div>
                                             </td>
                                             <td class="px-2 py-2 text-right">
-                                                <input type="number" x-model.number="item.price" step="0.01" min="0"
+                                                <input type="number"
+                                                    :id="'cart-price-' + idx"
+                                                    x-model.number="item.price" step="0.01" min="0"
                                                     @input="recalculate()"
+                                                    @keydown.enter.prevent="focusBarcode()"
+                                                    @keydown.escape.prevent="focusBarcode()"
                                                     class="w-20 text-right py-1 px-1 text-xs font-bold rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm transition" />
                                                 <template x-if="showCosts && item.cost > 0 && item.price < item.cost">
                                                     <span class="block text-[8px] font-black text-rose-500 uppercase tracking-tighter">Below Cost!</span>
                                                 </template>
                                                 <template x-if="item.lastPrice && item.lastPrice.found">
-                                                    <button type="button" @click="item.price = item.lastPrice.price; recalculate();"
+                                                    <button type="button" @click="item.price = item.lastPrice.price; recalculate(); focusBarcode();"
                                                         class="mt-1 inline-flex items-center gap-0.5 text-[9px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 px-1 py-0.5 rounded cursor-pointer transition whitespace-nowrap"
                                                         :title="'Last sold: ' + currency + ' ' + formatNumber(item.lastPrice.price) + ' on ' + item.lastPrice.date + ' (Inv #' + item.lastPrice.invoice_formatted + ')'">
                                                         <span>Last: <span x-text="formatNumber(item.lastPrice.price)"></span></span>
@@ -504,6 +546,7 @@
                                 <div class="flex items-center gap-2">
                                     <input type="number" x-ref="discountInput" x-model.number="discount_amount"
                                         @input="recalculate()" min="0" step="1"
+                                        @keydown.enter.prevent="focusPaymentMethod()"
                                         class="w-full text-sm font-bold text-rose-600 dark:text-rose-400 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 py-1.5 focus:border-rose-500 focus:ring-rose-500 transition"
                                         placeholder="0.00" />
                                 </div>
@@ -539,8 +582,9 @@
                             <!-- Payment Splits Section -->
                             <div class="border-t dark:border-gray-700 pt-3 space-y-2">
                                 <div class="flex justify-between items-center">
-                                    <label class="text-[11px] font-black uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                        Payment Method(s)
+                                    <label class="text-[11px] font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                                        <span>Payment Method(s)</span>
+                                        <span class="px-1.5 py-0.2 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded text-[9px] font-black uppercase">F3 / F10</span>
                                     </label>
                                     <button type="button" @click="addPaymentSplit()"
                                         class="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400">
@@ -551,6 +595,8 @@
                                 <template x-for="(payment, pIdx) in payments" :key="pIdx">
                                     <div class="flex items-center gap-2">
                                         <select x-model="payment.account_id"
+                                            :id="'payment-account-' + pIdx"
+                                            @keydown.enter.prevent="focusPaymentAmount(pIdx)"
                                             class="w-1/2 text-xs font-semibold rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 py-1.5 focus:border-emerald-500 focus:ring-emerald-500 transition">
                                             <option value="">-- Select Account --</option>
                                             @foreach ($paymentAccounts as $acc)
@@ -558,6 +604,8 @@
                                             @endforeach
                                         </select>
                                         <input type="number" x-model.number="payment.amount" step="0.01" min="0"
+                                            :id="'payment-amount-' + pIdx"
+                                            @keydown.enter.prevent="focusCashTender()"
                                             class="w-1/2 text-xs font-bold rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 py-1.5 text-right focus:border-emerald-500 focus:ring-emerald-500 transition"
                                             placeholder="0.00" />
                                         <template x-if="payments.length > 1">
@@ -581,6 +629,7 @@
 
                                 <input type="number" x-ref="cashTenderInput" x-model.number="cashTendered"
                                     min="0" step="10"
+                                    @keydown.enter.prevent="submitSale('thermal')"
                                     class="w-full text-base font-black text-gray-900 dark:text-gray-100 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 text-right py-2 focus:border-emerald-500 focus:ring-emerald-500 transition"
                                     placeholder="0" />
 
@@ -818,6 +867,17 @@
                         </select>
                     </div>
 
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Assigned Salesman</label>
+                        <select x-model="newCustomer.salesman_id"
+                            class="w-full text-xs rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                            <option value="">-- No Salesman --</option>
+                            @foreach ($salesmen as $sm)
+                                <option value="{{ $sm->id }}">{{ $sm->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Opening Balance</label>
@@ -912,6 +972,8 @@
                 products: @json($products),
                 categories: @json($categories),
                 paymentAccounts: @json($paymentAccounts),
+                hideZeroStock: {{ ($settings && $settings->hide_zero_stock_in_sale) ? 'true' : 'false' }},
+                hideNegativeStock: {{ ($settings && $settings->hide_negative_stock_in_sale) ? 'true' : 'false' }},
 
                 // Selected State
                 party_id: '{{ $settings->walk_in_customer_id ?? ($customers->first()->id ?? "") }}',
@@ -920,7 +982,8 @@
                 customerDropdownOpen: false,
                 customerHighlightedIndex: -1,
 
-                warehouse_id: '{{ $settings->shop_warehouse_id ?? ($warehouses->first()->id ?? "") }}',
+                warehouse_id: '{{ auth()->user()?->warehouse_id ?? ($settings->shop_warehouse_id ?? ($warehouses->first()->id ?? "")) }}',
+                salesman_id: '',
                 sale_date: '{{ date("Y-m-d") }}',
                 walkInCustomerId: {{ $settings->walk_in_customer_id ?? "null" }},
 
@@ -974,24 +1037,26 @@
                         const masterRaw = localStorage.getItem('invenco_offline_master_data');
                         const masterData = masterRaw ? JSON.parse(masterRaw) : (window.OfflineSync?.masterData || null);
 
-                        if (masterData && Array.isArray(masterData.products) && masterData.products.length > 0) {
-                            this.products = masterData.products;
-                            localStorage.setItem('invenco_pos_cached_products', JSON.stringify(this.products));
-                        } else if (this.products && this.products.length > 0) {
-                            localStorage.setItem('invenco_pos_cached_products', JSON.stringify(this.products));
-                        } else {
-                            const cachedProd = localStorage.getItem('invenco_pos_cached_products');
-                            if (cachedProd) this.products = JSON.parse(cachedProd);
-                        }
-
-                        if (masterData && Array.isArray(masterData.customers) && masterData.customers.length > 0) {
-                            this.customers = masterData.customers;
+                        // If online and server provided customers, ALWAYS prioritize fresh server data!
+                        if (Array.isArray(this.customers) && this.customers.length > 0) {
                             localStorage.setItem('invenco_pos_cached_customers', JSON.stringify(this.customers));
-                        } else if (this.customers && this.customers.length > 0) {
+                        } else if (masterData && Array.isArray(masterData.customers) && masterData.customers.length > 0) {
+                            this.customers = masterData.customers;
                             localStorage.setItem('invenco_pos_cached_customers', JSON.stringify(this.customers));
                         } else {
                             const cachedCust = localStorage.getItem('invenco_pos_cached_customers');
                             if (cachedCust) this.customers = JSON.parse(cachedCust);
+                        }
+
+                        // Same for products: prioritize server data if present
+                        if (Array.isArray(this.products) && this.products.length > 0) {
+                            localStorage.setItem('invenco_pos_cached_products', JSON.stringify(this.products));
+                        } else if (masterData && Array.isArray(masterData.products) && masterData.products.length > 0) {
+                            this.products = masterData.products;
+                            localStorage.setItem('invenco_pos_cached_products', JSON.stringify(this.products));
+                        } else {
+                            const cachedProd = localStorage.getItem('invenco_pos_cached_products');
+                            if (cachedProd) this.products = JSON.parse(cachedProd);
                         }
                     } catch (e) {}
 
@@ -1001,8 +1066,8 @@
                             const updatedMaster = localStorage.getItem('invenco_offline_master_data');
                             if (updatedMaster) {
                                 const parsed = JSON.parse(updatedMaster);
-                                if (parsed.products) this.products = parsed.products;
-                                if (parsed.customers) this.customers = parsed.customers;
+                                if (parsed.products && parsed.products.length > 0) this.products = parsed.products;
+                                if (parsed.customers && parsed.customers.length > 0) this.customers = parsed.customers;
                             }
                         } catch(err) {}
                     });
@@ -1023,9 +1088,9 @@
                         this.heldCarts = [];
                     }
 
-                    // Focus barcode input on mount
+                    // Focus customer input on mount so workflow starts from Customer!
                     this.$nextTick(() => {
-                        this.focusBarcode();
+                        this.focusCustomer();
                     });
                 },
 
@@ -1048,17 +1113,53 @@
                 },
 
                 focusDiscount() {
-                    if (this.$refs.discountInput) {
-                        this.$refs.discountInput.focus();
-                        this.$refs.discountInput.select();
-                    }
+                    this.mobileTab = 'checkout';
+                    this.$nextTick(() => {
+                        if (this.$refs.discountInput) {
+                            this.$refs.discountInput.focus();
+                            this.$refs.discountInput.select();
+                        }
+                    });
+                },
+
+                focusPaymentMethod() {
+                    this.mobileTab = 'checkout';
+                    this.$nextTick(() => {
+                        const el = document.getElementById('payment-account-0');
+                        if (el) {
+                            el.focus();
+                            el.scrollIntoView({ block: 'nearest' });
+                        } else {
+                            this.focusCashTender();
+                        }
+                    });
+                },
+
+                focusPaymentAmount(idx) {
+                    this.$nextTick(() => {
+                        const el = document.getElementById('payment-amount-' + idx);
+                        if (el) {
+                            el.focus();
+                            if (el.select) el.select();
+                            el.scrollIntoView({ block: 'nearest' });
+                        } else {
+                            this.focusCashTender();
+                        }
+                    });
                 },
 
                 focusCashTender() {
-                    if (this.$refs.cashTenderInput) {
-                        this.$refs.cashTenderInput.focus();
-                        this.$refs.cashTenderInput.select();
+                    this.mobileTab = 'checkout';
+                    if (!this.cashTendered || this.cashTendered <= 0) {
+                        this.cashTendered = Math.max(0, this.grandTotal());
                     }
+                    this.$nextTick(() => {
+                        if (this.$refs.cashTenderInput) {
+                            this.$refs.cashTenderInput.focus();
+                            this.$refs.cashTenderInput.select();
+                            this.$refs.cashTenderInput.scrollIntoView({ block: 'nearest' });
+                        }
+                    });
                 },
 
                 // Global Shortcuts Handler
@@ -1072,6 +1173,9 @@
                     } else if (e.key === 'F2') {
                         e.preventDefault();
                         this.focusCustomer();
+                    } else if (e.key === 'F3' || e.key === 'F10') {
+                        e.preventDefault();
+                        this.focusPaymentMethod();
                     } else if (e.key === 'F4') {
                         e.preventDefault();
                         this.submitSale('thermal');
@@ -1102,11 +1206,22 @@
 
                 // Customer Methods
                 filteredCustomers() {
-                    if (!this.customerSearch) return this.customers.slice(0, 15);
+                    if (!this.customerSearch || !this.customerSearch.trim()) {
+                        return (this.customers || []).slice(0, 30);
+                    }
                     const q = this.customerSearch.toLowerCase().trim();
-                    return this.customers.filter(c =>
-                        c.name.toLowerCase().includes(q) || (c.phone && c.phone.includes(q))
-                    ).slice(0, 15);
+                    const list = (this.customers || []).filter(c => {
+                        const name = String(c.name || '').toLowerCase();
+                        const phone = String(c.phone || '').toLowerCase();
+                        return name.includes(q) || phone.includes(q);
+                    });
+
+                    // If dropdown opened while current customer is selected, also return top customers so user can switch easily
+                    if (this.selectedCustomer && this.customerSearch.trim() === String(this.selectedCustomer.name || '').trim()) {
+                        return (this.customers || []).slice(0, 30);
+                    }
+
+                    return list.slice(0, 30);
                 },
 
                 selectCustomer(c) {
@@ -1115,6 +1230,10 @@
                     this.customerSearch = c.name;
                     this.customerDropdownOpen = false;
                     this.customerHighlightedIndex = -1;
+
+                    if (c.salesman_id) {
+                        this.salesman_id = c.salesman_id;
+                    }
 
                     // Update prices of items in cart matching customer's price tier
                     if (this.items.length > 0) {
@@ -1127,7 +1246,9 @@
                     }
 
                     this.recalculate();
-                    this.focusBarcode();
+                    this.$nextTick(() => {
+                        this.focusBarcode();
+                    });
 
                     // Check last sold rate for any items in cart for this customer
                     this.items.forEach(item => this.fetchLastSoldPrice(item));
@@ -1158,20 +1279,26 @@
 
                 handleCustomerKey(e) {
                     const list = this.filteredCustomers();
-                    if (!list.length) return;
 
                     if (e.key === 'ArrowDown') {
                         e.preventDefault();
-                        this.customerHighlightedIndex = (this.customerHighlightedIndex + 1) % list.length;
+                        if (list.length) {
+                            this.customerHighlightedIndex = (this.customerHighlightedIndex + 1) % list.length;
+                        }
                     } else if (e.key === 'ArrowUp') {
                         e.preventDefault();
-                        this.customerHighlightedIndex = (this.customerHighlightedIndex - 1 + list.length) % list.length;
+                        if (list.length) {
+                            this.customerHighlightedIndex = (this.customerHighlightedIndex - 1 + list.length) % list.length;
+                        }
                     } else if (e.key === 'Enter') {
                         e.preventDefault();
                         if (this.customerHighlightedIndex >= 0 && this.customerHighlightedIndex < list.length) {
                             this.selectCustomer(list[this.customerHighlightedIndex]);
                         } else if (list.length > 0) {
                             this.selectCustomer(list[0]);
+                        } else {
+                            this.customerDropdownOpen = false;
+                            this.focusBarcode();
                         }
                     }
                 },
@@ -1181,6 +1308,7 @@
                         name: '',
                         phone: '',
                         address: '',
+                        salesman_id: this.salesman_id || '',
                         price_tier: 'wholesale',
                         opening_balance: 0,
                         balance_type: 'debit'
@@ -1260,6 +1388,22 @@
                     if (this.selectedCategory) {
                         list = list.filter(p => p.category_id == this.selectedCategory);
                     }
+                    if (this.hideZeroStock) {
+                        list = list.filter(p => {
+                            const whStock = (p.warehouse_stocks && this.warehouse_id && p.warehouse_stocks[this.warehouse_id] !== undefined)
+                                ? parseFloat(p.warehouse_stocks[this.warehouse_id])
+                                : (p.current_stock !== undefined ? parseFloat(p.current_stock) : 0);
+                            return whStock !== 0;
+                        });
+                    }
+                    if (this.hideNegativeStock) {
+                        list = list.filter(p => {
+                            const whStock = (p.warehouse_stocks && this.warehouse_id && p.warehouse_stocks[this.warehouse_id] !== undefined)
+                                ? parseFloat(p.warehouse_stocks[this.warehouse_id])
+                                : (p.current_stock !== undefined ? parseFloat(p.current_stock) : 0);
+                            return whStock >= 0;
+                        });
+                    }
                     if (!this.productSearch) return list.slice(0, 15);
 
                     const q = this.productSearch.toLowerCase().trim();
@@ -1284,14 +1428,25 @@
                         const list = this.filteredProducts();
                         if (list.length) {
                             this.productHighlightedIndex = (this.productHighlightedIndex + 1) % list.length;
+                            this.scrollHighlightedProductIntoView();
                         }
                     } else if (e.key === 'ArrowUp') {
                         e.preventDefault();
                         const list = this.filteredProducts();
                         if (list.length) {
                             this.productHighlightedIndex = (this.productHighlightedIndex - 1 + list.length) % list.length;
+                            this.scrollHighlightedProductIntoView();
                         }
                     }
+                },
+
+                scrollHighlightedProductIntoView() {
+                    this.$nextTick(() => {
+                        const el = document.getElementById('product-item-' + this.productHighlightedIndex);
+                        if (el) {
+                            el.scrollIntoView({ block: 'nearest' });
+                        }
+                    });
                 },
 
                 onCameraBarcodeScanned(detail) {
@@ -1303,24 +1458,35 @@
 
                 handleBarcodeScanOrSelect() {
                     const raw = (this.productSearch || '').trim();
-                    if (!raw) return;
+                    if (!raw) {
+                        // Empty search and user pressed Enter: jump straight to Payment Method!
+                        if (this.items.length > 0) {
+                            this.focusPaymentMethod();
+                        }
+                        return;
+                    }
 
-                    // 1. Exact Barcode Match
-                    let found = this.products.find(p => p.barcode && p.barcode.toLowerCase() === raw.toLowerCase());
+                    const list = this.filteredProducts();
+                    let found = null;
 
-                    // 2. Exact SKU Match
+                    // 1. If dropdown is open and user actively selected an item with Up/Down arrows:
+                    if (this.productDropdownOpen && this.productHighlightedIndex >= 0 && this.productHighlightedIndex < list.length) {
+                        found = list[this.productHighlightedIndex];
+                    }
+
+                    // 2. Exact Barcode Match
+                    if (!found) {
+                        found = this.products.find(p => p.barcode && p.barcode.toLowerCase() === raw.toLowerCase());
+                    }
+
+                    // 3. Exact SKU Match
                     if (!found) {
                         found = this.products.find(p => p.sku && p.sku.toLowerCase() === raw.toLowerCase());
                     }
 
-                    // 3. Dropdown Highlighted Item
-                    if (!found) {
-                        const list = this.filteredProducts();
-                        if (this.productHighlightedIndex >= 0 && this.productHighlightedIndex < list.length) {
-                            found = list[this.productHighlightedIndex];
-                        } else if (list.length > 0) {
-                            found = list[0];
-                        }
+                    // 4. First item from filtered list
+                    if (!found && list.length > 0) {
+                        found = list[0];
                     }
 
                     if (found) {
@@ -1332,13 +1498,27 @@
                 },
 
                 addProductToCart(product) {
+                    const whStock = this.getProductWarehouseStock(product);
+                    if (this.hideZeroStock && whStock === 0) {
+                        this.errorMessage = `"${product.name}" has 0 stock and is hidden from sales.`;
+                        setTimeout(() => this.errorMessage = '', 4000);
+                        return;
+                    }
+                    if (this.hideNegativeStock && whStock < 0) {
+                        this.errorMessage = `"${product.name}" has negative stock (${whStock}) and is hidden from sales.`;
+                        setTimeout(() => this.errorMessage = '', 4000);
+                        return;
+                    }
+
                     const price = this.getProductPrice(product);
                     const existingIdx = this.items.findIndex(i => i.product_id == product.id && Math.abs(i.price - price) < 0.001);
+                    let targetIdx = 0;
 
                     if (existingIdx >= 0) {
                         // Already in cart with same rate -> increment quantity
                         this.items[existingIdx].qty = Math.round((this.items[existingIdx].qty + 1) * 100) / 100;
                         this.items[existingIdx].justAdded = true;
+                        targetIdx = existingIdx;
                         setTimeout(() => {
                             if (this.items[existingIdx]) this.items[existingIdx].justAdded = false;
                         }, 800);
@@ -1358,6 +1538,7 @@
                             lastPrice: null
                         };
                         this.items.push(itemObj);
+                        targetIdx = this.items.length - 1;
                         this.fetchLastSoldPrice(itemObj);
                         setTimeout(() => {
                             itemObj.justAdded = false;
@@ -1368,7 +1549,33 @@
                     this.productDropdownOpen = false;
                     this.productHighlightedIndex = -1;
                     this.recalculate();
-                    this.focusBarcode();
+
+                    // Immediately focus Qty column of the newly selected item!
+                    this.$nextTick(() => {
+                        this.focusItemQty(targetIdx);
+                    });
+                },
+
+                focusItemQty(idx) {
+                    this.$nextTick(() => {
+                        const el = document.getElementById('cart-qty-' + idx);
+                        if (el) {
+                            el.focus();
+                            el.select();
+                            el.scrollIntoView({ block: 'nearest' });
+                        }
+                    });
+                },
+
+                focusItemPrice(idx) {
+                    this.$nextTick(() => {
+                        const el = document.getElementById('cart-price-' + idx);
+                        if (el) {
+                            el.focus();
+                            el.select();
+                            el.scrollIntoView({ block: 'nearest' });
+                        }
+                    });
                 },
 
                 fetchLastSoldPrice(item) {
@@ -1412,7 +1619,9 @@
                 removeItem(idx) {
                     this.items.splice(idx, 1);
                     this.recalculate();
-                    this.focusBarcode();
+                    this.$nextTick(() => {
+                        this.focusBarcode();
+                    });
                 },
 
                 confirmClearCart() {
@@ -1423,7 +1632,9 @@
                         this.cashTendered = 0;
                         this.invoice_note = '';
                         this.recalculate();
-                        this.focusBarcode();
+                        this.$nextTick(() => {
+                            this.focusCustomer();
+                        });
                     }
                 },
 
@@ -1539,7 +1750,9 @@
                     this.cashTendered = 0;
                     this.resetToWalkIn();
                     this.recalculate();
-                    this.focusBarcode();
+                    this.$nextTick(() => {
+                        this.focusCustomer();
+                    });
                 },
 
                 restoreHeldCart(idx) {
@@ -1589,6 +1802,7 @@
                     const payload = {
                         party_id: this.party_id,
                         warehouse_id: this.warehouse_id,
+                        salesman_id: this.salesman_id || null,
                         date: this.sale_date,
                         items: this.items.map(i => ({
                             product_id: i.product_id,
@@ -1738,7 +1952,9 @@
                             </style>
                         </head>
                         <body>
-                            <div class="center bold">${'{{ $settings->company_name ?? "Wholesale POS" }}'}</div>
+                            ${'{{ $settings->company_logo ? "<img src=\'".asset($settings->company_logo)."\' style=\'max-height:45px;max-width:120px;margin:0 auto 5px;display:block;\'/>" : "" }}'}
+                            <div class="center bold">${(this.warehouses || []).find(w => w.id == (sale.warehouse_id || this.warehouse_id))?.name || '{{ $settings->company_name ?? "Wholesale POS" }}'}</div>
+                            <div class="center" style="font-size: 10px;">${(this.warehouses || []).find(w => w.id == (sale.warehouse_id || this.warehouse_id))?.location || '{{ $settings->company_address ?? "" }}'}</div>
                             <div class="center bold">OFFLINE RECEIPT</div>
                             <div class="center" style="font-size: 10px;">Tracking: ${sale.id}</div>
                             <div class="center">Date: ${sale.date}</div>
@@ -1788,7 +2004,7 @@
                     this.resetToWalkIn();
                     this.recalculate();
                     this.$nextTick(() => {
-                        this.focusBarcode();
+                        this.focusCustomer();
                     });
                 },
 

@@ -40,20 +40,25 @@ class OfflineSyncController extends Controller
      */
     public function masterData()
     {
-        $customers = Party::where('status', true)->get()->map(function ($party) {
-            return [
-                'id' => $party->id,
-                'name' => $party->name,
-                'type' => $party->type,
-                'phone' => $party->phone ?? '',
-                'address' => $party->address ?? '',
-                'price_tier' => $party->price_tier ?? 'wholesale',
-                'current_balance' => (float)$party->getCurrentBalance(),
-                'credit_limit' => (float)($party->credit_limit ?? 0),
-                'credit_days' => (int)($party->credit_days ?? 0),
-                'has_overdue' => $party->type === 'customer' ? $party->hasOverdueInvoices() : false,
-            ];
-        });
+        $customers = Party::whereIn('type', ['customer', 'both'])
+            ->where('status', true)
+            ->orderBy('name')
+            ->get()
+            ->map(function ($party) {
+                return [
+                    'id' => $party->id,
+                    'name' => $party->name,
+                    'type' => $party->type,
+                    'salesman_id' => $party->salesman_id,
+                    'phone' => $party->phone ?? '',
+                    'address' => $party->address ?? '',
+                    'price_tier' => $party->price_tier ?? 'wholesale',
+                    'current_balance' => (float)$party->getCurrentBalance(),
+                    'credit_limit' => (float)($party->credit_limit ?? 0),
+                    'credit_days' => (int)($party->credit_days ?? 0),
+                    'has_overdue' => $party->type === 'customer' ? $party->hasOverdueInvoices() : false,
+                ];
+            });
 
         $warehouses = Warehouse::where('status', true)->get(['id', 'name']);
 

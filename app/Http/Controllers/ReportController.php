@@ -1580,21 +1580,66 @@ class ReportController extends Controller
         $startDate = $request->start_date ?? now()->toDateString();
         $endDate = $request->end_date ?? now()->toDateString();
         $selectedAccountId = $request->account_id;
+        $selectedWarehouseId = $request->warehouse_id;
+        $selectedSalesmanId = $request->salesman_id;
 
         $paymentAccounts = \App\Models\ChartOfAccount::where('type', 'Asset')
             ->whereNotIn('name', ['Inventory', 'Accounts Receivable'])
             ->where('status', true)
             ->get();
 
+        $warehouses = \App\Models\Warehouse::all();
+        $salesmen = \App\Models\Salesman::all();
+
         $query = LedgerEntry::whereIn('account_id', $paymentAccounts->pluck('id'))
             ->whereBetween('date', [$startDate, $endDate])
-            ->with('account');
+            ->with(['account', 'warehouse', 'party.salesman']);
 
         if ($selectedAccountId) {
             $query->where('account_id', $selectedAccountId);
         }
 
+        if ($selectedWarehouseId) {
+            $query->where('warehouse_id', $selectedWarehouseId);
+        }
+
+        if ($selectedSalesmanId) {
+            $saleIdsBySm = \App\Models\Sale::where('salesman_id', $selectedSalesmanId)->pluck('id');
+            $paymentIdsBySm = \App\Models\Payment::where('salesman_id', $selectedSalesmanId)->pluck('id');
+            $partyIdsBySm = \App\Models\Party::where('salesman_id', $selectedSalesmanId)->pluck('id');
+
+            $query->where(function ($q) use ($selectedSalesmanId, $saleIdsBySm, $paymentIdsBySm, $partyIdsBySm) {
+                $q->whereIn('party_id', $partyIdsBySm)
+                  ->orWhere(function ($sq) use ($saleIdsBySm) {
+                      $sq->where('reference_type', 'sale')->whereIn('reference_id', $saleIdsBySm);
+                  })
+                  ->orWhere(function ($pq) use ($paymentIdsBySm) {
+                      $pq->where('reference_type', 'payment')->whereIn('reference_id', $paymentIdsBySm);
+                  });
+            });
+        }
+
         $entries = $query->orderBy('date')->orderBy('created_at')->get();
+
+        // Attach resolved salesman to each entry for display
+        $refSaleIds = $entries->where('reference_type', 'sale')->pluck('reference_id')->unique();
+        $salesMap = \App\Models\Sale::with('salesman')->whereIn('id', $refSaleIds)->get()->keyBy('id');
+
+        $refPaymentIds = $entries->where('reference_type', 'payment')->pluck('reference_id')->unique();
+        $paymentsMap = \App\Models\Payment::with('salesman')->whereIn('id', $refPaymentIds)->get()->keyBy('id');
+
+        foreach ($entries as $entry) {
+            $sm = null;
+            if ($entry->reference_type === 'sale' && isset($salesMap[$entry->reference_id])) {
+                $sm = $salesMap[$entry->reference_id]->salesman;
+            } elseif ($entry->reference_type === 'payment' && isset($paymentsMap[$entry->reference_id])) {
+                $sm = $paymentsMap[$entry->reference_id]->salesman;
+            }
+            if (!$sm && $entry->party && $entry->party->salesman) {
+                $sm = $entry->party->salesman;
+            }
+            $entry->resolved_salesman = $sm;
+        }
 
         $accountSummary = $entries->groupBy('account_id')->map(function ($group) {
             return [
@@ -1608,7 +1653,7 @@ class ReportController extends Controller
         $totalPaid = $entries->sum('credit');
 
         $settings = Setting::first();
-        $data = compact('entries', 'accountSummary', 'totalReceived', 'totalPaid', 'paymentAccounts', 'selectedAccountId', 'startDate', 'endDate', 'settings');
+        $data = compact('entries', 'accountSummary', 'totalReceived', 'totalPaid', 'paymentAccounts', 'warehouses', 'salesmen', 'selectedAccountId', 'selectedWarehouseId', 'selectedSalesmanId', 'startDate', 'endDate', 'settings');
 
         if ($request->has('pdf')) {
             $pdf = Pdf::loadView('reports.pdf.daily_collection', $data)->setPaper('a4', 'landscape');
@@ -1794,22 +1839,30 @@ class ReportController extends Controller
 
     public function salesmanPerformance(Request $request)
     {
-        $salesmen = \App\Models\User::all();
+        $salesmen = \App\Models\Salesman::where('status', true)->orderBy('name')->get();
         $selectedSalesmanId = $request->get('salesman_id');
         $dateFrom = $request->get('date_from', now()->startOfMonth()->toDateString());
         $dateTo = $request->get('date_to', now()->toDateString());
-        $selectedSalesman = $selectedSalesmanId ? \App\Models\User::find($selectedSalesmanId) : null;
+        $selectedSalesman = $selectedSalesmanId ? \App\Models\Salesman::find($selectedSalesmanId) : null;
+
+        $userWarehouseId = auth()->user()?->warehouse_id;
+        $selectedWarehouseId = $userWarehouseId ?: $request->get('warehouse_id');
+        $warehouses = $userWarehouseId ? \App\Models\Warehouse::where('id', $userWarehouseId)->get() : \App\Models\Warehouse::all();
+        $selectedWarehouse = $selectedWarehouseId ? \App\Models\Warehouse::find($selectedWarehouseId) : null;
 
         // Sales Query
-        $salesQuery = \App\Models\Sale::with(['party', 'warehouse'])
+        $salesQuery = \App\Models\Sale::with(['party', 'warehouse', 'salesman'])
             ->whereBetween('date', [$dateFrom, $dateTo]);
         if ($selectedSalesmanId) {
             $salesQuery->where('salesman_id', $selectedSalesmanId);
         }
+        if ($selectedWarehouseId) {
+            $salesQuery->where('warehouse_id', $selectedWarehouseId);
+        }
         $sales = $salesQuery->latest('date')->get();
 
         // Collections Query
-        $collectionsQuery = \App\Models\Payment::with(['party', 'account'])
+        $collectionsQuery = \App\Models\Payment::with(['party', 'account', 'salesman'])
             ->where('payment_type', 'received')
             ->whereBetween('date', [$dateFrom, $dateTo]);
         if ($selectedSalesmanId) {
@@ -1825,8 +1878,14 @@ class ReportController extends Controller
         $commissionOnRecovery = round($totalCollected * ($commissionRate / 100), 2);
 
         // Active customer route recovery list (customers with outstanding receivable)
-        $routeCustomers = Party::where('type', 'customer')
-            ->where('status', true)
+        $routeQuery = Party::where('type', 'customer')
+            ->where('status', true);
+
+        if ($selectedSalesmanId) {
+            $routeQuery->where('salesman_id', $selectedSalesmanId);
+        }
+
+        $routeCustomers = $routeQuery->with('salesman')
             ->get()
             ->map(function ($c) {
                 $c->current_bal = (float)$c->getCurrentBalance();
@@ -1838,12 +1897,67 @@ class ReportController extends Controller
 
         $settings = Setting::first();
 
+        // PDF Exports
+        if ($request->has('route_pdf') || $request->get('export') === 'route_pdf') {
+            $data = compact(
+                'salesmen',
+                'selectedSalesman',
+                'selectedSalesmanId',
+                'dateFrom',
+                'dateTo',
+                'selectedWarehouseId',
+                'selectedWarehouse',
+                'warehouses',
+                'routeCustomers',
+                'settings'
+            );
+            $pdf = Pdf::loadView('reports.pdf.recovery_route_sheet', $data)->setPaper('a4', 'landscape');
+            $filename = 'Daily-Recovery-Route-Sheet';
+            if ($selectedSalesman) {
+                $filename .= '-' . \Illuminate\Support\Str::slug($selectedSalesman->name);
+            }
+            $filename .= '-' . now()->format('Y-m-d') . '.pdf';
+            return $pdf->download($filename);
+        }
+
+        if ($request->has('pdf') || $request->get('export') === 'pdf') {
+            $data = compact(
+                'salesmen',
+                'selectedSalesman',
+                'selectedSalesmanId',
+                'dateFrom',
+                'dateTo',
+                'selectedWarehouseId',
+                'selectedWarehouse',
+                'warehouses',
+                'sales',
+                'collections',
+                'totalSales',
+                'totalCollected',
+                'commissionRate',
+                'commissionOnSales',
+                'commissionOnRecovery',
+                'routeCustomers',
+                'settings'
+            );
+            $pdf = Pdf::loadView('reports.pdf.salesman_performance', $data)->setPaper('a4', 'portrait');
+            $filename = 'Salesman-Commission-Report';
+            if ($selectedSalesman) {
+                $filename .= '-' . \Illuminate\Support\Str::slug($selectedSalesman->name);
+            }
+            $filename .= '-' . $dateFrom . '-to-' . $dateTo . '.pdf';
+            return $pdf->download($filename);
+        }
+
         return view('reports.salesman_performance', compact(
             'salesmen',
             'selectedSalesman',
             'selectedSalesmanId',
             'dateFrom',
             'dateTo',
+            'selectedWarehouseId',
+            'selectedWarehouse',
+            'warehouses',
             'sales',
             'collections',
             'totalSales',

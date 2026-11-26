@@ -11,8 +11,36 @@ class ExpenseCategoryController extends Controller
 {
     public function index()
     {
-        $categories = ExpenseCategory::with('account')->paginate(10);
-        $accounts = ChartOfAccount::where('type', 'Expense')->where('status', true)->get();
+        // Self-healing: ensure any existing Expense account in Chart of Accounts has a category
+        $expenseAccounts = ChartOfAccount::where('type', 'Expense')
+            ->whereNotIn('name', ['Purchase', 'COGS'])
+            ->get();
+
+        foreach ($expenseAccounts as $acc) {
+            $cat = ExpenseCategory::where('account_id', $acc->id)->first();
+            if (!$cat) {
+                $cat = ExpenseCategory::where('name', $acc->name)->first();
+            }
+
+            if ($cat) {
+                if (!$cat->account_id) {
+                    $cat->update(['account_id' => $acc->id]);
+                }
+            } else {
+                ExpenseCategory::create([
+                    'name' => $acc->name,
+                    'account_id' => $acc->id,
+                    'description' => 'Auto-synced from Chart of Accounts',
+                    'status' => $acc->status,
+                ]);
+            }
+        }
+
+        $categories = ExpenseCategory::with('account')->paginate(15);
+        $accounts = ChartOfAccount::where('type', 'Expense')
+            ->whereNotIn('name', ['Purchase', 'COGS'])
+            ->where('status', true)
+            ->get();
         return view('expenses.categories', compact('categories', 'accounts'));
     }
 
@@ -37,12 +65,15 @@ class ExpenseCategoryController extends Controller
                 $accountId = $account->id;
             }
 
-            ExpenseCategory::create([
-                'name' => $request->name,
-                'description' => $request->description,
-                'account_id' => $accountId,
-                'status' => true,
-            ]);
+            // Update or create to prevent double insert from ChartOfAccount booted listener
+            ExpenseCategory::updateOrCreate(
+                ['account_id' => $accountId],
+                [
+                    'name' => $request->name,
+                    'description' => $request->description ?? 'Created from Expense Categories',
+                    'status' => true,
+                ]
+            );
         });
 
         return back()->with('success', 'Expense category created and linked to Chart of Accounts.');
@@ -50,7 +81,10 @@ class ExpenseCategoryController extends Controller
 
     public function destroy(ExpenseCategory $expenseCategory)
     {
-        // Optional: Prevention logic or just delete
+        if ($expenseCategory->expenses()->count() > 0) {
+            return back()->with('error', 'Cannot delete category that has existing expense records.');
+        }
+
         $expenseCategory->delete();
         return back()->with('success', 'Expense category deleted.');
     }

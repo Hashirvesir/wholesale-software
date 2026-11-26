@@ -44,6 +44,8 @@ class SettingController extends Controller
         $setting = Setting::first();
         $data = $request->except('company_logo');
         $data['show_sale_time'] = $request->boolean('show_sale_time');
+        $data['hide_zero_stock_in_sale'] = $request->boolean('hide_zero_stock_in_sale');
+        $data['hide_negative_stock_in_sale'] = $request->boolean('hide_negative_stock_in_sale');
 
         if ($request->hasFile('company_logo')) {
             // Delete old logo if exists in public/logo

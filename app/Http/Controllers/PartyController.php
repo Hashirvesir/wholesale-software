@@ -21,7 +21,7 @@ class PartyController extends Controller implements HasMiddleware
     }
     public function index(Request $request)
     {
-        $query = Party::query();
+        $query = Party::with('salesman');
 
         if ($request->filled('type')) {
             $query->where('type', $request->type);
@@ -38,7 +38,8 @@ class PartyController extends Controller implements HasMiddleware
 
     public function create()
     {
-        return view('parties.create');
+        $salesmen = \App\Models\Salesman::where('status', true)->orderBy('name')->get();
+        return view('parties.create', compact('salesmen'));
     }
 
     public function store(Request $request)
@@ -46,6 +47,7 @@ class PartyController extends Controller implements HasMiddleware
         $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|in:customer,vendor,cargo',
+            'salesman_id' => 'nullable|exists:salesmen,id',
             'price_tier' => 'nullable|in:wholesale,retail,dealer',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
@@ -65,7 +67,8 @@ class PartyController extends Controller implements HasMiddleware
 
     public function edit(Party $party)
     {
-        return view('parties.edit', compact('party'));
+        $salesmen = \App\Models\Salesman::orderBy('name')->get();
+        return view('parties.edit', compact('party', 'salesmen'));
     }
 
     public function update(Request $request, Party $party)
@@ -73,6 +76,7 @@ class PartyController extends Controller implements HasMiddleware
         $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|in:customer,vendor,cargo',
+            'salesman_id' => 'nullable|exists:salesmen,id',
             'price_tier' => 'nullable|in:wholesale,retail,dealer',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',

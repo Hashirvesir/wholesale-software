@@ -35,12 +35,14 @@
                             <button type="button" @click="formError = ''" class="ml-4 text-red-400 hover:text-red-600 font-black text-lg leading-none">&times;</button>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                             <!-- Customer -->
                             <div>
                                 <x-input-label for="party_id" :value="__('Customer')" />
                                 <div class="relative" @click.away="customerOpen = false">
-                                    <input type="text" x-model="customerSearch" @focus="customerOpen = true"
+                                    <input type="text" x-model="customerSearch"
+                                        @focus="customerOpen = true; $event.target.select()"
+                                        @click="customerOpen = true; $event.target.select()"
                                         @input="customerOpen = true" @keydown="handleCustomerKey($event)"
                                         class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-sm transition"
                                         placeholder="Search customer..." autocomplete="off" required>
@@ -88,18 +90,39 @@
                             <!-- Warehouse -->
                             <div>
                                 <x-input-label for="warehouse_id" :value="__('Warehouse (Stock Source)')" />
-                                <select id="warehouse_id" name="warehouse_id" x-model="warehouse_id"
-                                    class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-sm transition"
-                                    required>
-                                    @foreach ($warehouses as $warehouse)
-                                        <option value="{{ $warehouse->id }}">
-                                            {{ $warehouse->name }}</option>
+                                @if (auth()->user()?->warehouse_id)
+                                    <div class="mt-1 flex items-center justify-between p-2 rounded-md border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm font-bold">
+                                        <span>{{ auth()->user()->warehouse->name ?? 'Assigned Shop' }}</span>
+                                        <span class="text-[10px] uppercase font-black bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded">Assigned Shop</span>
+                                    </div>
+                                    <input type="hidden" name="warehouse_id" :value="warehouse_id">
+                                @else
+                                    <select id="warehouse_id" name="warehouse_id" x-model="warehouse_id"
+                                        class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-sm transition"
+                                        required>
+                                        @foreach ($warehouses as $warehouse)
+                                            <option value="{{ $warehouse->id }}">
+                                                {{ $warehouse->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <template x-if="isWalkIn()">
+                                        <p class="mt-1 text-[10px] font-bold text-primary-500 uppercase tracking-widest">
+                                            Defaults to Shop for Walk-In Customer — change if needed</p>
+                                    </template>
+                                @endif
+                            </div>
+
+                            <!-- Salesman -->
+                            <div>
+                                <x-input-label for="salesman_id" :value="__('Salesman / Rep')" />
+                                <select id="salesman_id" name="salesman_id" x-model="salesman_id"
+                                    class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-sm transition">
+                                    <option value="">-- No Salesman --</option>
+                                    @foreach ($salesmen as $sm)
+                                        <option value="{{ $sm->id }}">{{ $sm->name }}</option>
                                     @endforeach
                                 </select>
-                                <template x-if="isWalkIn()">
-                                    <p class="mt-1 text-[10px] font-bold text-primary-500 uppercase tracking-widest">
-                                        Defaults to Shop for Walk-In Customer — change if needed</p>
-                                </template>
+                                <p class="mt-1 text-[10px] text-gray-400 italic">Assigned salesman</p>
                             </div>
 
                             <!-- Date -->
@@ -484,6 +507,7 @@
                 customerOpen: false,
                 customerHighlightedIndex: -1,
                 warehouse_id: '{{ $sale->warehouse_id }}',
+                salesman_id: '{{ old('salesman_id', $sale->salesman_id ?? '') }}',
                 walkInCustomerId: {{ $settings->walk_in_customer_id ?? 'null' }},
                 shopWarehouseId: {{ $settings->shop_warehouse_id ?? 'null' }},
                 isWalkIn: function() {
@@ -495,6 +519,8 @@
                 products: @json($products),
                 customers: @json($customers),
                 currency: '{{ $settings->currency_symbol }}',
+                hideZeroStock: {{ ($settings && $settings->hide_zero_stock_in_sale) ? 'true' : 'false' }},
+                hideNegativeStock: {{ ($settings && $settings->hide_negative_stock_in_sale) ? 'true' : 'false' }},
 
                 addItem: function() {
                     this.items.push({
@@ -540,6 +566,13 @@
                     if (!search || search === '') return [];
                     const s = search.toLowerCase();
                     return this.products.filter(p => {
+                        const whStock = (p.warehouse_stocks && this.warehouse_id && p.warehouse_stocks[this.warehouse_id] !== undefined)
+                            ? parseFloat(p.warehouse_stocks[this.warehouse_id])
+                            : (p.current_stock !== undefined ? parseFloat(p.current_stock) : 0);
+
+                        if (this.hideZeroStock && whStock === 0) return false;
+                        if (this.hideNegativeStock && whStock < 0) return false;
+
                         return p.name.toLowerCase().includes(s) ||
                             p.sku.toLowerCase().includes(s) ||
                             (p.barcode && p.barcode.toLowerCase().includes(s));
@@ -704,11 +737,22 @@
                 },
 
                 getFilteredCustomers: function() {
-                    const s = this.customerSearch.toLowerCase();
-                    return this.customers.filter(c => {
-                        return c.name.toLowerCase().includes(s) ||
-                            (c.phone && c.phone.toLowerCase().includes(s));
-                    }).slice(0, 10);
+                    if (!this.customerSearch || !this.customerSearch.trim()) {
+                        return this.customers.slice(0, 25);
+                    }
+                    const s = this.customerSearch.toLowerCase().trim();
+                    const list = this.customers.filter(c => {
+                        const name = String(c.name || '').toLowerCase();
+                        const phone = String(c.phone || '').toLowerCase();
+                        return name.includes(s) || phone.includes(s);
+                    });
+
+                    const selected = this.getSelectedCustomer();
+                    if (selected && this.customerSearch.trim() === String(selected.name || '').trim()) {
+                        return this.customers.slice(0, 25);
+                    }
+
+                    return list.slice(0, 25);
                 },
 
                 selectCustomer: function(customer) {
@@ -716,6 +760,10 @@
                     this.customerSearch = customer.name;
                     this.customerOpen = false;
                     this.customerHighlightedIndex = -1;
+
+                    if (customer.salesman_id) {
+                        this.salesman_id = customer.salesman_id;
+                    }
 
                     if (this.isWalkIn() && this.shopWarehouseId) {
                         this.warehouse_id = this.shopWarehouseId;

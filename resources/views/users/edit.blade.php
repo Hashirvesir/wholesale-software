@@ -62,6 +62,23 @@
                             @enderror
                         </div>
 
+                        <div>
+                            <label for="warehouse_id"
+                                class="block text-xs font-black uppercase text-gray-500 mb-2 tracking-widest">Assigned Shop / Warehouse</label>
+                            <select name="warehouse_id" id="warehouse_id"
+                                class="w-full bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-primary-500 focus:border-primary-500 dark:text-gray-100 italic">
+                                <option value="">-- All Shops / Warehouses (Admin / All Access) --</option>
+                                @foreach ($warehouses as $wh)
+                                    <option value="{{ $wh->id }}"
+                                        {{ old('warehouse_id', $user->warehouse_id) == $wh->id ? 'selected' : '' }}>{{ $wh->name }}</option>
+                                @endforeach
+                            </select>
+                            <p class="text-[10px] text-gray-400 mt-1 italic">Leave empty to grant access to all shops. Select a shop to restrict user to that shop only.</p>
+                            @error('warehouse_id')
+                                <p class="text-red-500 text-xs mt-1 italic">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <div
                             class="md:col-span-2 mt-4 bg-yellow-50 dark:bg-yellow-900/10 p-4 rounded-xl border border-yellow-200 dark:border-yellow-800">
                             <p

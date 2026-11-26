@@ -116,7 +116,42 @@ class DashboardController extends Controller
     }
     public function quickStats(Request $request)
     {
-        $warehouseId = $request->warehouse_id;
+        $data = $this->getQuickStatsData($request);
+
+        return response()->json([
+            'sales' => $data['salesToday'],
+            'sales_count' => $data['salesCount'],
+            'repairs' => $data['repairsToday'],
+            'repairs_count' => $data['repairsCount'],
+            'purchases' => $data['purchasesToday'],
+            'expenses' => $data['expensesToday'],
+            'total_received' => $data['totalReceivedToday'],
+            'total_paid' => $data['totalPaidToday'],
+            'bank_cash_details' => $data['movements'],
+        ]);
+    }
+
+    public function quickStatsPdf(Request $request)
+    {
+        $data = $this->getQuickStatsData($request);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.pdf.quick_stats', $data)->setPaper('a4', 'portrait');
+
+        $filename = 'Quick-Financial-Snapshot-' . $data['startDate'];
+        if ($data['startDate'] !== $data['endDate']) {
+            $filename .= '-to-' . $data['endDate'];
+        }
+        if ($data['warehouse']) {
+            $filename .= '-' . \Illuminate\Support\Str::slug($data['warehouse']->name);
+        }
+        $filename .= '.pdf';
+
+        return $pdf->download($filename);
+    }
+
+    protected function getQuickStatsData(Request $request)
+    {
+        $userWarehouseId = auth()->user()?->warehouse_id;
+        $warehouseId = $userWarehouseId ?: $request->warehouse_id;
         $today = now()->toDateString();
         $startDate = $request->start_date ?: $today;
         $endDate   = $request->end_date   ?: $today;
@@ -126,8 +161,8 @@ class DashboardController extends Controller
         if ($warehouseId) {
             $salesQuery->where('warehouse_id', $warehouseId);
         }
-        $salesToday = $salesQuery->sum('total_amount');
-        $salesCount = $salesQuery->count();
+        $salesToday = (float) $salesQuery->sum('total_amount');
+        $salesCount = (int) $salesQuery->count();
 
         // 1b. Mobile Repairs
         $repairsQuery = RepairOrder::whereBetween(DB::raw('DATE(received_date)'), [$startDate, $endDate]);
@@ -139,14 +174,16 @@ class DashboardController extends Controller
         if ($warehouseId) {
             $purchasesQuery->where('warehouse_id', $warehouseId);
         }
-        $purchasesToday = $purchasesQuery->sum('total_amount');
+        $purchasesToday = (float) $purchasesQuery->sum('total_amount');
+        $purchasesCount = (int) $purchasesQuery->count();
 
         // 3. Expenses
         $expensesQuery = Expense::whereBetween('date', [$startDate, $endDate]);
         if ($warehouseId) {
             $expensesQuery->where('warehouse_id', $warehouseId);
         }
-        $expensesToday = $expensesQuery->sum('amount');
+        $expensesToday = (float) $expensesQuery->sum('amount');
+        $expensesCount = (int) $expensesQuery->count();
 
         // 4. Cash & Bank Status (Liquid Assets Only)
         // We include all Asset accounts except those that are clearly for stock or receivables.
@@ -157,7 +194,7 @@ class DashboardController extends Controller
 
         $accountIds = $cashBankAccounts->pluck('id');
 
-        $ledgerQuery = \App\Models\LedgerEntry::whereIn('account_id', $accountIds)
+        $ledgerQuery = LedgerEntry::whereIn('account_id', $accountIds)
             ->whereBetween('date', [$startDate, $endDate])
             ->with('account');
 
@@ -170,27 +207,39 @@ class DashboardController extends Controller
         // Group by account for the list view
         $movements = $entries->groupBy('account.name')->map(function ($items) {
             return [
-                'in' => $items->sum('debit'),
-                'out' => $items->sum('credit'),
-                'net' => $items->sum('debit') - $items->sum('credit'),
+                'in' => (float) $items->sum('debit'),
+                'out' => (float) $items->sum('credit'),
+                'net' => (float) ($items->sum('debit') - $items->sum('credit')),
             ];
         });
 
         // Calculate Totals (Cash Basis)
         // For Assets (Cash/Bank): Debit is In (Received), Credit is Out (Paid).
-        $totalReceivedToday = $movements->sum('in');
-        $totalPaidToday = $movements->sum('out');
+        $totalReceivedToday = (float) $movements->sum('in');
+        $totalPaidToday = (float) $movements->sum('out');
+        $netFlow = $totalReceivedToday - $totalPaidToday;
 
-        return response()->json([
-            'sales' => $salesToday,
-            'sales_count' => $salesCount,
-            'repairs' => $repairsToday,
-            'repairs_count' => $repairsCount,
-            'purchases' => $purchasesToday,
-            'expenses' => $expensesToday,
-            'total_received' => $totalReceivedToday,
-            'total_paid' => $totalPaidToday,
-            'bank_cash_details' => $movements,
-        ]);
+        $warehouse = $warehouseId ? Warehouse::find($warehouseId) : null;
+        $settings = \App\Models\Setting::first();
+
+        return compact(
+            'startDate',
+            'endDate',
+            'warehouseId',
+            'warehouse',
+            'settings',
+            'salesToday',
+            'salesCount',
+            'repairsToday',
+            'repairsCount',
+            'purchasesToday',
+            'purchasesCount',
+            'expensesToday',
+            'expensesCount',
+            'totalReceivedToday',
+            'totalPaidToday',
+            'netFlow',
+            'movements'
+        );
     }
 }

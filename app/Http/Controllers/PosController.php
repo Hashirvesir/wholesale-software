@@ -36,16 +36,26 @@ class PosController extends Controller implements HasMiddleware
 
     public function index()
     {
-        $customers = Party::where('type', 'customer')->get()->map(function ($customer) {
-            $customer->current_balance = (float)$customer->getCurrentBalance();
-            $customer->credit_limit = (float)($customer->credit_limit ?? 0);
-            $customer->credit_days = (int)($customer->credit_days ?? 0);
-            $customer->has_overdue = $customer->hasOverdueInvoices();
-            $customer->price_tier = $customer->price_tier ?? 'wholesale';
-            return $customer;
-        });
+        $customers = Party::whereIn('type', ['customer', 'both'])
+            ->where('status', true)
+            ->orderBy('name')
+            ->get()
+            ->map(function ($customer) {
+                $customer->current_balance = (float)$customer->getCurrentBalance();
+                $customer->credit_limit = (float)($customer->credit_limit ?? 0);
+                $customer->credit_days = (int)($customer->credit_days ?? 0);
+                $customer->has_overdue = $customer->hasOverdueInvoices();
+                $customer->price_tier = $customer->price_tier ?? 'wholesale';
+                $customer->salesman_id = $customer->salesman_id;
+                return $customer;
+            });
 
-        $warehouses = Warehouse::all();
+        $userWarehouseId = auth()->user()?->warehouse_id;
+        if ($userWarehouseId) {
+            $warehouses = Warehouse::where('id', $userWarehouseId)->get();
+        } else {
+            $warehouses = Warehouse::where('status', true)->get();
+        }
         $categories = Category::all();
         $brands = Brand::all();
 
@@ -79,16 +89,21 @@ class PosController extends Controller implements HasMiddleware
             ->get();
 
         $settings = Setting::first();
-        $salesmen = User::all();
+        $salesmen = \App\Models\Salesman::where('status', true)->orderBy('name')->get();
 
         return view('pos.index', compact('customers', 'warehouses', 'categories', 'brands', 'products', 'paymentAccounts', 'settings', 'salesmen'));
     }
 
     public function store(Request $request)
     {
+        if (auth()->user()?->warehouse_id) {
+            $request->merge(['warehouse_id' => auth()->user()->warehouse_id]);
+        }
+
         $request->validate([
             'party_id' => 'required|exists:parties,id',
             'warehouse_id' => 'required|exists:warehouses,id',
+            'salesman_id' => 'nullable|exists:salesmen,id',
             'date' => 'required|date',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
@@ -166,11 +181,12 @@ class PosController extends Controller implements HasMiddleware
                 }
 
                 $invoicePaidAmount = min($total, $totalPaid + $advanceUsed);
+                $salesmanId = $request->salesman_id ?: ($party->salesman_id ?? null);
 
                 $sale = Sale::create([
                     'party_id' => $request->party_id,
                     'warehouse_id' => $request->warehouse_id,
-                    'salesman_id' => $request->salesman_id ?? auth()->id(),
+                    'salesman_id' => $salesmanId,
                     'account_id' => $payments[0]['account_id'] ?? null,
                     'date' => $request->date,
                     'total_amount' => $total,
@@ -409,11 +425,13 @@ class PosController extends Controller implements HasMiddleware
             'opening_balance' => 'nullable|numeric',
             'balance_type' => 'nullable|in:debit,credit',
             'price_tier' => 'nullable|in:wholesale,retail,dealer',
+            'salesman_id' => 'nullable|exists:salesmen,id',
         ]);
 
         $party = Party::create([
             'name' => $validated['name'],
             'type' => 'customer',
+            'salesman_id' => $validated['salesman_id'] ?? null,
             'price_tier' => $validated['price_tier'] ?? 'wholesale',
             'phone' => $validated['phone'] ?? null,
             'address' => $validated['address'] ?? null,

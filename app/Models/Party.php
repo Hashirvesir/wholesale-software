@@ -9,6 +9,7 @@ class Party extends Model
     protected $fillable = [
         'name',
         'type',
+        'salesman_id',
         'price_tier',
         'phone',
         'address',
@@ -25,6 +26,11 @@ class Party extends Model
         'credit_days' => 'integer',
         'status' => 'boolean',
     ];
+
+    public function salesman()
+    {
+        return $this->belongsTo(Salesman::class, 'salesman_id');
+    }
 
     public function sales()
     {

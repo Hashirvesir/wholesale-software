@@ -101,8 +101,8 @@
             }, 15000);
 
             // 4. Initial Master Data sync if online
-            if (this.isOnline && !this.masterData) {
-                setTimeout(() => this.fetchMasterData(), 1000);
+            if (this.isOnline) {
+                setTimeout(() => this.fetchMasterData(), 1200);
             }
         }
 

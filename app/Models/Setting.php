@@ -26,12 +26,16 @@ class Setting extends Model
         'invoice_prefix',
         'low_stock_threshold',
         'show_sale_time',
+        'hide_zero_stock_in_sale',
+        'hide_negative_stock_in_sale',
         'walk_in_customer_id',
         'shop_warehouse_id',
     ];
 
     protected $casts = [
         'show_sale_time' => 'boolean',
+        'hide_zero_stock_in_sale' => 'boolean',
+        'hide_negative_stock_in_sale' => 'boolean',
     ];
 
     public function walkInCustomer()

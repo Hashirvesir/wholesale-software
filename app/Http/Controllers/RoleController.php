@@ -57,6 +57,7 @@ class RoleController extends Controller
                 $role->update(['name' => $request->name]);
             }
             $role->syncPermissions($request->permissions ?? []);
+            app()->make(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
         });
 
         return redirect()->route('roles.index')->with('success', 'Role updated successfully.');

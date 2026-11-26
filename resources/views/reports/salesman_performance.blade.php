@@ -13,20 +13,32 @@
                             </h2>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Salesman-wise sales, cash recovery tracking, commission calculation & route sheets</p>
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <a href="{{ route('reports.salesman-performance', array_merge(request()->query(), ['export' => 'pdf'])) }}"
+                                class="inline-flex items-center px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition shadow-sm">
+                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                Commission PDF
+                            </a>
+
+                            <a href="{{ route('reports.salesman-performance', array_merge(request()->query(), ['export' => 'route_pdf'])) }}"
+                                class="inline-flex items-center px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition shadow-sm">
+                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                Recovery Route PDF
+                            </a>
+
                             <button type="button" onclick="window.print()"
-                                class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 text-gray-700 dark:text-gray-200 rounded-xl font-bold text-xs uppercase tracking-wider transition">
+                                class="inline-flex items-center px-3.5 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 text-gray-700 dark:text-gray-200 rounded-xl font-bold text-xs uppercase tracking-wider transition">
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                                Print Report
+                                Print
                             </button>
                         </div>
                     </div>
 
                     <!-- Filter Bar -->
                     <div class="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 mb-6">
-                        <form action="{{ route('reports.salesman-performance') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <form action="{{ route('reports.salesman-performance') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                             <div>
-                                <label class="block text-[10px] font-black uppercase text-gray-500 mb-1 tracking-wider">Select Salesman / Officer</label>
+                                <label class="block text-[10px] font-black uppercase text-gray-500 mb-1 tracking-wider">Select Salesman</label>
                                 <select name="salesman_id" class="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl text-xs focus:ring-indigo-500 dark:text-gray-100">
                                     <option value="">All Salesmen / Staff</option>
                                     @foreach ($salesmen as $sm)
@@ -35,6 +47,24 @@
                                         </option>
                                     @endforeach
                                 </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-black uppercase text-gray-500 mb-1 tracking-wider">Shop / Warehouse</label>
+                                @if (auth()->user()?->warehouse_id)
+                                    <div class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs p-2.5 font-bold text-gray-700 dark:text-gray-300">
+                                        {{ auth()->user()->warehouse->name ?? 'Assigned Shop' }}
+                                    </div>
+                                @else
+                                    <select name="warehouse_id" class="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl text-xs focus:ring-indigo-500 dark:text-gray-100">
+                                        <option value="">All Shops / Warehouses</option>
+                                        @foreach ($warehouses as $wh)
+                                            <option value="{{ $wh->id }}" {{ $selectedWarehouseId == $wh->id ? 'selected' : '' }}>
+                                                {{ $wh->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                @endif
                             </div>
 
                             <div>
@@ -51,11 +81,11 @@
 
                             <div class="flex items-end gap-2">
                                 <button type="submit"
-                                    class="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition">
+                                    class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition">
                                     Filter Report
                                 </button>
                                 <a href="{{ route('reports.salesman-performance') }}"
-                                    class="py-2 px-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-bold text-xs uppercase tracking-wider transition">
+                                    class="py-2.5 px-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-bold text-xs uppercase tracking-wider transition">
                                     Reset
                                 </a>
                             </div>
@@ -199,36 +229,86 @@
 
                     <!-- TAB 3: Route Sheet / Recovery List -->
                     <div x-show="activeTab === 'route'" style="display: none;">
-                        <div class="mb-3 p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-800 dark:text-blue-300 text-xs font-bold flex justify-between items-center">
-                            <span>Printable Daily Route Sheet: List of all customers with pending receivables for recovery visits.</span>
-                            <span>Total Due: Rs. {{ number_format($routeCustomers->sum('current_bal'), 2) }}</span>
+                        <div class="mb-4 p-4 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                            <div>
+                                <div class="text-sm font-bold text-blue-900 dark:text-blue-200 flex items-center gap-2">
+                                    <span>Daily Customer Recovery Route Sheet</span>
+                                    @if ($selectedSalesman)
+                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-200 dark:bg-blue-900 text-blue-900 dark:text-blue-100">
+                                            {{ $selectedSalesman->name }}
+                                        </span>
+                                    @endif
+                                </div>
+                                <div class="text-xs text-blue-700 dark:text-blue-300 mt-0.5">
+                                    Total Outstanding Target: <strong class="text-red-600 dark:text-red-400">Rs. {{ number_format($routeCustomers->sum('current_bal'), 2) }}</strong> across {{ $routeCustomers->count() }} customer(s)
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <a href="{{ route('reports.salesman-performance', array_merge(request()->query(), ['export' => 'route_pdf'])) }}"
+                                    class="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition shadow-sm">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    Download Route Sheet (PDF)
+                                </a>
+                            </div>
                         </div>
                         <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-700">
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-xs">
                                 <thead class="bg-gray-50 dark:bg-gray-900/60 text-[10px] uppercase font-bold text-gray-500">
                                     <tr>
+                                        <th class="px-3 py-3 text-center w-12">#</th>
                                         <th class="px-4 py-3 text-left">Customer Name</th>
                                         <th class="px-4 py-3 text-left">Phone / Contact</th>
                                         <th class="px-4 py-3 text-left">Market Address</th>
-                                        <th class="px-4 py-3 text-left">Rate Tier</th>
+                                        @if(!$selectedSalesman)
+                                            <th class="px-4 py-3 text-left">Assigned Salesman</th>
+                                        @endif
                                         <th class="px-4 py-3 text-right">Outstanding Receivable</th>
-                                        <th class="px-4 py-3 text-center">Amount Collected (Sign)</th>
+                                        <th class="px-4 py-3 text-center w-36">Amount Collected (Rs)</th>
+                                        <th class="px-4 py-3 text-center w-36">Customer Signature</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                                    @foreach ($routeCustomers as $rc)
+                                    @forelse ($routeCustomers as $index => $rc)
                                         <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-750 transition">
-                                            <td class="px-4 py-3 font-bold text-gray-900 dark:text-gray-100">{{ $rc->name }}</td>
-                                            <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $rc->phone ?? 'N/A' }}</td>
+                                            <td class="px-3 py-3 text-center font-bold text-gray-400">{{ $index + 1 }}</td>
+                                            <td class="px-4 py-3 font-bold text-gray-900 dark:text-gray-100">
+                                                <div>{{ $rc->name }}</div>
+                                                @if($rc->price_tier && $rc->price_tier !== 'wholesale')
+                                                    <span class="text-[9px] uppercase font-extrabold text-gray-400">({{ $rc->price_tier }})</span>
+                                                @endif
+                                            </td>
+                                            <td class="px-4 py-3 text-gray-600 dark:text-gray-400 font-mono text-[11px]">{{ $rc->phone ?? 'N/A' }}</td>
                                             <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $rc->address ?? 'N/A' }}</td>
-                                            <td class="px-4 py-3 uppercase text-[10px] font-bold text-gray-500">{{ $rc->price_tier ?? 'wholesale' }}</td>
+                                            @if(!$selectedSalesman)
+                                                <td class="px-4 py-3 text-indigo-600 font-semibold">{{ $rc->salesman->name ?? 'Unassigned' }}</td>
+                                            @endif
                                             <td class="px-4 py-3 text-right font-black font-mono text-red-600">Rs. {{ number_format($rc->current_bal, 2) }}</td>
-                                            <td class="px-4 py-3 text-center border-b border-gray-300 dark:border-gray-600 w-44">
-                                                <div class="border-b border-dashed border-gray-400 h-6"></div>
+                                            <td class="px-4 py-3 text-center">
+                                                <div class="border border-dashed border-gray-300 dark:border-gray-600 rounded h-7 bg-white dark:bg-gray-800"></div>
+                                            </td>
+                                            <td class="px-4 py-3 text-center">
+                                                <div class="border border-dashed border-gray-300 dark:border-gray-600 rounded h-7 bg-white dark:bg-gray-800"></div>
                                             </td>
                                         </tr>
-                                    @endforeach
+                                    @empty
+                                        <tr>
+                                            <td colspan="{{ $selectedSalesman ? '7' : '8' }}" class="px-4 py-6 text-center text-gray-400">
+                                                No pending recovery customers found for this selection.
+                                            </td>
+                                        </tr>
+                                    @endforelse
                                 </tbody>
+                                <tfoot>
+                                    <tr class="bg-gray-50 dark:bg-gray-900/60 font-bold border-t border-gray-200 dark:border-gray-700">
+                                        <td colspan="{{ $selectedSalesman ? '4' : '5' }}" class="px-4 py-3 text-right uppercase text-[10px] text-gray-500">
+                                            Total Target Due:
+                                        </td>
+                                        <td class="px-4 py-3 text-right font-black font-mono text-red-600">
+                                            Rs. {{ number_format($routeCustomers->sum('current_bal'), 2) }}
+                                        </td>
+                                        <td colspan="2"></td>
+                                    </tr>
+                                </tfoot>
                             </table>
                         </div>
                     </div>

@@ -159,6 +159,40 @@
                         </div>
                     </div>
 
+                    <!-- Company Branding Header (Visible in View & Print) -->
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-4 mb-6 border-b border-gray-100 dark:border-gray-700/80">
+                        <div class="flex items-center gap-4">
+                            @if ($settings->company_logo && file_exists(public_path($settings->company_logo)))
+                                <img src="{{ asset($settings->company_logo) }}" class="h-16 w-auto max-w-[200px] object-contain rounded-lg p-1 bg-white border border-gray-200 dark:border-gray-700 shadow-2xs" alt="{{ $settings->company_name }}">
+                            @endif
+                            <div>
+                                <h3 class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
+                                    {{ $sale->warehouse->name ?? $settings->company_name }}
+                                </h3>
+                                @if ($sale->warehouse && $sale->warehouse->name !== $settings->company_name)
+                                    <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider">
+                                        {{ $settings->company_name }}
+                                    </div>
+                                @endif
+                                <p class="text-xs text-gray-600 dark:text-gray-300 font-medium mt-0.5">
+                                    <span class="font-bold text-gray-500">Address / Location:</span> {{ $sale->warehouse->location ?: $settings->company_address }}
+                                </p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                                    Phone: {{ $settings->company_phone }} &bull; Email: {{ $settings->company_email }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="sm:text-right">
+                            <span class="text-xl font-black text-primary-600 dark:text-primary-400 uppercase tracking-wider">TAX INVOICE</span>
+                            <div class="text-xs font-mono font-bold text-gray-500 dark:text-gray-400 mt-0.5">
+                                Invoice Ref: #{{ $settings->invoice_prefix }}{{ $sale->id }}
+                            </div>
+                            <div class="text-xs font-bold text-gray-700 dark:text-gray-300 mt-1">
+                                Issued From: <span class="text-primary-600 dark:text-primary-400">{{ $sale->warehouse->name }}</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Meta Cards -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-6">
                         <!-- Customer Info -->
@@ -185,6 +219,12 @@
                                 <span class="text-gray-500">Stock Source:</span>
                                 <span class="font-bold text-gray-900 dark:text-gray-100">{{ $sale->warehouse->name }}</span>
                             </div>
+                            @if ($sale->salesman)
+                                <div class="text-xs text-gray-700 dark:text-gray-300 flex justify-between py-0.5">
+                                    <span class="text-gray-500">Salesman:</span>
+                                    <span class="font-bold text-indigo-600 dark:text-indigo-400">{{ $sale->salesman->name }}</span>
+                                </div>
+                            @endif
                             @if ($sale->warehouse->location)
                                 <div class="text-xs text-gray-700 dark:text-gray-300 flex justify-between py-0.5">
                                     <span class="text-gray-500">Location:</span>

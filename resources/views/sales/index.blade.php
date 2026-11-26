@@ -2,7 +2,7 @@
     <div class="py-4 sm:py-8 lg:py-12">
         <div class="max-w-[1750px] mx-auto px-2 sm:px-6 lg:px-8">
             <div
-                class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl rounded-2xl sm:rounded-lg border border-gray-200 dark:border-gray-700">
+                class="bg-white dark:bg-gray-800 shadow-xl rounded-2xl sm:rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="p-3.5 sm:p-6 text-gray-900 dark:text-gray-100">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200">{{ __('Sales Invoices') }}</h3>
@@ -42,16 +42,23 @@
                             <div>
                                 <label for="warehouse_id"
                                     class="block text-xs font-black uppercase text-gray-500 mb-1 tracking-widest">Warehouse</label>
-                                <select name="warehouse_id" id="warehouse_id"
-                                    class="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-primary-500 focus:border-primary-500 dark:text-gray-100">
-                                    <option value="">All Warehouses</option>
-                                    @foreach ($warehouses as $warehouse)
-                                        <option value="{{ $warehouse->id }}"
-                                            {{ request('warehouse_id') == $warehouse->id ? 'selected' : '' }}>
-                                            {{ $warehouse->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                @if (auth()->user()?->warehouse_id)
+                                    <div class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm px-3 py-2 font-bold text-gray-700 dark:text-gray-300 flex items-center justify-between">
+                                        <span>{{ auth()->user()->warehouse->name ?? 'Assigned Shop' }}</span>
+                                        <span class="text-[9px] uppercase font-black bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded">Locked</span>
+                                    </div>
+                                @else
+                                    <select name="warehouse_id" id="warehouse_id"
+                                        class="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-primary-500 focus:border-primary-500 dark:text-gray-100">
+                                        <option value="">All Warehouses</option>
+                                        @foreach ($warehouses as $warehouse)
+                                            <option value="{{ $warehouse->id }}"
+                                                {{ request('warehouse_id') == $warehouse->id ? 'selected' : '' }}>
+                                                {{ $warehouse->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                @endif
                             </div>
 
                             <!-- Start Date -->
@@ -121,7 +128,7 @@
                     </div>
 
                     <!-- Desktop Table View -->
-                    <div class="hidden md:block overflow-x-auto">
+                    <div class="hidden md:block overflow-x-auto pb-64">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>

@@ -15,6 +15,56 @@ class ChartOfAccount extends Model
         'status'
     ];
 
+    protected static function booted()
+    {
+        static::saved(function ($account) {
+            if ($account->type === 'Expense' && !in_array($account->name, ['Purchase', 'COGS'])) {
+                $category = ExpenseCategory::where('account_id', $account->id)->first();
+                if (!$category) {
+                    $category = ExpenseCategory::where('name', $account->name)->first();
+                }
+
+                if ($category) {
+                    $category->update([
+                        'name' => $account->name,
+                        'account_id' => $account->id,
+                        'status' => $account->status,
+                    ]);
+                } else {
+                    ExpenseCategory::create([
+                        'name' => $account->name,
+                        'account_id' => $account->id,
+                        'status' => $account->status,
+                        'description' => 'Auto-synced from Chart of Accounts',
+                    ]);
+                }
+            } elseif ($account->type !== 'Expense') {
+                // If account was changed from Expense to another type
+                $category = ExpenseCategory::where('account_id', $account->id)->first();
+                if ($category) {
+                    if ($category->expenses()->count() === 0) {
+                        $category->delete();
+                    } else {
+                        $category->update(['status' => false, 'account_id' => null]);
+                    }
+                }
+            }
+        });
+
+        static::deleting(function ($account) {
+            if ($account->type === 'Expense') {
+                $categories = ExpenseCategory::where('account_id', $account->id)->get();
+                foreach ($categories as $category) {
+                    if ($category->expenses()->count() === 0) {
+                        $category->delete();
+                    } else {
+                        $category->update(['account_id' => null, 'status' => false]);
+                    }
+                }
+            }
+        });
+    }
+
     public function parent()
     {
         return $this->belongsTo(ChartOfAccount::class, 'parent_id');

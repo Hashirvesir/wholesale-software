@@ -34,3 +34,10 @@ Thumbs.db
 !/public/downloads/Invenco-Setup.exe
 !/public/downloads/Invenco-Wholesaler-Setup.exe
 !/public/downloads/Invenco-Wholesaler.apk
+
+# Temporary & Local files
+*.sql
+*.csv
+*.pdf
+scratch/
+remotion-invenco/

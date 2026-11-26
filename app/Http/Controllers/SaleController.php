@@ -58,13 +58,19 @@ class SaleController extends Controller implements HasMiddleware
             $query->where('date', '<=', $request->end_date);
         }
 
-        // Warehouse Filter
-        if ($request->filled('warehouse_id')) {
-            $query->where('warehouse_id', $request->warehouse_id);
+        $userWarehouseId = auth()->user()?->warehouse_id;
+        if ($userWarehouseId) {
+            $query->where('warehouse_id', $userWarehouseId);
+            $warehouses = Warehouse::where('id', $userWarehouseId)->get();
+        } else {
+            // Warehouse Filter
+            if ($request->filled('warehouse_id')) {
+                $query->where('warehouse_id', $request->warehouse_id);
+            }
+            $warehouses = Warehouse::all();
         }
 
         $sales = $query->latest()->paginate(10)->withQueryString();
-        $warehouses = Warehouse::all();
 
         return view('sales.index', compact('sales', 'warehouses'));
     }
@@ -77,9 +83,11 @@ class SaleController extends Controller implements HasMiddleware
             $customer->credit_days = (int)($customer->credit_days ?? 0);
             $customer->has_overdue = $customer->hasOverdueInvoices();
             $customer->price_tier = $customer->price_tier ?? 'wholesale';
+            $customer->salesman_id = $customer->salesman_id;
             return $customer;
         });
-        $warehouses = Warehouse::all();
+        $userWarehouseId = auth()->user()?->warehouse_id;
+        $warehouses = $userWarehouseId ? Warehouse::where('id', $userWarehouseId)->get() : Warehouse::all();
         $products = Product::with('stocks')->get()->map(function($product) {
             $product->current_stock = $product->getCurrentStock();
             $product->wholesale_price = (float)($product->wholesale_price ?? $product->sale_price);
@@ -102,16 +110,21 @@ class SaleController extends Controller implements HasMiddleware
             $quotation = \App\Models\Quotation::with('items.product')->find($request->from_quotation);
         }
 
-        $salesmen = \App\Models\User::all();
+        $salesmen = \App\Models\Salesman::where('status', true)->orderBy('name')->get();
 
         return view('sales.create', compact('customers', 'warehouses', 'products', 'paymentAccounts', 'settings', 'quotation', 'salesmen'));
     }
 
     public function store(Request $request)
     {
+        if (auth()->user()?->warehouse_id) {
+            $request->merge(['warehouse_id' => auth()->user()->warehouse_id]);
+        }
+
         $request->validate([
             'party_id' => 'required|exists:parties,id',
             'warehouse_id' => 'required|exists:warehouses,id',
+            'salesman_id' => 'nullable|exists:salesmen,id',
             'date' => 'required|date',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
@@ -184,10 +197,12 @@ class SaleController extends Controller implements HasMiddleware
             // But it shouldn't exceed the total amount of the sale
             $invoicePaidAmount = min($total, $totalPaid + $advanceUsed);
 
+            $salesmanId = $request->salesman_id ?: ($party->salesman_id ?? null);
+
             $sale = Sale::create([
                 'party_id' => $request->party_id,
                 'warehouse_id' => $request->warehouse_id,
-                'salesman_id' => $request->salesman_id ?? auth()->id(),
+                'salesman_id' => $salesmanId,
                 'account_id' => $payments[0]['account_id'] ?? null,
                 'date' => $request->date,
                 'total_amount' => $total,
@@ -356,12 +371,17 @@ class SaleController extends Controller implements HasMiddleware
 
     public function show(Sale $sale)
     {
-        $sale->load(['party', 'warehouse', 'items.product', 'paymentSplits.account']);
+        $sale->load(['party', 'warehouse', 'items.product', 'paymentSplits.account', 'salesman']);
         return view('sales.show', compact('sale'));
     }
 
     public function edit(Sale $sale)
     {
+        $userWarehouseId = auth()->user()?->warehouse_id;
+        if ($userWarehouseId && $sale->warehouse_id != $userWarehouseId) {
+            abort(403, 'Unauthorized. You do not have access to sales from this shop/warehouse.');
+        }
+
         $customers = Party::where('type', 'customer')->get()->map(function($customer) use ($sale) {
             $balance = $customer->getCurrentBalance();
             if ($customer->id == $sale->party_id) {
@@ -371,9 +391,11 @@ class SaleController extends Controller implements HasMiddleware
             } else {
                 $customer->current_balance = $balance;
             }
+            $customer->salesman_id = $customer->salesman_id;
             return $customer;
         });
-        $warehouses = Warehouse::all();
+        $userWarehouseId = auth()->user()?->warehouse_id;
+        $warehouses = $userWarehouseId ? Warehouse::where('id', $userWarehouseId)->get() : Warehouse::all();
         $products = Product::with('stocks')->get()->map(function($product) {
             $product->current_stock = $product->getCurrentStock();
             $product->warehouse_stocks = $product->stocks->pluck('qty', 'warehouse_id');
@@ -411,15 +433,25 @@ class SaleController extends Controller implements HasMiddleware
         }
 
         $settings = \App\Models\Setting::first();
+        $salesmen = \App\Models\Salesman::all();
 
-        return view('sales.edit', compact('sale', 'customers', 'warehouses', 'products', 'mappedItems', 'paymentAccounts', 'mappedPayments', 'settings'));
+        return view('sales.edit', compact('sale', 'customers', 'warehouses', 'products', 'mappedItems', 'paymentAccounts', 'mappedPayments', 'settings', 'salesmen'));
     }
 
     public function update(Request $request, Sale $sale)
     {
+        $userWarehouseId = auth()->user()?->warehouse_id;
+        if ($userWarehouseId && $sale->warehouse_id != $userWarehouseId) {
+            abort(403, 'Unauthorized. You do not have access to sales from this shop/warehouse.');
+        }
+        if ($userWarehouseId) {
+            $request->merge(['warehouse_id' => $userWarehouseId]);
+        }
+
         $request->validate([
             'party_id' => 'required|exists:parties,id',
             'warehouse_id' => 'required|exists:warehouses,id',
+            'salesman_id' => 'nullable|exists:salesmen,id',
             'date' => 'required|date',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
@@ -497,6 +529,7 @@ class SaleController extends Controller implements HasMiddleware
             $sale->update([
                 'party_id' => $request->party_id,
                 'warehouse_id' => $request->warehouse_id,
+                'salesman_id' => $request->salesman_id ?? $sale->salesman_id,
                 'account_id' => $payments[0]['account_id'] ?? null,
                 'date' => $request->date,
                 'total_amount' => $total,
@@ -737,7 +770,7 @@ class SaleController extends Controller implements HasMiddleware
     }
     public function downloadPdf(Sale $sale)
     {
-        $sale->load(['party', 'warehouse', 'items.product.unit', 'paymentSplits.account']);
+        $sale->load(['party', 'warehouse', 'items.product.unit', 'paymentSplits.account', 'salesman']);
         $settings = \App\Models\Setting::first();
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('sales.pdf', compact('sale', 'settings'));
@@ -753,7 +786,7 @@ class SaleController extends Controller implements HasMiddleware
 
     public function thermalPrint(Sale $sale)
     {
-        $sale->load(['party', 'warehouse', 'items.product.unit', 'paymentSplits.account']);
+        $sale->load(['party', 'warehouse', 'items.product.unit', 'paymentSplits.account', 'salesman']);
         $settings = \App\Models\Setting::first();
         $currentBalance = $sale->party->getCurrentBalance();
 

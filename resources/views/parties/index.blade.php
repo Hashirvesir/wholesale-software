@@ -72,10 +72,10 @@
             @endif
 
             <div
-                class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg border border-gray-200 dark:border-gray-700">
+                class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="p-0 text-gray-900 dark:text-gray-100">
                     <!-- Desktop Table View -->
-                    <div class="hidden md:block overflow-x-auto">
+                    <div class="hidden md:block overflow-x-auto pb-48">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead>
                                 <tr>
@@ -113,6 +113,12 @@
                                                 <span>{{ $party->name }}</span>
                                                 <span
                                                     class="text-xs text-gray-400">{{ $party->phone ?? 'No Phone' }}</span>
+                                                @if ($party->salesman)
+                                                    <span class="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-0.5 mt-0.5">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                                        {{ $party->salesman->name }}
+                                                    </span>
+                                                @endif
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">

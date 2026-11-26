@@ -174,17 +174,28 @@
     <div class="container">
         <div class="header clearfix">
             <div class="company-info">
-                @if ($settings->company_logo)
-                    <img src="{{ public_path($settings->company_logo) }}" class="logo" alt="Logo">
+                @if ($settings->company_logo && file_exists(public_path($settings->company_logo)))
+                    @php
+                        $logoPath = public_path($settings->company_logo);
+                        $logoData = base64_encode(file_get_contents($logoPath));
+                        $logoMime = mime_content_type($logoPath) ?: 'image/jpeg';
+                    @endphp
+                    <img src="data:{{ $logoMime }};base64,{{ $logoData }}" class="logo" alt="Logo">
                 @endif
-                <div class="company-name">{{ $settings->company_name }}</div>
-                <div>{{ $settings->company_address }}</div>
+                <div class="company-name">{{ $sale->warehouse->name ?? $settings->company_name }}</div>
+                @if ($sale->warehouse && $sale->warehouse->name !== $settings->company_name)
+                    <div style="font-size: 10px; font-weight: bold; color: #475569;">{{ $settings->company_name }}</div>
+                @endif
+                <div><strong>Address:</strong> {{ $sale->warehouse->location ?: $settings->company_address }}</div>
                 <div>{{ $settings->company_phone }} | {{ $settings->company_email }}</div>
             </div>
             <div class="invoice-title">
                 <div class="invoice-heading">INVOICE</div>
                 <div>Invoice #: <strong>{{ $settings->invoice_prefix }}{{ $sale->id }}</strong></div>
                 <div>Date: <strong>{{ \Carbon\Carbon::parse($sale->date)->format('d M, Y') }}@if($settings->show_sale_time) &nbsp;{{ $sale->created_at->timezone(config('app.timezone'))->format('h:i A') }}@endif</strong></div>
+                @if ($sale->salesman)
+                    <div>Salesman: <strong>{{ $sale->salesman->name }}</strong></div>
+                @endif
                 @if ($sale->total_amount - $sale->paid_amount <= 0)
                     <div class="status-badge status-paid">PAID</div>
                 @else

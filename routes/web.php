@@ -34,6 +34,7 @@ Route::get('/api/offline/ping', [\App\Http\Controllers\OfflineSyncController::cl
 
 Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 Route::get('/dashboard/quick-stats', [\App\Http\Controllers\DashboardController::class, 'quickStats'])->middleware(['auth', 'verified'])->name('dashboard.quick-stats');
+Route::get('/dashboard/quick-stats-pdf', [\App\Http\Controllers\DashboardController::class, 'quickStatsPdf'])->middleware(['auth', 'verified'])->name('dashboard.quick-stats-pdf');
 
 Route::middleware('auth')->group(function () {
     // Offline Mode & Background Sync Routes
@@ -61,6 +62,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/parties/export/pdf', [PartyController::class, 'exportPdf'])->name('parties.export.pdf')->middleware('permission:export data');
     Route::get('/parties/export/excel', [PartyController::class, 'exportExcel'])->name('parties.export.excel')->middleware('permission:export data');
     Route::resource('parties', PartyController::class)->middleware('permission:view parties');
+    Route::resource('salesmen', \App\Http\Controllers\SalesmanController::class);
     Route::resource('chart-of-accounts', ChartOfAccountController::class)->middleware('permission:view chart of accounts');
     Route::resource('purchases', PurchaseController::class)->middleware('permission:view purchases');
     Route::post('/purchase-orders/{purchase_order}/receive', [\App\Http\Controllers\PurchaseOrderController::class, 'receiveGoods'])->name('purchase-orders.receive')->middleware('permission:receive purchase orders');

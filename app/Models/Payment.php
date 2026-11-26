@@ -30,7 +30,7 @@ class Payment extends Model
 
     public function salesman()
     {
-        return $this->belongsTo(User::class, 'salesman_id');
+        return $this->belongsTo(Salesman::class, 'salesman_id');
     }
 
     public function allocations()

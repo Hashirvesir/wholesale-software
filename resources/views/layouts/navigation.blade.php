@@ -156,6 +156,9 @@
                                     @can('view parties')
                                         <x-dropdown-link :href="route('parties.index')">{{ __('Parties') }}</x-dropdown-link>
                                     @endcan
+                                    @canany(['view sales', 'manage users', 'view parties'])
+                                        <x-dropdown-link :href="route('salesmen.index')">{{ __('Salesmen') }}</x-dropdown-link>
+                                    @endcanany
                                     @can('view opening stocks')
                                         <x-dropdown-link :href="route('opening-stocks.index')">{{ __('Opening Stock') }}</x-dropdown-link>
                                     @endcan
@@ -322,7 +325,7 @@
                         showSnapshot: false,
                         loading: false,
                         stats: null,
-                        warehouse_id: '',
+                        warehouse_id: '{{ auth()->user()?->warehouse_id ?? "" }}',
                         start_date: new Date().toISOString().split('T')[0],
                         end_date: new Date().toISOString().split('T')[0],
                         fetchStats() {
@@ -345,7 +348,7 @@
                                     this.loading = false;
                                     });
                         }
-                    }">
+                    }" @open-quick-snapshot.window="showSnapshot = true; fetchStats()">
                         <button type="button" @click="showSnapshot = true; fetchStats()"
                             class="p-1.5 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/60 border border-gray-200/80 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all cursor-pointer"
                             title="Quick Financial Snapshot">
@@ -388,31 +391,49 @@
 
                                         <!-- Filter Controls -->
                                         <div class="px-6 py-3.5 bg-gray-50/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700">
-                                            <div class="flex flex-wrap gap-3 items-end">
-                                                <div class="flex flex-col gap-1">
-                                                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Start Date</label>
-                                                    <input type="date" x-model="start_date" @change="fetchStats()"
-                                                        class="rounded-xl border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 shadow-2xs focus:border-[#252ebf] focus:ring-[#252ebf] text-xs py-1.5">
+                                            <div class="flex flex-wrap gap-3 items-end justify-between">
+                                                <div class="flex flex-wrap gap-3 items-end">
+                                                    <div class="flex flex-col gap-1">
+                                                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Start Date</label>
+                                                        <input type="date" x-model="start_date" @change="fetchStats()"
+                                                            class="rounded-xl border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 shadow-2xs focus:border-[#252ebf] focus:ring-[#252ebf] text-xs py-1.5">
+                                                    </div>
+                                                    <div class="flex flex-col gap-1">
+                                                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">End Date</label>
+                                                        <input type="date" x-model="end_date" @change="fetchStats()"
+                                                            class="rounded-xl border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 shadow-2xs focus:border-[#252ebf] focus:ring-[#252ebf] text-xs py-1.5">
+                                                    </div>
+                                                    <div class="flex flex-col gap-1">
+                                                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Warehouse</label>
+                                                        @if (auth()->user()?->warehouse_id)
+                                                            <div class="rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs py-1.5 px-3 font-semibold">
+                                                                {{ auth()->user()->warehouse->name ?? 'Assigned Shop' }}
+                                                            </div>
+                                                        @else
+                                                            <select x-model="warehouse_id" @change="fetchStats()"
+                                                                class="rounded-xl border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 shadow-2xs focus:border-[#252ebf] focus:ring-[#252ebf] text-xs py-1.5">
+                                                                <option value="">All Warehouses</option>
+                                                                @foreach (\App\Models\Warehouse::all() as $w)
+                                                                    <option value="{{ $w->id }}">{{ $w->name }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        @endif
+                                                    </div>
+                                                    <button type="button" @click="start_date = new Date().toISOString().split('T')[0]; end_date = new Date().toISOString().split('T')[0]; fetchStats()"
+                                                        class="px-3 py-1.5 text-xs font-semibold bg-blue-50 dark:bg-blue-950/50 text-[#252ebf] dark:text-blue-300 rounded-xl hover:bg-blue-100 border border-blue-200 dark:border-blue-900/60 transition cursor-pointer">
+                                                        Today
+                                                    </button>
                                                 </div>
-                                                <div class="flex flex-col gap-1">
-                                                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">End Date</label>
-                                                    <input type="date" x-model="end_date" @change="fetchStats()"
-                                                        class="rounded-xl border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 shadow-2xs focus:border-[#252ebf] focus:ring-[#252ebf] text-xs py-1.5">
-                                                </div>
-                                                <div class="flex flex-col gap-1">
-                                                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Warehouse</label>
-                                                    <select x-model="warehouse_id" @change="fetchStats()"
-                                                        class="rounded-xl border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 shadow-2xs focus:border-[#252ebf] focus:ring-[#252ebf] text-xs py-1.5">
-                                                        <option value="">All Warehouses</option>
-                                                        @foreach (\App\Models\Warehouse::all() as $w)
-                                                            <option value="{{ $w->id }}">{{ $w->name }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                                <button type="button" @click="start_date = new Date().toISOString().split('T')[0]; end_date = new Date().toISOString().split('T')[0]; fetchStats()"
-                                                    class="px-3 py-1.5 text-xs font-semibold bg-blue-50 dark:bg-blue-950/50 text-[#252ebf] dark:text-blue-300 rounded-xl hover:bg-blue-100 border border-blue-200 dark:border-blue-900/60 transition cursor-pointer">
-                                                    Today
-                                                </button>
+
+                                                <!-- PDF Download Button in filter toolbar -->
+                                                <a :href="`{{ route('dashboard.quick-stats-pdf') }}?warehouse_id=${warehouse_id}&start_date=${start_date}&end_date=${end_date}`"
+                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-xs transition cursor-pointer shrink-0"
+                                                    title="Download Financial Snapshot PDF">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                    <span>Download PDF</span>
+                                                </a>
                                             </div>
                                         </div>
 
@@ -511,7 +532,14 @@
                                         </div>
 
                                         <!-- Modal Footer -->
-                                        <div class="bg-gray-50 dark:bg-gray-900 px-6 py-3 flex justify-end border-t border-gray-200 dark:border-gray-700">
+                                        <div class="bg-gray-50 dark:bg-gray-900 px-6 py-3 flex justify-between items-center border-t border-gray-200 dark:border-gray-700">
+                                            <a :href="`{{ route('dashboard.quick-stats-pdf') }}?warehouse_id=${warehouse_id}&start_date=${start_date}&end_date=${end_date}`"
+                                                class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-xs transition cursor-pointer">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                                <span>Download PDF</span>
+                                            </a>
                                             <button type="button" @click="showSnapshot = false"
                                                 class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-xl text-xs font-semibold cursor-pointer">
                                                 Close
@@ -799,7 +827,7 @@
     <div :class="{ 'block': open, 'hidden': !open }"
         class="hidden xl:hidden max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl">
         <div x-data="{
-            activeSection: '{{ request()->routeIs(['pos.*', 'sales.*', 'quotations.*', 'purchases.*', 'purchase-orders.*', 'stock-transfers.*', 'stock-adjustments.*', 'cargo-charges.*']) ? 'trading' : (request()->routeIs(['chart-of-accounts.*', 'payments.*', 'cheques.*', 'expenses.*', 'account-transfers.*']) ? 'finance' : (request()->routeIs(['units.*', 'categories.*', 'brands.*', 'warehouses.*', 'products.*', 'opening-stocks.*', 'parties.*']) ? 'masters' : (request()->routeIs(['reports.*', 'activity-logs.*']) ? 'reports' : (request()->routeIs(['users.*', 'roles.*']) ? 'access' : '')))) }}',
+            activeSection: '{{ request()->routeIs(['pos.*', 'sales.*', 'quotations.*', 'purchases.*', 'purchase-orders.*', 'stock-transfers.*', 'stock-adjustments.*', 'cargo-charges.*']) ? 'trading' : (request()->routeIs(['chart-of-accounts.*', 'payments.*', 'cheques.*', 'expenses.*', 'account-transfers.*']) ? 'finance' : (request()->routeIs(['units.*', 'categories.*', 'brands.*', 'warehouses.*', 'products.*', 'opening-stocks.*', 'parties.*', 'salesmen.*']) ? 'masters' : (request()->routeIs(['reports.*', 'activity-logs.*']) ? 'reports' : (request()->routeIs(['users.*', 'roles.*']) ? 'access' : '')))) }}',
             toggle(sec) {
                 this.activeSection = this.activeSection === sec ? '' : sec;
             }
@@ -855,6 +883,16 @@
                         <span>Ask Invenco AI</span>
                     </button>
                 @endcan
+
+                @canany(['view profit loss', 'view balance sheet', 'view account ledger', 'view trial balance'])
+                    <button type="button" @click="$dispatch('open-quick-snapshot'); open = false"
+                        class="w-full text-start px-3.5 py-2 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition flex items-center gap-2.5 cursor-pointer">
+                        <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        <span>Quick Financial Snapshot</span>
+                    </button>
+                @endcanany
             </div>
 
             <!-- Accordion Section: Trading -->
@@ -976,6 +1014,9 @@
                         @can('view parties')
                             <x-responsive-nav-link :href="route('parties.index')" :active="request()->routeIs('parties.*')">{{ __('Parties') }}</x-responsive-nav-link>
                         @endcan
+                        @canany(['view sales', 'manage users', 'view parties'])
+                            <x-responsive-nav-link :href="route('salesmen.index')" :active="request()->routeIs('salesmen.*')">{{ __('Salesmen') }}</x-responsive-nav-link>
+                        @endcanany
                         @can('view opening stocks')
                             <x-responsive-nav-link :href="route('opening-stocks.index')" :active="request()->routeIs('opening-stocks.*')">{{ __('Opening Stock') }}</x-responsive-nav-link>
                         @endcan

@@ -45,13 +45,33 @@
                         <x-input-label for="end_date" :value="__('End Date')" />
                         <x-text-input id="end_date" name="end_date" type="date" class="block mt-1 w-full" :value="$endDate" />
                     </div>
-                    <div class="w-full md:w-64">
+                    <div class="w-full md:w-56">
                         <x-input-label for="account_id" :value="__('Account (Optional)')" />
                         <select id="account_id" name="account_id"
                             class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm text-sm">
                             <option value="">All Accounts</option>
                             @foreach ($paymentAccounts as $account)
                                 <option value="{{ $account->id }}" {{ $selectedAccountId == $account->id ? 'selected' : '' }}>{{ $account->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="w-full md:w-48">
+                        <x-input-label for="warehouse_id" :value="__('Shop / Warehouse')" />
+                        <select id="warehouse_id" name="warehouse_id"
+                            class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm text-sm">
+                            <option value="">All Shops / Warehouses</option>
+                            @foreach ($warehouses as $wh)
+                                <option value="{{ $wh->id }}" {{ $selectedWarehouseId == $wh->id ? 'selected' : '' }}>{{ $wh->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="w-full md:w-48">
+                        <x-input-label for="salesman_id" :value="__('Salesman')" />
+                        <select id="salesman_id" name="salesman_id"
+                            class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm text-sm">
+                            <option value="">All Salesmen</option>
+                            @foreach ($salesmen as $sm)
+                                <option value="{{ $sm->id }}" {{ $selectedSalesmanId == $sm->id ? 'selected' : '' }}>{{ $sm->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -118,6 +138,8 @@
                                 <th class="px-6 py-4 text-left">Date</th>
                                 <th class="px-6 py-4 text-left">Account</th>
                                 <th class="px-6 py-4 text-left">Reference</th>
+                                <th class="px-6 py-4 text-left">Shop / Warehouse</th>
+                                <th class="px-6 py-4 text-left">Salesman</th>
                                 <th class="px-6 py-4 text-right">Received</th>
                                 <th class="px-6 py-4 text-right">Paid</th>
                             </tr>
@@ -131,18 +153,24 @@
                                         <div class="font-bold uppercase tracking-tight text-gray-700 dark:text-gray-300">{{ $entry->note }}</div>
                                         <div class="text-[10px] text-indigo-400 uppercase">{{ $entry->reference_type }} #{{ $entry->reference_id }}</div>
                                     </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-600 dark:text-gray-400">
+                                        {{ $entry->warehouse->name ?? '-' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-xs font-semibold text-gray-900 dark:text-gray-100">
+                                        {{ $entry->resolved_salesman->name ?? '-' }}
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-green-600 dark:text-green-400">{{ $entry->debit > 0 ? number_format($entry->debit, 2) : '-' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-red-600 dark:text-red-400">{{ $entry->credit > 0 ? number_format($entry->credit, 2) : '-' }}</td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400 italic">No transactions found for this period.</td>
+                                    <td colspan="7" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400 italic">No transactions found for this period.</td>
                                 </tr>
                             @endforelse
                         </tbody>
                         <tfoot>
                             <tr class="bg-gray-100 dark:bg-gray-700 font-black text-sm">
-                                <td colspan="3" class="px-6 py-4 text-right uppercase tracking-widest text-[10px]">Total</td>
+                                <td colspan="5" class="px-6 py-4 text-right uppercase tracking-widest text-[10px]">Total</td>
                                 <td class="px-6 py-4 text-right">{{ number_format($totalReceived, 2) }}</td>
                                 <td class="px-6 py-4 text-right">{{ number_format($totalPaid, 2) }}</td>
                             </tr>

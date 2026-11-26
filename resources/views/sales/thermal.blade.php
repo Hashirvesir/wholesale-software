@@ -117,8 +117,16 @@
     </div>
 
     <div class="header text-center">
-        <div class="company-name">{{ $settings->company_name }}</div>
-        <div class="mb-1">{{ $settings->company_address }}</div>
+        @if ($settings->company_logo && file_exists(public_path($settings->company_logo)))
+            <div style="margin-bottom: 6px;">
+                <img src="{{ asset($settings->company_logo) }}" style="max-height: 50px; max-width: 140px; margin: 0 auto; display: block;" alt="Logo">
+            </div>
+        @endif
+        <div class="company-name">{{ $sale->warehouse->name ?? $settings->company_name }}</div>
+        @if ($sale->warehouse && $sale->warehouse->name !== $settings->company_name)
+            <div style="font-size: 11px; font-weight: bold; text-transform: uppercase;">{{ $settings->company_name }}</div>
+        @endif
+        <div class="mb-1">{{ $sale->warehouse->location ?: $settings->company_address }}</div>
         <div class="mb-1">Phone: {{ $settings->company_phone }}</div>
         <div class="border-b"></div>
     </div>
@@ -126,10 +134,17 @@
     <div class="mb-2">
         <div><strong class="font-bold">Bill No:</strong> <span
                 class="font-bold">{{ $settings->invoice_prefix }}{{ $sale->id }}</span></div>
+        <div><strong class="font-bold">Shop / Branch:</strong> <span class="font-bold">{{ $sale->warehouse->name }}</span></div>
+        @if ($sale->warehouse->location)
+            <div><strong class="font-bold">Location:</strong> <span>{{ $sale->warehouse->location }}</span></div>
+        @endif
         <div><strong class="font-bold">Date:</strong>
             {{ $sale->created_at->timezone(config('app.timezone'))->format('d-M-Y') }}@if($settings->show_sale_time) {{ $sale->created_at->timezone(config('app.timezone'))->format('h:i A') }}@endif
         </div>
         <div><strong class="font-bold">Cust:</strong> <span class="font-bold">{{ $sale->party->name }}</span></div>
+        @if ($sale->salesman)
+            <div><strong class="font-bold">Salesman:</strong> <span class="font-bold">{{ $sale->salesman->name }}</span></div>
+        @endif
         <div class="border-b" style="margin-top: 5px;"></div>
     </div>
 
@@ -161,6 +176,7 @@
 
     <div class="totals" style="border-top: 2px solid #000; padding-top: 5px;">
         @php
+            $currentBalance = $currentBalance ?? ($sale->party ? $sale->party->getCurrentBalance() : 0);
             $invoiceImpact = $sale->total_amount - $sale->paid_amount;
             $prevBalance = $currentBalance - $invoiceImpact;
         @endphp

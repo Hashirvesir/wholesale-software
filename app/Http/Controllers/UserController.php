@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Warehouse;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
@@ -12,14 +13,15 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::with('roles')->paginate(10);
+        $users = User::with(['roles', 'warehouse'])->paginate(10);
         return view('users.index', compact('users'));
     }
 
     public function create()
     {
         $roles = Role::all();
-        return view('users.create', compact('roles'));
+        $warehouses = Warehouse::where('status', true)->orderBy('name')->get();
+        return view('users.create', compact('roles', 'warehouses'));
     }
 
     public function store(Request $request)
@@ -29,12 +31,14 @@ class UserController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => ['required', 'exists:roles,name'],
+            'warehouse_id' => ['nullable', 'exists:warehouses,id'],
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'warehouse_id' => $request->warehouse_id,
         ]);
 
         $user->assignRole($request->role);
@@ -45,8 +49,9 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $roles = Role::all();
+        $warehouses = Warehouse::where('status', true)->orderBy('name')->get();
         $userRole = $user->roles->first()?->name;
-        return view('users.edit', compact('user', 'roles', 'userRole'));
+        return view('users.edit', compact('user', 'roles', 'userRole', 'warehouses'));
     }
 
     public function update(Request $request, User $user)
@@ -56,11 +61,13 @@ class UserController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
             'role' => ['required', 'exists:roles,name'],
+            'warehouse_id' => ['nullable', 'exists:warehouses,id'],
         ]);
 
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
+            'warehouse_id' => $request->warehouse_id,
         ]);
 
         if ($request->filled('password')) {
@@ -68,6 +75,7 @@ class UserController extends Controller
         }
 
         $user->syncRoles([$request->role]);
+        app()->make(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
         return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }

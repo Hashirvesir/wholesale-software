@@ -158,6 +158,32 @@
                                         <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500 dark:peer-focus:ring-primary-600 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
                                     </label>
                                 </div>
+
+                                <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-100 dark:border-gray-700">
+                                    <div>
+                                        <p class="text-sm font-bold text-gray-700 dark:text-gray-300">Hide 0-Stock Products in Sale / Invoice</p>
+                                        <p class="text-[11px] text-gray-400 italic mt-0.5">Tick karne par 0 stock wale products Sale aur POS mein search / selection mein show nahi honge</p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" name="hide_zero_stock_in_sale" id="hide_zero_stock_in_sale" value="1"
+                                            class="sr-only peer"
+                                            {{ old('hide_zero_stock_in_sale', $setting->hide_zero_stock_in_sale) ? 'checked' : '' }}>
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500 dark:peer-focus:ring-primary-600 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+                                    </label>
+                                </div>
+
+                                <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-100 dark:border-gray-700">
+                                    <div>
+                                        <p class="text-sm font-bold text-gray-700 dark:text-gray-300">Hide Minus / Negative Stock Products</p>
+                                        <p class="text-[11px] text-gray-400 italic mt-0.5">Tick karne par minus / negative stock wale products Sale aur POS mein show nahi honge</p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" name="hide_negative_stock_in_sale" id="hide_negative_stock_in_sale" value="1"
+                                            class="sr-only peer"
+                                            {{ old('hide_negative_stock_in_sale', $setting->hide_negative_stock_in_sale) ? 'checked' : '' }}>
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500 dark:peer-focus:ring-primary-600 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
