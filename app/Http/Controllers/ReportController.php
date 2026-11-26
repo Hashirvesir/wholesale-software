@@ -2315,10 +2315,18 @@ class ReportController extends Controller
                     'Rate (' . ($settings->currency_symbol ?? 'Rs') . ')',
                     'Item Total (' . ($settings->currency_symbol ?? 'Rs') . ')',
                     'Invoice Total (' . ($settings->currency_symbol ?? 'Rs') . ')',
+                    'Paid Amount (' . ($settings->currency_symbol ?? 'Rs') . ')',
+                    'Balance Due (' . ($settings->currency_symbol ?? 'Rs') . ')',
+                    'Payment Status',
                     'Warehouse'
                 ]);
 
                 foreach ($rows as $r) {
+                    $grand = (float)($r->sale_grand_total ?? 0);
+                    $paid = (float)($r->sale_paid_amount ?? 0);
+                    $due = max(0, $grand - $paid);
+                    $status = $due <= 0.01 ? 'Fully Paid' : ($paid > 0.01 ? 'Partially Paid' : 'Unpaid');
+
                     fputcsv($file, [
                         $r->sale_date,
                         'INV-' . $r->sale_id,
@@ -2329,7 +2337,10 @@ class ReportController extends Controller
                         $r->qty,
                         number_format($r->price, 2, '.', ''),
                         number_format($r->item_total, 2, '.', ''),
-                        number_format($r->sale_grand_total, 2, '.', ''),
+                        number_format($grand, 2, '.', ''),
+                        number_format($paid, 2, '.', ''),
+                        number_format($due, 2, '.', ''),
+                        $status,
                         $r->warehouse_name ?? ''
                     ]);
                 }
@@ -2349,7 +2360,11 @@ class ReportController extends Controller
 
             $totalQty = $rows->sum('qty');
             $totalAmount = $rows->sum('item_total');
-            $totalInvoices = $groupedByInvoice->count();
+            $uniqueInvoices = $rows->unique('sale_id');
+            $totalInvoices = $uniqueInvoices->count();
+            $totalPaid = $uniqueInvoices->sum('sale_paid_amount');
+            $totalGrand = $uniqueInvoices->sum('sale_grand_total');
+            $totalDue = max(0, $totalGrand - $totalPaid);
             $uniqueCustomersCount = $rows->pluck('party_id')->filter()->unique()->count();
 
             $data = compact(
@@ -2357,6 +2372,8 @@ class ReportController extends Controller
                 'groupedByInvoice',
                 'totalQty',
                 'totalAmount',
+                'totalPaid',
+                'totalDue',
                 'totalInvoices',
                 'uniqueCustomersCount',
                 'settings',
@@ -2378,7 +2395,11 @@ class ReportController extends Controller
         $allMatchingRows = (clone $query)->get();
         $totalQty = $allMatchingRows->sum('qty');
         $totalAmount = $allMatchingRows->sum('item_total');
-        $totalInvoices = $allMatchingRows->pluck('sale_id')->unique()->count();
+        $uniqueInvoices = $allMatchingRows->unique('sale_id');
+        $totalInvoices = $uniqueInvoices->count();
+        $totalPaid = $uniqueInvoices->sum('sale_paid_amount');
+        $totalGrand = $uniqueInvoices->sum('sale_grand_total');
+        $totalDue = max(0, $totalGrand - $totalPaid);
         $uniqueCustomersCount = $allMatchingRows->pluck('party_id')->filter()->unique()->count();
 
         // Paginate for web view (100 rows per page)
@@ -2392,6 +2413,8 @@ class ReportController extends Controller
             'invoicesOnPage',
             'totalQty',
             'totalAmount',
+            'totalPaid',
+            'totalDue',
             'totalInvoices',
             'uniqueCustomersCount',
             'customers',

@@ -12,7 +12,7 @@
                         <span>{{ __('Product Sales & Customer Invoices Report') }}</span>
                     </h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                        Track which products were sold to which customer, at what rate and quantity, with full invoice breakdown and PDF export.
+                        Track which products were sold to which customer, at what rate and quantity, with payment status (Paid, Partial, Unpaid) and PDF export.
                     </p>
                 </div>
 
@@ -45,17 +45,17 @@
 
                 <a href="{{ request()->fullUrlWithQuery(['preset' => 'today', 'start_date' => null, 'end_date' => null]) }}"
                     class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ ($preset ?? '') === 'today' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
-                    Aj (Today)
+                    Today
                 </a>
 
                 <a href="{{ request()->fullUrlWithQuery(['preset' => 'yesterday', 'start_date' => null, 'end_date' => null]) }}"
                     class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ ($preset ?? '') === 'yesterday' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
-                    Kal (Yesterday)
+                    Yesterday
                 </a>
 
                 <a href="{{ request()->fullUrlWithQuery(['preset' => 'last_3_days', 'start_date' => null, 'end_date' => null]) }}"
                     class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ ($preset ?? '') === 'last_3_days' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
-                    Parso (Last 3 Days)
+                    Last 3 Days
                 </a>
 
                 <a href="{{ request()->fullUrlWithQuery(['preset' => 'this_week', 'start_date' => null, 'end_date' => null]) }}"
@@ -65,7 +65,7 @@
 
                 <a href="{{ request()->fullUrlWithQuery(['preset' => 'this_month', 'start_date' => null, 'end_date' => null]) }}"
                     class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ ($preset ?? '') === 'this_month' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
-                    1 Mahina (This Month)
+                    This Month
                 </a>
 
                 <a href="{{ request()->fullUrlWithQuery(['preset' => 'last_30_days', 'start_date' => null, 'end_date' => null]) }}"
@@ -86,8 +86,8 @@
                 </div>
             </div>
 
-            <!-- KPI Metric Cards -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <!-- KPI Metric Cards (5 Columns) -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                 <div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
                     <div class="text-[11px] font-black uppercase tracking-wider text-gray-400">Total Invoices</div>
                     <div class="text-2xl font-black text-gray-900 dark:text-gray-100 mt-1 font-mono">
@@ -97,8 +97,8 @@
                 </div>
 
                 <div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
-                    <div class="text-[11px] font-black uppercase tracking-wider text-emerald-500">Total Qty Sold</div>
-                    <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1 font-mono">
+                    <div class="text-[11px] font-black uppercase tracking-wider text-blue-500">Total Qty Sold</div>
+                    <div class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1 font-mono">
                         {{ number_format($totalQty, 2) }}
                     </div>
                     <div class="text-[10px] text-gray-500 mt-0.5">Units / Items delivered</div>
@@ -113,11 +113,19 @@
                 </div>
 
                 <div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
-                    <div class="text-[11px] font-black uppercase tracking-wider text-amber-500">Customers Served</div>
-                    <div class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1 font-mono">
-                        {{ number_format($uniqueCustomersCount) }}
+                    <div class="text-[11px] font-black uppercase tracking-wider text-emerald-500">Total Received / Paid</div>
+                    <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1 font-mono">
+                        {{ $settings->currency_symbol ?? 'Rs' }} {{ number_format($totalPaid ?? 0, 2) }}
                     </div>
-                    <div class="text-[10px] text-gray-500 mt-0.5">Unique customers billed</div>
+                    <div class="text-[10px] text-gray-500 mt-0.5">Cash & bank collections</div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <div class="text-[11px] font-black uppercase tracking-wider text-rose-500">Outstanding Balance</div>
+                    <div class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1 font-mono">
+                        {{ $settings->currency_symbol ?? 'Rs' }} {{ number_format($totalDue ?? 0, 2) }}
+                    </div>
+                    <div class="text-[10px] text-gray-500 mt-0.5">Receivable from customers</div>
                 </div>
             </div>
 
@@ -223,8 +231,13 @@
                     @forelse ($invoicesOnPage as $saleId => $items)
                         @php
                             $firstItem = $items->first();
-                            $invTotal = $items->sum('item_total');
-                            $invQty = $items->sum('qty');
+                            $invTotal = (float)$items->sum('item_total');
+                            $invQty = (float)$items->sum('qty');
+                            $grandTotal = (float)($firstItem->sale_grand_total ?? $invTotal);
+                            $paidAmount = (float)($firstItem->sale_paid_amount ?? 0);
+                            $dueBalance = max(0, $grandTotal - $paidAmount);
+                            $isPaid = $dueBalance <= 0.01;
+                            $isPartial = $paidAmount > 0.01 && $dueBalance > 0.01;
                         @endphp
                         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
                             <!-- Invoice Header Banner -->
@@ -251,14 +264,51 @@
                                     </div>
                                 </div>
 
-                                <div class="flex items-center gap-3">
+                                <div class="flex flex-wrap items-center gap-3 sm:gap-4">
+                                    <!-- Payment Status Badge -->
+                                    @if ($isPaid)
+                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300">
+                                            ✓ Paid
+                                        </span>
+                                    @elseif ($isPartial)
+                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300">
+                                            ⏳ Partial Paid
+                                        </span>
+                                    @else
+                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-300">
+                                            ✕ Unpaid
+                                        </span>
+                                    @endif
+
+                                    <!-- Total Bill -->
                                     <div class="text-right">
-                                        <div class="text-[10px] uppercase font-bold text-gray-400">Invoice Total</div>
+                                        <div class="text-[10px] uppercase font-bold text-gray-400">Total Bill</div>
                                         <div class="text-sm font-black font-mono text-gray-900 dark:text-gray-100">
-                                            {{ $settings->currency_symbol ?? 'Rs' }} {{ number_format($firstItem->sale_grand_total ?? $invTotal, 2) }}
+                                            {{ $settings->currency_symbol ?? 'Rs' }} {{ number_format($grandTotal, 2) }}
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-1.5">
+
+                                    <!-- Paid Amount (shown only if > 0) -->
+                                    @if ($paidAmount > 0.01)
+                                        <div class="text-right">
+                                            <div class="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400">Paid</div>
+                                            <div class="text-sm font-black font-mono text-emerald-600 dark:text-emerald-400">
+                                                {{ $settings->currency_symbol ?? 'Rs' }} {{ number_format($paidAmount, 2) }}
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    <!-- Balance Due (shown if > 0) -->
+                                    @if ($dueBalance > 0.01)
+                                        <div class="text-right">
+                                            <div class="text-[10px] uppercase font-bold text-rose-500">Balance Due</div>
+                                            <div class="text-sm font-black font-mono text-rose-600 dark:text-rose-400">
+                                                {{ $settings->currency_symbol ?? 'Rs' }} {{ number_format($dueBalance, 2) }}
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    <div class="flex items-center gap-1.5 ml-1">
                                         <a href="{{ route('sales.show', $saleId) }}" target="_blank"
                                             class="px-2.5 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-xs font-bold text-gray-700 dark:text-gray-300 transition"
                                             title="View Original Invoice">
@@ -312,10 +362,39 @@
                                     </tbody>
                                     <tfoot class="bg-gray-50 dark:bg-gray-900/60 border-t border-gray-200 dark:border-gray-700 text-xs font-bold">
                                         <tr>
-                                            <td colspan="2" class="px-4 py-2.5 text-right uppercase text-[10px] text-gray-400">Invoice Items Subtotal:</td>
+                                            <td colspan="2" class="px-4 py-2.5 text-right uppercase text-[10px] text-gray-400">Items Subtotal:</td>
                                             <td class="px-4 py-2.5 text-center font-mono font-black text-emerald-600 dark:text-emerald-400">{{ number_format($invQty, 2) }}</td>
                                             <td></td>
                                             <td class="px-4 py-2.5 text-right font-mono font-black text-gray-900 dark:text-gray-100">{{ number_format($invTotal, 2) }}</td>
+                                        </tr>
+                                        <tr class="bg-gray-100/60 dark:bg-gray-800 text-[11px]">
+                                            <td colspan="2" class="px-4 py-2 text-left">
+                                                <span class="text-gray-400">Payment Status:</span>
+                                                @if ($isPaid)
+                                                    <span class="text-emerald-600 font-black uppercase ml-1">✓ Fully Paid</span>
+                                                @elseif ($isPartial)
+                                                    <span class="text-amber-600 font-black uppercase ml-1">⏳ Partially Paid</span>
+                                                @else
+                                                    <span class="text-rose-600 font-black uppercase ml-1">✕ Unpaid</span>
+                                                @endif
+                                            </td>
+                                            <td colspan="2" class="px-4 py-2 text-right uppercase text-[10px] text-gray-400">
+                                                @if ($dueBalance > 0.01)
+                                                    Remaining Balance Due:
+                                                @else
+                                                    Payment Settled:
+                                                @endif
+                                            </td>
+                                            <td class="px-4 py-2 text-right font-mono font-black {{ $dueBalance > 0.01 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600' }}">
+                                                @if ($dueBalance > 0.01)
+                                                    {{ $settings->currency_symbol ?? 'Rs' }} {{ number_format($dueBalance, 2) }}
+                                                    @if ($paidAmount > 0.01)
+                                                        <div class="text-[9px] text-emerald-600 font-bold">(Paid: {{ number_format($paidAmount, 2) }})</div>
+                                                    @endif
+                                                @else
+                                                    {{ $settings->currency_symbol ?? 'Rs' }} {{ number_format($grandTotal, 2) }}
+                                                @endif
+                                            </td>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -346,11 +425,20 @@
                                     <th class="px-4 py-3.5 text-center">Qty Sold</th>
                                     <th class="px-4 py-3.5 text-right">Sale Rate</th>
                                     <th class="px-4 py-3.5 text-right">Item Total</th>
-                                    <th class="px-4 py-3.5">Branch</th>
+                                    <th class="px-4 py-3.5 text-right">Paid Amount</th>
+                                    <th class="px-4 py-3.5 text-right">Balance Due</th>
+                                    <th class="px-4 py-3.5 text-center">Status</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700/60">
                                 @forelse ($records as $row)
+                                    @php
+                                        $rowGrand = (float)($row->sale_grand_total ?? 0);
+                                        $rowPaid = (float)($row->sale_paid_amount ?? 0);
+                                        $rowDue = max(0, $rowGrand - $rowPaid);
+                                        $rowIsPaid = $rowDue <= 0.01;
+                                        $rowIsPartial = $rowPaid > 0.01 && $rowDue > 0.01;
+                                    @endphp
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-750 transition">
                                         <td class="px-4 py-3 whitespace-nowrap font-mono text-[11px]">
                                             {{ \Carbon\Carbon::parse($row->sale_date)->format('d-M-Y') }}
@@ -384,13 +472,39 @@
                                         <td class="px-4 py-3 text-right font-mono font-black text-gray-900 dark:text-gray-100">
                                             {{ $settings->currency_symbol ?? 'Rs' }} {{ number_format($row->item_total, 2) }}
                                         </td>
-                                        <td class="px-4 py-3 text-xs text-gray-500">
-                                            {{ $row->warehouse_name ?? '-' }}
+                                        <td class="px-4 py-3 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                                            @if ($rowPaid > 0.01)
+                                                {{ $settings->currency_symbol ?? 'Rs' }} {{ number_format($rowPaid, 2) }}
+                                            @else
+                                                <span class="text-gray-400">-</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-4 py-3 text-right font-mono font-black {{ $rowDue > 0.01 ? 'text-rose-600 dark:text-rose-400' : 'text-gray-400' }}">
+                                            @if ($rowDue > 0.01)
+                                                {{ $settings->currency_symbol ?? 'Rs' }} {{ number_format($rowDue, 2) }}
+                                            @else
+                                                0.00
+                                            @endif
+                                        </td>
+                                        <td class="px-4 py-3 text-center">
+                                            @if ($rowIsPaid)
+                                                <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+                                                    Paid
+                                                </span>
+                                            @elseif ($rowIsPartial)
+                                                <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">
+                                                    Partial
+                                                </span>
+                                            @else
+                                                <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300">
+                                                    Unpaid
+                                                </span>
+                                            @endif
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="px-4 py-12 text-center text-gray-400">
+                                        <td colspan="10" class="px-4 py-12 text-center text-gray-400">
                                             No sales records found matching this criteria.
                                         </td>
                                     </tr>
