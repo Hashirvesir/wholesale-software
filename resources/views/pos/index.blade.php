@@ -477,9 +477,10 @@
                                                 </template>
                                                 <template x-if="item.lastPrice && item.lastPrice.found">
                                                     <button type="button" @click="item.price = item.lastPrice.price; recalculate(); focusBarcode();"
-                                                        class="mt-1 inline-flex items-center gap-0.5 text-[9px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 px-1 py-0.5 rounded cursor-pointer transition whitespace-nowrap"
+                                                        class="mt-1 inline-flex items-center gap-1 text-[9px] font-black text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/80 hover:bg-amber-100 dark:hover:bg-amber-900/60 px-1.5 py-0.5 rounded cursor-pointer transition whitespace-nowrap"
                                                         :title="'Last sold: ' + currency + ' ' + formatNumber(item.lastPrice.price) + ' on ' + item.lastPrice.date + ' (Inv #' + item.lastPrice.invoice_formatted + ')'">
-                                                        <span>Last: <span x-text="formatNumber(item.lastPrice.price)"></span></span>
+                                                        <span>Last: <strong x-text="formatNumber(item.lastPrice.price)"></strong> (<span x-text="item.lastPrice.date"></span>)</span>
+                                                        <span class="underline ml-0.5">Use</span>
                                                     </button>
                                                 </template>
                                             </td>

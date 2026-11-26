@@ -413,6 +413,7 @@ class SaleController extends Controller implements HasMiddleware
                 'price' => (float)$item->price,
                 'error' => false,
                 'highlightedIndex' => -1,
+                'lastPrice' => null,
             ];
         });
         

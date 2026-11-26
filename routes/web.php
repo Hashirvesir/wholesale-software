@@ -64,6 +64,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('parties', PartyController::class)->middleware('permission:view parties');
     Route::resource('salesmen', \App\Http\Controllers\SalesmanController::class);
     Route::resource('chart-of-accounts', ChartOfAccountController::class)->middleware('permission:view chart of accounts');
+    Route::get('/purchases/vendor-last-price', [PurchaseController::class, 'vendorLastPrice'])->name('purchases.vendor-last-price');
     Route::resource('purchases', PurchaseController::class)->middleware('permission:view purchases');
     Route::post('/purchase-orders/{purchase_order}/receive', [\App\Http\Controllers\PurchaseOrderController::class, 'receiveGoods'])->name('purchase-orders.receive')->middleware('permission:receive purchase orders');
     Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->middleware('permission:view purchase orders');

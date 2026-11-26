@@ -233,6 +233,17 @@
                                                     class="block w-full text-xs border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 keyboard-nav"
                                                     required step="0.01" min="0"
                                                     @input="validateNumber(item, 'price')">
+                                                <template x-if="item.lastPrice && item.lastPrice.found">
+                                                    <div class="mt-1 flex items-center">
+                                                        <button type="button" @click="applyLastPrice(index)"
+                                                            class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/80 hover:bg-amber-100 dark:hover:bg-amber-900/60 px-1.5 py-0.5 rounded transition shadow-xs"
+                                                            :title="'Last sold: ' + currency + ' ' + formatNumber(item.lastPrice.price) + ' on ' + item.lastPrice.date + ' (Inv #' + item.lastPrice.invoice_formatted + ')'">
+                                                            <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                            <span>Last: <strong x-text="currency + ' ' + formatNumber(item.lastPrice.price)"></strong> (<span x-text="item.lastPrice.date"></span>)</span>
+                                                            <span class="underline font-black text-amber-800 dark:text-amber-200 ml-0.5">Use</span>
+                                                        </button>
+                                                    </div>
+                                                </template>
                                             </td>
                                             <td
                                                 class="px-4 py-3 text-xs font-bold text-gray-700 dark:text-gray-300 whitespace-nowrap">
@@ -323,6 +334,15 @@
                                             <input type="number" x-model.number="item.price" inputmode="decimal"
                                                 class="block w-full text-xs font-bold border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-xl"
                                                 step="0.01" min="0" required>
+                                            <template x-if="item.lastPrice && item.lastPrice.found">
+                                                <div class="mt-1">
+                                                    <button type="button" @click="applyLastPrice(index)"
+                                                        class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/80 px-1.5 py-0.5 rounded">
+                                                        <span>Last: <strong x-text="currency + ' ' + formatNumber(item.lastPrice.price)"></strong></span>
+                                                        <span class="underline font-black ml-0.5">Use</span>
+                                                    </button>
+                                                </div>
+                                            </template>
                                         </div>
                                         <div class="text-right">
                                             <span class="block text-[10px] font-black uppercase text-gray-400 tracking-wider mb-1">Total</span>
@@ -513,6 +533,23 @@
                 isWalkIn: function() {
                     return this.walkInCustomerId && this.party_id == this.walkInCustomerId;
                 },
+                init: function() {
+                    this.$watch('party_id', (val) => {
+                        this.items.forEach((it, idx) => {
+                            if (it.product_id) {
+                                this.fetchLastSoldPrice(idx);
+                            }
+                        });
+                    });
+
+                    this.$nextTick(() => {
+                        this.items.forEach((it, idx) => {
+                            if (it.product_id) {
+                                this.fetchLastSoldPrice(idx);
+                            }
+                        });
+                    });
+                },
                 payments: @json(count($mappedPayments) ? $mappedPayments : [['account_id' => '', 'amount' => 0]]),
                 discount_amount: {{ $sale->discount_amount ?? 0 }},
                 items: @json($mappedItems),
@@ -530,7 +567,8 @@
                         qty: 1,
                         price: 0,
                         error: false,
-                        highlightedIndex: -1
+                        highlightedIndex: -1,
+                        lastPrice: null
                     });
                     this.$nextTick(() => {
                         const nextRowIdx = this.items.length - 1;
@@ -597,6 +635,8 @@
                     this.items[index].open = false;
                     this.items[index].error = false;
                     this.items[index].highlightedIndex = -1;
+
+                    this.fetchLastSoldPrice(index);
 
                     this.$nextTick(() => {
                         const el = document.getElementById('row-' + index + '-col-1');
@@ -871,6 +911,38 @@
                     this.formError = '';
                     this.isSubmitting = true;
                     e.target.submit();
+                },
+
+                fetchLastSoldPrice: function(index) {
+                    const item = this.items[index];
+                    if (!item || !item.product_id || !this.party_id) {
+                        if (item) item.lastPrice = null;
+                        return;
+                    }
+                    if (this.isWalkIn()) {
+                        item.lastPrice = null;
+                        return;
+                    }
+
+                    fetch(`{{ route('sales.customer-last-price') }}?party_id=${this.party_id}&product_id=${item.product_id}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data && data.found) {
+                                item.lastPrice = data;
+                            } else {
+                                item.lastPrice = null;
+                            }
+                        })
+                        .catch(() => {
+                            item.lastPrice = null;
+                        });
+                },
+
+                applyLastPrice: function(index) {
+                    const item = this.items[index];
+                    if (item && item.lastPrice && item.lastPrice.found) {
+                        item.price = item.lastPrice.price;
+                    }
                 }
             };
         }

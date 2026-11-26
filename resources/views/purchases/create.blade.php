@@ -263,6 +263,17 @@
                                                     :readonly="currency === 'RMB'"
                                                     :class="currency === 'RMB' ? 'bg-gray-100 dark:bg-gray-700' : ''"
                                                     @input="validateNumber(item, 'price_pkr')">
+                                                <template x-if="item.lastPrice && item.lastPrice.found">
+                                                    <div class="mt-1 flex items-center">
+                                                        <button type="button" @click="applyLastPrice(index)"
+                                                            class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/80 hover:bg-amber-100 dark:hover:bg-amber-900/60 px-1.5 py-0.5 rounded transition shadow-xs"
+                                                            :title="'Last purchased: ' + (currency === 'RMB' ? '¥ ' + formatNumber(item.lastPrice.price_rmb) : 'Rs ' + formatNumber(item.lastPrice.price_pkr)) + ' on ' + item.lastPrice.date + ' (Inv #' + item.lastPrice.invoice_formatted + ')'">
+                                                            <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                            <span>Last: <strong x-text="currency === 'RMB' ? '¥ ' + formatNumber(item.lastPrice.price_rmb) : 'Rs ' + formatNumber(item.lastPrice.price_pkr)"></strong> (<span x-text="item.lastPrice.date"></span>)</span>
+                                                            <span class="underline font-black text-amber-800 dark:text-amber-200 ml-0.5">Use</span>
+                                                        </button>
+                                                    </div>
+                                                </template>
                                             </td>
                                             <td class="px-2 py-3">
                                                 <!-- Cargo Amount (Col 4 if RMB, else Col 3 if PKR) -->
@@ -373,6 +384,15 @@
                                                 :readonly="currency === 'RMB'"
                                                 class="block w-full text-xs font-bold border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-xl"
                                                 step="0.01" min="0" required>
+                                            <template x-if="item.lastPrice && item.lastPrice.found">
+                                                <div class="mt-1">
+                                                    <button type="button" @click="applyLastPrice(index)"
+                                                        class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/80 px-1.5 py-0.5 rounded">
+                                                        <span>Last: <strong x-text="currency === 'RMB' ? '¥ ' + formatNumber(item.lastPrice.price_rmb) : 'Rs ' + formatNumber(item.lastPrice.price_pkr)"></strong></span>
+                                                        <span class="underline font-black ml-0.5">Use</span>
+                                                    </button>
+                                                </div>
+                                            </template>
                                         </div>
                                         <div>
                                             <label class="block text-[10px] font-black uppercase text-orange-500 tracking-wider mb-1">Cargo</label>
@@ -641,6 +661,7 @@
                         'cargo_amount' => (float) ($item['cargo_amount'] ?? 0),
                         'error' => false,
                         'highlightedIndex' => -1,
+                        'lastPrice' => null,
                     ];
                 })
                 ->values();
@@ -684,7 +705,8 @@
                         price_pkr: 0,
                         cargo_amount: 0,
                         error: false,
-                        highlightedIndex: -1
+                        highlightedIndex: -1,
+                        lastPrice: null
                     }]
                 @endif ,
                 products: @json($products),
@@ -739,7 +761,8 @@
                         price_pkr: 0,
                         cargo_amount: 0,
                         error: false,
-                        highlightedIndex: -1
+                        highlightedIndex: -1,
+                        lastPrice: null
                     });
                     if (this.isTransportMode) this.distributeTransportCargo();
                     this.$nextTick(() => {
@@ -842,6 +865,8 @@
                     this.items[index].open = false;
                     this.items[index].error = false;
                     this.items[index].highlightedIndex = -1;
+
+                    this.fetchLastPurchasePrice(index);
 
                     // Focus next column (Qty)
                     this.$nextTick(() => {
@@ -1075,7 +1100,54 @@
                     }
                 },
 
+                fetchLastPurchasePrice(index) {
+                    const item = this.items[index];
+                    if (!item || !item.product_id || !this.party_id) {
+                        if (item) item.lastPrice = null;
+                        return;
+                    }
+
+                    fetch(`{{ route('purchases.vendor-last-price') }}?party_id=${this.party_id}&product_id=${item.product_id}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data && data.found) {
+                                item.lastPrice = data;
+                            } else {
+                                item.lastPrice = null;
+                            }
+                        })
+                        .catch(() => {
+                            item.lastPrice = null;
+                        });
+                },
+
+                applyLastPrice(index) {
+                    const item = this.items[index];
+                    if (item && item.lastPrice && item.lastPrice.found) {
+                        if (this.currency === 'RMB' && item.lastPrice.price_rmb > 0) {
+                            item.price_rmb = item.lastPrice.price_rmb;
+                            this.calculatePkr(item);
+                        } else {
+                            item.price_pkr = item.lastPrice.price_pkr;
+                        }
+                    }
+                },
+
                 init() {
+                    this.$watch('party_id', () => {
+                        this.items.forEach((it, idx) => {
+                            if (it.product_id) {
+                                this.fetchLastPurchasePrice(idx);
+                            }
+                        });
+                    });
+                    this.$nextTick(() => {
+                        this.items.forEach((it, idx) => {
+                            if (it.product_id) {
+                                this.fetchLastPurchasePrice(idx);
+                            }
+                        });
+                    });
                     this.$watch('exchange_rate', () => {
                         if (this.currency === 'RMB') {
                             this.items.forEach(item => this.calculatePkr(item));

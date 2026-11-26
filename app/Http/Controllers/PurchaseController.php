@@ -26,7 +26,7 @@ class PurchaseController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:view purchases', only: ['index', 'show']),
+            new Middleware('permission:view purchases', only: ['index', 'show', 'vendorLastPrice']),
             new Middleware('permission:create purchases', only: ['create', 'store', 'quickAdd']),
             new Middleware('permission:edit purchases', only: ['edit', 'update']),
             new Middleware('permission:delete purchases', only: ['destroy']),
@@ -425,7 +425,8 @@ class PurchaseController extends Controller implements HasMiddleware
                 'price_pkr' => (float)$item->price_pkr,
                 'cargo_amount' => (float)($item->cargo_amount ?? 0),
                 'error' => false,
-                'highlightedIndex' => -1
+                'highlightedIndex' => -1,
+                'lastPrice' => null,
             ];
         });
 
@@ -848,5 +849,48 @@ class PurchaseController extends Controller implements HasMiddleware
     public function publicPdf(Purchase $purchase)
     {
         return $this->downloadPdf($purchase);
+    }
+
+    public function vendorLastPrice(Request $request)
+    {
+        $partyId = $request->party_id;
+        $productId = $request->product_id;
+
+        if (!$partyId || !$productId) {
+            return response()->json(['found' => false]);
+        }
+
+        $lastItem = \App\Models\PurchaseItem::query()
+            ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.id')
+            ->where('purchases.party_id', $partyId)
+            ->where('purchase_items.product_id', $productId)
+            ->select(
+                'purchase_items.price_pkr',
+                'purchase_items.price_rmb',
+                'purchase_items.qty',
+                'purchases.id as purchase_id',
+                'purchases.date as purchase_date',
+                'purchases.currency'
+            )
+            ->orderBy('purchases.date', 'desc')
+            ->orderBy('purchases.id', 'desc')
+            ->first();
+
+        if (!$lastItem) {
+            return response()->json(['found' => false]);
+        }
+
+        $settings = \App\Models\Setting::first();
+
+        return response()->json([
+            'found' => true,
+            'price_pkr' => (float) $lastItem->price_pkr,
+            'price_rmb' => (float) ($lastItem->price_rmb ?? 0),
+            'currency' => $lastItem->currency,
+            'qty' => (float) $lastItem->qty,
+            'purchase_id' => $lastItem->purchase_id,
+            'date' => \Carbon\Carbon::parse($lastItem->purchase_date)->format('d M, Y'),
+            'invoice_formatted' => ($settings->invoice_prefix ?? '') . $lastItem->purchase_id,
+        ]);
     }
 }
