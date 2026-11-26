@@ -134,10 +134,6 @@
     <div class="mb-2">
         <div><strong class="font-bold">Bill No:</strong> <span
                 class="font-bold">{{ $settings->invoice_prefix }}{{ $sale->id }}</span></div>
-        <div><strong class="font-bold">Shop / Branch:</strong> <span class="font-bold">{{ $sale->warehouse->name }}</span></div>
-        @if ($sale->warehouse->location)
-            <div><strong class="font-bold">Location:</strong> <span>{{ $sale->warehouse->location }}</span></div>
-        @endif
         <div><strong class="font-bold">Date:</strong>
             {{ $sale->created_at->timezone(config('app.timezone'))->format('d-M-Y') }}@if($settings->show_sale_time) {{ $sale->created_at->timezone(config('app.timezone'))->format('h:i A') }}@endif
         </div>
