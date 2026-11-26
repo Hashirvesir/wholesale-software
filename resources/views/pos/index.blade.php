@@ -146,7 +146,7 @@
 
                                     <div class="absolute right-2 top-2 flex items-center gap-1">
                                         <button type="button" x-show="customerSearch"
-                                            @click="customerSearch = ''; selectedCustomer = null; party_id = ''; customerDropdownOpen = true; $refs.customerInput.focus()"
+                                            @click="customerSearch = ''; selectedCustomer = null; party_id = ''; items.forEach(i => i.lastPrice = null); customerDropdownOpen = true; $refs.customerInput.focus()"
                                             class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs px-1 font-black cursor-pointer"
                                             title="Clear Customer">
                                             &times;
@@ -405,7 +405,7 @@
                                         <th class="px-2 py-2.5 text-center">Stock</th>
                                         <th class="px-2 py-2.5 text-right" x-show="showCosts">Avg Cost</th>
                                         <th class="px-2 py-2.5 text-center w-28">Qty</th>
-                                        <th class="px-2 py-2.5 text-right w-24">Price (PKR)</th>
+                                        <th class="px-2 py-2.5 text-right min-w-[110px]">Price (PKR)</th>
                                         <th class="px-3 py-2.5 text-right">Total</th>
                                         <th class="px-2 py-2.5 text-center w-8"></th>
                                     </tr>
@@ -431,7 +431,17 @@
                                             <td class="px-3 py-2 text-gray-400 font-mono text-[10px]" x-text="idx + 1"></td>
                                             <td class="px-3 py-2">
                                                 <div class="font-bold text-gray-900 dark:text-gray-100 uppercase" x-text="item.name"></div>
-                                                <div class="text-[10px] text-gray-500 dark:text-gray-400 font-mono" x-text="'SKU: ' + item.sku + (item.barcode ? ' | ' + item.barcode : '')"></div>
+                                                <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
+                                                    <span class="text-[10px] text-gray-500 dark:text-gray-400 font-mono" x-text="'SKU: ' + item.sku + (item.barcode ? ' | ' + item.barcode : '')"></span>
+                                                    <template x-if="item.lastPrice && item.lastPrice.found">
+                                                        <button type="button" @click="item.price = item.lastPrice.price; recalculate(); focusBarcode();"
+                                                            class="inline-flex items-center gap-1 text-[9px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/80 hover:bg-amber-100 dark:hover:bg-amber-900/60 px-1.5 py-0.5 rounded cursor-pointer transition shadow-xs"
+                                                            :title="'Last sold: ' + currency + ' ' + formatNumber(item.lastPrice.price) + ' on ' + item.lastPrice.date + ' (Inv #' + item.lastPrice.invoice_formatted + ')'">
+                                                            <span>Last Sold: <strong x-text="currency + ' ' + formatNumber(item.lastPrice.price)"></strong> (<span x-text="item.lastPrice.date"></span>)</span>
+                                                            <span class="underline font-black text-amber-900 dark:text-amber-200 ml-0.5">Apply</span>
+                                                        </button>
+                                                    </template>
+                                                </div>
                                             </td>
                                             <td class="px-2 py-2 text-center">
                                                 <span class="px-1.5 py-0.5 rounded text-[10px] font-bold"
@@ -464,25 +474,27 @@
                                                     </button>
                                                 </div>
                                             </td>
-                                            <td class="px-2 py-2 text-right">
-                                                <input type="number"
-                                                    :id="'cart-price-' + idx"
-                                                    x-model.number="item.price" step="0.01" min="0"
-                                                    @input="recalculate()"
-                                                    @keydown.enter.prevent="focusBarcode()"
-                                                    @keydown.escape.prevent="focusBarcode()"
-                                                    class="w-20 text-right py-1 px-1 text-xs font-bold rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm transition" />
-                                                <template x-if="showCosts && item.cost > 0 && item.price < item.cost">
-                                                    <span class="block text-[8px] font-black text-rose-500 uppercase tracking-tighter">Below Cost!</span>
-                                                </template>
-                                                <template x-if="item.lastPrice && item.lastPrice.found">
-                                                    <button type="button" @click="item.price = item.lastPrice.price; recalculate(); focusBarcode();"
-                                                        class="mt-1 inline-flex items-center gap-1 text-[9px] font-black text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/80 hover:bg-amber-100 dark:hover:bg-amber-900/60 px-1.5 py-0.5 rounded cursor-pointer transition whitespace-nowrap"
-                                                        :title="'Last sold: ' + currency + ' ' + formatNumber(item.lastPrice.price) + ' on ' + item.lastPrice.date + ' (Inv #' + item.lastPrice.invoice_formatted + ')'">
-                                                        <span>Last: <strong x-text="formatNumber(item.lastPrice.price)"></strong> (<span x-text="item.lastPrice.date"></span>)</span>
-                                                        <span class="underline ml-0.5">Use</span>
-                                                    </button>
-                                                </template>
+                                            <td class="px-2 py-2 text-right whitespace-nowrap min-w-[110px]">
+                                                <div class="flex flex-col items-end">
+                                                    <input type="number"
+                                                        :id="'cart-price-' + idx"
+                                                        x-model.number="item.price" step="0.01" min="0"
+                                                        @input="recalculate()"
+                                                        @keydown.enter.prevent="focusBarcode()"
+                                                        @keydown.escape.prevent="focusBarcode()"
+                                                        class="w-20 text-right py-1 px-1 text-xs font-bold rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm transition" />
+                                                    <template x-if="showCosts && item.cost > 0 && item.price < item.cost">
+                                                        <span class="block text-[8px] font-black text-rose-500 uppercase tracking-tighter">Below Cost!</span>
+                                                    </template>
+                                                    <template x-if="item.lastPrice && item.lastPrice.found">
+                                                        <button type="button" @click="item.price = item.lastPrice.price; recalculate(); focusBarcode();"
+                                                            class="mt-1 inline-flex items-center gap-1 text-[9px] font-black text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/80 hover:bg-amber-100 dark:hover:bg-amber-900/60 px-1.5 py-0.5 rounded cursor-pointer transition whitespace-nowrap"
+                                                            :title="'Last sold: ' + currency + ' ' + formatNumber(item.lastPrice.price) + ' on ' + item.lastPrice.date + ' (Inv #' + item.lastPrice.invoice_formatted + ')'">
+                                                            <span>Last: <strong x-text="formatNumber(item.lastPrice.price)"></strong></span>
+                                                            <span class="underline ml-0.5">Use</span>
+                                                        </button>
+                                                    </template>
+                                                </div>
                                             </td>
                                             <td class="px-3 py-2 text-right font-black text-gray-900 dark:text-gray-100 whitespace-nowrap">
                                                 <span x-text="formatNumber(item.qty * item.price)"></span>
@@ -1238,11 +1250,15 @@
 
                     // Update prices of items in cart matching customer's price tier
                     if (this.items.length > 0) {
-                        this.items.forEach(item => {
+                        this.items.forEach((item, idx) => {
                             const p = this.products.find(prod => prod.id == item.product_id);
                             if (p) {
-                                item.price = this.getProductPrice(p, c.price_tier);
+                                const tierPrice = this.getProductPrice(p, c.price_tier);
+                                if (tierPrice > 0) {
+                                    item.price = tierPrice;
+                                }
                             }
+                            this.fetchLastSoldPrice(idx);
                         });
                     }
 
@@ -1250,9 +1266,6 @@
                     this.$nextTick(() => {
                         this.focusBarcode();
                     });
-
-                    // Check last sold rate for any items in cart for this customer
-                    this.items.forEach(item => this.fetchLastSoldPrice(item));
                 },
 
                 getProductPrice(product, tier) {
@@ -1520,6 +1533,7 @@
                         this.items[existingIdx].qty = Math.round((this.items[existingIdx].qty + 1) * 100) / 100;
                         this.items[existingIdx].justAdded = true;
                         targetIdx = existingIdx;
+                        this.fetchLastSoldPrice(targetIdx);
                         setTimeout(() => {
                             if (this.items[existingIdx]) this.items[existingIdx].justAdded = false;
                         }, 800);
@@ -1540,9 +1554,9 @@
                         };
                         this.items.push(itemObj);
                         targetIdx = this.items.length - 1;
-                        this.fetchLastSoldPrice(itemObj);
+                        this.fetchLastSoldPrice(targetIdx);
                         setTimeout(() => {
-                            itemObj.justAdded = false;
+                            if (this.items[targetIdx]) this.items[targetIdx].justAdded = false;
                         }, 800);
                     }
 
@@ -1579,7 +1593,18 @@
                     });
                 },
 
-                fetchLastSoldPrice(item) {
+                fetchLastSoldPrice(target) {
+                    let index = -1;
+                    let item = null;
+
+                    if (typeof target === 'number') {
+                        index = target;
+                        item = this.items[index];
+                    } else if (target && typeof target === 'object') {
+                        index = this.items.findIndex(i => i === target || i.product_id == target.product_id);
+                        item = index >= 0 ? this.items[index] : target;
+                    }
+
                     if (!item || !item.product_id || !this.party_id) {
                         if (item) item.lastPrice = null;
                         return;
@@ -1589,21 +1614,29 @@
                         return;
                     }
 
-                    fetch(`{{ route('sales.customer-last-price', [], false) }}?party_id=${this.party_id}&product_id=${item.product_id}`)
+                    const productId = item.product_id;
+                    const customerId = this.party_id;
+
+                    fetch(`{{ route('sales.customer-last-price', [], false) }}?party_id=${customerId}&product_id=${productId}`)
                         .then(r => r.json())
                         .then(data => {
+                            const currentItem = index >= 0 && this.items[index] ? this.items[index] : (this.items.find(i => i.product_id == productId) || item);
+                            if (!currentItem) return;
+
                             if (data && data.found) {
-                                item.lastPrice = data;
-                                if ((!item.price || item.price == 0) && data.price > 0) {
-                                    item.price = data.price;
+                                currentItem.lastPrice = data;
+                                // If item price is 0 or empty, auto-populate with customer's last sold rate!
+                                if ((!currentItem.price || parseFloat(currentItem.price) === 0) && data.price > 0) {
+                                    currentItem.price = parseFloat(data.price);
                                     this.recalculate();
                                 }
                             } else {
-                                item.lastPrice = null;
+                                currentItem.lastPrice = null;
                             }
                         })
                         .catch(() => {
-                            item.lastPrice = null;
+                            const currentItem = index >= 0 && this.items[index] ? this.items[index] : (this.items.find(i => i.product_id == productId) || item);
+                            if (currentItem) currentItem.lastPrice = null;
                         });
                 },
 
