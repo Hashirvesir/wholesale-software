@@ -864,6 +864,10 @@ class PurchaseController extends Controller implements HasMiddleware
             ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.id')
             ->where('purchases.party_id', $partyId)
             ->where('purchase_items.product_id', $productId)
+            ->where(function($q) {
+                $q->where('purchase_items.price_pkr', '>', 0)
+                  ->orWhere('purchase_items.price_rmb', '>', 0);
+            })
             ->select(
                 'purchase_items.price_pkr',
                 'purchase_items.price_rmb',

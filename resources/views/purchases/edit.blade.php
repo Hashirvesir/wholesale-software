@@ -986,11 +986,19 @@
                         return;
                     }
 
-                    fetch(`{{ route('purchases.vendor-last-price') }}?party_id=${this.party_id}&product_id=${item.product_id}`)
+                    fetch(`{{ route('purchases.vendor-last-price', [], false) }}?party_id=${this.party_id}&product_id=${item.product_id}`)
                         .then(r => r.json())
                         .then(data => {
                             if (data && data.found) {
                                 item.lastPrice = data;
+                                if ((!item.price_pkr || item.price_pkr == 0) && data.price_pkr > 0) {
+                                    if (this.currency === 'RMB' && data.price_rmb > 0) {
+                                        item.price_rmb = data.price_rmb;
+                                        this.calculatePkr(item);
+                                    } else {
+                                        item.price_pkr = data.price_pkr;
+                                    }
+                                }
                             } else {
                                 item.lastPrice = null;
                             }

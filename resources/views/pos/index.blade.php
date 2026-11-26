@@ -1589,11 +1589,15 @@
                         return;
                     }
 
-                    fetch(`{{ route('sales.customer-last-price') }}?party_id=${this.party_id}&product_id=${item.product_id}`)
+                    fetch(`{{ route('sales.customer-last-price', [], false) }}?party_id=${this.party_id}&product_id=${item.product_id}`)
                         .then(r => r.json())
                         .then(data => {
                             if (data && data.found) {
                                 item.lastPrice = data;
+                                if ((!item.price || item.price == 0) && data.price > 0) {
+                                    item.price = data.price;
+                                    this.recalculate();
+                                }
                             } else {
                                 item.lastPrice = null;
                             }

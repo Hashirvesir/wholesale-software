@@ -746,6 +746,7 @@ class SaleController extends Controller implements HasMiddleware
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->where('sales.party_id', $partyId)
             ->where('sale_items.product_id', $productId)
+            ->where('sale_items.price', '>', 0)
             ->select(
                 'sale_items.price',
                 'sale_items.qty',
