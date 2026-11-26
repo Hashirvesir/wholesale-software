@@ -2178,4 +2178,233 @@ class ReportController extends Controller
             'settings'
         ));
     }
+
+    public function productSalesReport(Request $request)
+    {
+        $today = now()->format('Y-m-d');
+        $preset = $request->get('preset');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        // Preset handling
+        if ($preset) {
+            switch ($preset) {
+                case 'today':
+                    $startDate = $today;
+                    $endDate = $today;
+                    break;
+                case 'yesterday':
+                    $startDate = now()->subDay()->format('Y-m-d');
+                    $endDate = now()->subDay()->format('Y-m-d');
+                    break;
+                case 'last_3_days': // Parso se
+                    $startDate = now()->subDays(2)->format('Y-m-d');
+                    $endDate = $today;
+                    break;
+                case 'this_week':
+                    $startDate = now()->startOfWeek()->format('Y-m-d');
+                    $endDate = $today;
+                    break;
+                case 'this_month': // 1 Mahina
+                    $startDate = now()->startOfMonth()->format('Y-m-d');
+                    $endDate = $today;
+                    break;
+                case 'last_30_days':
+                    $startDate = now()->subDays(29)->format('Y-m-d');
+                    $endDate = $today;
+                    break;
+                default:
+                    $preset = 'custom';
+                    break;
+            }
+        } elseif (!$startDate && !$endDate) {
+            $preset = 'today';
+            $startDate = $today;
+            $endDate = $today;
+        } else {
+            $preset = 'custom';
+        }
+
+        $selectedCustomerId = $request->customer_id;
+        $searchProduct = $request->search;
+        $selectedWarehouseId = $request->warehouse_id;
+        $viewMode = $request->get('view', 'invoice'); // 'invoice' or 'flat'
+
+        // Customers list for filter dropdown
+        $customers = Party::whereIn('type', ['customer', 'client'])
+            ->where('status', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'phone']);
+
+        $warehouses = \App\Models\Warehouse::orderBy('name')->get(['id', 'name']);
+
+        // Build Query for Sale Items
+        $query = \App\Models\SaleItem::query()
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->join('products', 'sale_items.product_id', '=', 'products.id')
+            ->leftJoin('parties', 'sales.party_id', '=', 'parties.id')
+            ->leftJoin('warehouses', 'sales.warehouse_id', '=', 'warehouses.id')
+            ->select(
+                'sale_items.id as item_id',
+                'sale_items.sale_id',
+                'sale_items.product_id',
+                'sale_items.qty',
+                'sale_items.price',
+                'sale_items.total as item_total',
+                'sales.date as sale_date',
+                'sales.created_at as sale_created_at',
+                'sales.party_id',
+                'sales.total_amount as sale_grand_total',
+                'sales.paid_amount as sale_paid_amount',
+                'sales.discount_amount as sale_discount_amount',
+                'parties.name as customer_name',
+                'parties.phone as customer_phone',
+                'products.name as product_name',
+                'products.sku as product_sku',
+                'warehouses.name as warehouse_name'
+            );
+
+        if ($startDate) {
+            $query->where('sales.date', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->where('sales.date', '<=', $endDate);
+        }
+        if ($selectedCustomerId) {
+            $query->where('sales.party_id', $selectedCustomerId);
+        }
+        if ($selectedWarehouseId) {
+            $query->where('sales.warehouse_id', $selectedWarehouseId);
+        }
+        if ($searchProduct) {
+            $query->where(function ($q) use ($searchProduct) {
+                $q->where('products.name', 'like', "%{$searchProduct}%")
+                  ->orWhere('products.sku', 'like', "%{$searchProduct}%");
+            });
+        }
+
+        $query->orderBy('sales.date', 'desc')
+              ->orderBy('sales.id', 'desc')
+              ->orderBy('sale_items.id', 'asc');
+
+        $settings = Setting::first();
+        $selectedCustomer = $selectedCustomerId ? Party::find($selectedCustomerId) : null;
+        $selectedWarehouse = $selectedWarehouseId ? \App\Models\Warehouse::find($selectedWarehouseId) : null;
+
+        // Check for CSV Export
+        if ($request->get('export') === 'csv') {
+            $rows = $query->get();
+            $filename = 'product-sales-report-' . ($startDate ?? 'all') . '-to-' . ($endDate ?? 'all') . '.csv';
+
+            $headers = [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            ];
+
+            $callback = function () use ($rows, $settings) {
+                $file = fopen('php://output', 'w');
+                fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+                fputcsv($file, [
+                    'Date',
+                    'Invoice #',
+                    'Customer Name',
+                    'Customer Phone',
+                    'Product Name',
+                    'SKU',
+                    'Qty Sold',
+                    'Rate (' . ($settings->currency_symbol ?? 'Rs') . ')',
+                    'Item Total (' . ($settings->currency_symbol ?? 'Rs') . ')',
+                    'Invoice Total (' . ($settings->currency_symbol ?? 'Rs') . ')',
+                    'Warehouse'
+                ]);
+
+                foreach ($rows as $r) {
+                    fputcsv($file, [
+                        $r->sale_date,
+                        'INV-' . $r->sale_id,
+                        $r->customer_name ?? 'Walk-In Customer',
+                        $r->customer_phone ?? '',
+                        $r->product_name,
+                        $r->product_sku,
+                        $r->qty,
+                        number_format($r->price, 2, '.', ''),
+                        number_format($r->item_total, 2, '.', ''),
+                        number_format($r->sale_grand_total, 2, '.', ''),
+                        $r->warehouse_name ?? ''
+                    ]);
+                }
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, $headers);
+        }
+
+        // Check for PDF Export
+        if ($request->has('pdf')) {
+            @ini_set('memory_limit', '512M');
+            @set_time_limit(300);
+
+            $rows = $query->get();
+            $groupedByInvoice = $rows->groupBy('sale_id');
+
+            $totalQty = $rows->sum('qty');
+            $totalAmount = $rows->sum('item_total');
+            $totalInvoices = $groupedByInvoice->count();
+            $uniqueCustomersCount = $rows->pluck('party_id')->filter()->unique()->count();
+
+            $data = compact(
+                'rows',
+                'groupedByInvoice',
+                'totalQty',
+                'totalAmount',
+                'totalInvoices',
+                'uniqueCustomersCount',
+                'settings',
+                'startDate',
+                'endDate',
+                'preset',
+                'selectedCustomer',
+                'selectedWarehouse',
+                'searchProduct',
+                'viewMode'
+            );
+
+            $pdf = Pdf::loadView('reports.pdf.product_sales', $data)->setPaper('a4', 'portrait');
+            $pdfName = 'Product-Sales-' . ($selectedCustomer ? \Illuminate\Support\Str::slug($selectedCustomer->name) . '-' : '') . ($startDate ?? 'all') . '.pdf';
+            return $pdf->download($pdfName);
+        }
+
+        // Summary totals across entire filtered result
+        $allMatchingRows = (clone $query)->get();
+        $totalQty = $allMatchingRows->sum('qty');
+        $totalAmount = $allMatchingRows->sum('item_total');
+        $totalInvoices = $allMatchingRows->pluck('sale_id')->unique()->count();
+        $uniqueCustomersCount = $allMatchingRows->pluck('party_id')->filter()->unique()->count();
+
+        // Paginate for web view (100 rows per page)
+        $records = $query->paginate(100)->withQueryString();
+
+        // Group rows of the current page for Invoice View
+        $invoicesOnPage = $records->groupBy('sale_id');
+
+        return view('reports.product_sales', compact(
+            'records',
+            'invoicesOnPage',
+            'totalQty',
+            'totalAmount',
+            'totalInvoices',
+            'uniqueCustomersCount',
+            'customers',
+            'warehouses',
+            'selectedCustomerId',
+            'selectedCustomer',
+            'selectedWarehouseId',
+            'searchProduct',
+            'startDate',
+            'endDate',
+            'preset',
+            'viewMode',
+            'settings'
+        ));
+    }
 }
