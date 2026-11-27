@@ -2433,6 +2433,7 @@ class ReportController extends Controller
             'selectedCustomerId',
             'selectedCustomer',
             'selectedWarehouseId',
+            'selectedWarehouse',
             'searchProduct',
             'startDate',
             'endDate',

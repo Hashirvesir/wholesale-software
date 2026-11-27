@@ -287,17 +287,17 @@
                         </span>
                     @endif
                 @endif
-                @if ($selectedCustomer)
+                @if (!empty($selectedCustomer))
                     <span class="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
                         Customer: {{ $selectedCustomer->name }}
                     </span>
                 @endif
-                @if ($searchProduct)
+                @if (!empty($searchProduct))
                     <span class="px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">
                         Product: "{{ $searchProduct }}"
                     </span>
                 @endif
-                @if ($selectedWarehouse)
+                @if (!empty($selectedWarehouse))
                     <span class="px-2.5 py-1 rounded-lg bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300">
                         Branch: {{ $selectedWarehouse->name }}
                     </span>
