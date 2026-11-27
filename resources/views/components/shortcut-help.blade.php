@@ -14,10 +14,17 @@
             <div
                 class="relative w-full max-w-lg transform rounded-2xl bg-white dark:bg-gray-800 p-8 shadow-2xl ring-1 ring-black/5 transition-all">
                 <div class="flex justify-between items-center mb-6 border-b dark:border-gray-700 pb-4">
-                    <h3 class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-widest">Keyboard
-                        Shortcuts</h3>
-                    <button @click="shortcutHelpOpen = false" class="text-gray-400 hover:text-gray-500">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="flex items-center gap-2.5">
+                        <div class="p-2 bg-primary-100 dark:bg-primary-950/60 rounded-xl text-primary-600 dark:text-primary-400">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-wider">Keyboard Shortcuts</h3>
+                            <p class="text-xs text-gray-500">Navigate tables, forms, and POS without a mouse</p>
+                        </div>
+                    </div>
+                    <button @click="shortcutHelpOpen = false" class="text-gray-400 hover:text-gray-500 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -25,6 +32,56 @@
                 </div>
 
                 <div class="space-y-6">
+                    <!-- Table & Ledger Navigation (NEW) -->
+                    <div>
+                        <h4 class="text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span>Table & Ledger Row Navigation</span>
+                        </h4>
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">Move Up / Down</span>
+                                <div class="flex gap-1">
+                                    <kbd class="px-1.5 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono">↑</kbd>
+                                    <kbd class="px-1.5 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono">↓</kbd>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">Open / View Record</span>
+                                <kbd class="px-2 py-0.5 bg-primary-600 text-white rounded text-[11px] font-mono font-bold">Enter</kbd>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">Edit Invoice</span>
+                                <kbd class="px-2 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono">E</kbd>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">Print Thermal/PDF</span>
+                                <kbd class="px-2 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono">P</kbd>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">Jump to Search</span>
+                                <div class="flex gap-1">
+                                    <kbd class="px-1.5 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono">/</kbd>
+                                    <kbd class="px-1.5 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono">F1</kbd>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">Add New (Sale/Pur)</span>
+                                <kbd class="px-2 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono">Alt + N</kbd>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">Prev / Next Page</span>
+                                <div class="flex gap-1">
+                                    <kbd class="px-1.5 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono">←</kbd>
+                                    <kbd class="px-1.5 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono">→</kbd>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">Deselect / Unfocus</span>
+                                <kbd class="px-2 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono">Esc</kbd>
+                            </div>
+                        </div>
+                    </div>
                     <!-- Navigation -->
                     <div>
                         <h4 class="text-xs font-black text-primary-600 uppercase tracking-widest mb-3">Global Navigation
@@ -122,20 +179,23 @@
 
                     <!-- Forms -->
                     <div>
-                        <h4 class="text-xs font-black text-orange-600 uppercase tracking-widest mb-3">Form Control</h4>
-                        <div class="grid grid-cols-1 gap-4">
-                            <div
-                                class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded-lg">
-                                <span class="text-sm font-bold dark:text-gray-300">Submit / Save Form</span>
-                                <kbd
-                                    class="px-2 py-1 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-xs font-mono">Ctrl
-                                    + Enter</kbd>
+                        <h4 class="text-xs font-black text-orange-600 uppercase tracking-widest mb-3">Form Entry Control</h4>
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">Jump to Next Field</span>
+                                <kbd class="px-2 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono font-bold">Enter</kbd>
                             </div>
-                            <div
-                                class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded-lg">
-                                <span class="text-sm font-bold dark:text-gray-300">Close Modals/Search</span>
-                                <kbd
-                                    class="px-2 py-1 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-xs font-mono">ESC</kbd>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">Submit / Save Form</span>
+                                <kbd class="px-2 py-0.5 bg-primary-600 text-white rounded text-[11px] font-mono font-bold">Ctrl + Enter</kbd>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">Unfocus / Clear</span>
+                                <kbd class="px-2 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono">Esc</kbd>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">Toggle Shortcuts</span>
+                                <kbd class="px-2 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono">?</kbd>
                             </div>
                         </div>
                     </div>

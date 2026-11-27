@@ -3,12 +3,13 @@
         <div class="max-w-[1750px] mx-auto px-2 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 italic">Purchase Invoices</h3>
-                <a href="{{ route('purchases.create') }}"
+                <a href="{{ route('purchases.create') }}" data-action="new"
                     class="inline-flex items-center px-4 py-2 bg-primary-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-primary-700 active:bg-primary-900 focus:outline-none focus:border-primary-900 focus:ring ring-primary-300 disabled:opacity-25 transition ease-in-out duration-150 shadow-md">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
-                    {{ __('Create Purchase') }}
+                    <span>{{ __('Create Purchase') }}</span>
+                    <kbd class="hidden sm:inline-block ml-2 px-1.5 py-0.5 text-[10px] bg-primary-700/80 text-white rounded font-mono">Alt+N</kbd>
                 </a>
             </div>
 
@@ -87,7 +88,7 @@
                 <div class="p-0 text-gray-900 dark:text-gray-100">
                     <!-- Desktop Table View -->
                     <div class="hidden md:block overflow-x-auto pb-48">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <table data-keyboard-table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead>
                                 <tr>
                                     <th
@@ -112,11 +113,12 @@
                             </thead>
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 @forelse ($purchases as $p)
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150">
+                                    <tr data-href="{{ route('purchases.show', $p) }}" class="hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 cursor-pointer">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div class="flex flex-col">
-                                                <span
-                                                    class="text-gray-900 dark:text-gray-100 font-bold">{{ $settings->invoice_prefix }}{{ $p->id }}</span>
+                                                <a href="{{ route('purchases.show', $p) }}" data-action="view" class="text-gray-900 dark:text-gray-100 font-bold hover:underline">
+                                                    {{ $settings->invoice_prefix }}{{ $p->id }}
+                                                </a>
                                                 <span class="text-xs text-gray-500">{{ $p->date }}</span>
                                             </div>
                                         </td>
@@ -163,7 +165,7 @@
                                                     </button>
                                                 </x-slot>
                                                 <x-slot name="content">
-                                                    <x-dropdown-link :href="route('purchases.show', $p)" class="flex items-center">
+                                                    <x-dropdown-link :href="route('purchases.show', $p)" data-action="view" class="flex items-center">
                                                         <svg class="w-4 h-4 mr-2 text-indigo-500" fill="none"
                                                             stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -174,7 +176,7 @@
                                                         </svg>
                                                         {{ __('View Purchase') }}
                                                     </x-dropdown-link>
-                                                    <x-dropdown-link :href="route('purchases.edit', $p)" class="flex items-center">
+                                                    <x-dropdown-link :href="route('purchases.edit', $p)" data-action="edit" class="flex items-center">
                                                         <svg class="w-4 h-4 mr-2 text-yellow-500" fill="none"
                                                             stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -184,7 +186,7 @@
                                                         {{ __('Edit Purchase') }}
                                                     </x-dropdown-link>
                                                     @can('return purchases')
-                                                        <x-dropdown-link :href="route('purchases.return', $p)" class="flex items-center">
+                                                        <x-dropdown-link :href="route('purchases.return', $p)" data-action="return" class="flex items-center">
                                                             <svg class="w-4 h-4 mr-2 text-red-500" fill="none"
                                                                 stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -212,7 +214,7 @@
                                                             </svg>
                                                             {{ __('Share Invoice') }}
                                                         </button>
-                                                        <x-dropdown-link :href="route('purchases.pdf', $p)" class="flex items-center">
+                                                        <x-dropdown-link :href="route('purchases.pdf', $p)" data-action="print" class="flex items-center">
                                                             <svg class="w-4 h-4 mr-2 text-gray-500" fill="none"
                                                                 stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round"

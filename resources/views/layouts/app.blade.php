@@ -24,6 +24,7 @@
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="/js/offline-sync.js"></script>
+    <script src="/js/keyboard-nav.js" defer></script>
     <style>
         [x-cloak] {
             display: none !important;
@@ -37,6 +38,21 @@
 
         .dark .keyboard-nav:focus {
             background-color: rgba(37, 99, 235, 0.2) !important;
+        }
+
+        /* Keyboard-First Active Row Highlight */
+        .kb-selected-row {
+            background-color: rgba(37, 99, 235, 0.12) !important;
+            outline: 2px solid #2563eb !important;
+            outline-offset: -2px !important;
+            position: relative;
+            z-index: 2;
+            transition: background-color 0.1s ease;
+        }
+
+        .dark .kb-selected-row {
+            background-color: rgba(37, 99, 235, 0.3) !important;
+            outline: 2px solid #3b82f6 !important;
         }
     </style>
     <script>

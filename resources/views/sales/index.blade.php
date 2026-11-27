@@ -6,13 +6,14 @@
                 <div class="p-3.5 sm:p-6 text-gray-900 dark:text-gray-100">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200">{{ __('Sales Invoices') }}</h3>
-                        <a href="{{ route('sales.create') }}"
+                        <a href="{{ route('sales.create') }}" data-action="new"
                             class="inline-flex items-center px-4 py-2 bg-primary-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-primary-700 focus:bg-primary-700 active:bg-primary-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 4v16m8-8H4"></path>
                             </svg>
-                            Add New Sale
+                            <span>Add New Sale</span>
+                            <kbd class="hidden sm:inline-block ml-2 px-1.5 py-0.5 text-[10px] bg-primary-700/80 text-white rounded font-mono">Alt+N</kbd>
                         </a>
                     </div>
 
@@ -129,7 +130,7 @@
 
                     <!-- Desktop Table View -->
                     <div class="hidden md:block overflow-x-auto pb-64">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <table data-keyboard-table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
                                     <th
@@ -166,10 +167,13 @@
                             </thead>
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 @forelse($sales as $sale)
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                                    <tr data-href="{{ route('sales.show', $sale) }}" class="hover:bg-gray-50 dark:hover:bg-gray-700 transition cursor-pointer">
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary-600 dark:text-primary-400">
-                                            {{ $settings->invoice_prefix }}{{ $sale->id }}</td>
+                                            <a href="{{ route('sales.show', $sale) }}" data-action="view" class="hover:underline">
+                                                {{ $settings->invoice_prefix }}{{ $sale->id }}
+                                            </a>
+                                        </td>
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                                             {{ $sale->date }}</td>
@@ -225,7 +229,7 @@
                                                     @endcan
 
                                                     @can('edit sales')
-                                                        <x-dropdown-link :href="route('sales.edit', $sale)" class="flex items-center">
+                                                        <x-dropdown-link :href="route('sales.edit', $sale)" data-action="edit" class="flex items-center">
                                                             <svg class="w-4 h-4 mr-2 text-yellow-500" fill="none"
                                                                 stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -236,7 +240,7 @@
                                                         </x-dropdown-link>
                                                     @endcan
                                                     @can('return sales')
-                                                        <x-dropdown-link :href="route('sales.return', $sale)" class="flex items-center">
+                                                        <x-dropdown-link :href="route('sales.return', $sale)" data-action="return" class="flex items-center">
                                                             <svg class="w-4 h-4 mr-2 text-red-500" fill="none"
                                                                 stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -276,7 +280,7 @@
                                                             </svg>
                                                             {{ __('Download PDF') }}
                                                         </x-dropdown-link>
-                                                        <x-dropdown-link :href="route('sales.thermal', $sale)" target="_blank"
+                                                        <x-dropdown-link :href="route('sales.thermal', $sale)" data-action="print" target="_blank"
                                                             class="flex items-center">
                                                             <svg class="w-4 h-4 mr-2 text-gray-500" fill="none"
                                                                 stroke="currentColor" viewBox="0 0 24 24">

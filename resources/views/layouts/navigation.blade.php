@@ -278,12 +278,13 @@
 
                     <!-- Keyboard Shortcuts Help -->
                     <button @click="$dispatch('toggle-shortcut-help')"
-                        class="p-1.5 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/60 border border-gray-200/80 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all shrink-0 cursor-pointer"
-                        title="Keyboard Shortcuts (Ctrl+/)">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        class="flex items-center gap-1.5 px-2 py-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/60 border border-gray-200/80 dark:border-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-all shrink-0 cursor-pointer shadow-2xs active:scale-95"
+                        title="Keyboard Shortcuts (? or Ctrl+/)">
+                        <svg class="w-4 h-4 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
                         </svg>
+                        <span class="hidden 2xl:inline text-xs font-bold">Keys</span>
+                        <kbd class="hidden 2xl:inline px-1 py-0.2 text-[9px] bg-gray-200 dark:bg-gray-700 rounded font-mono text-gray-500 dark:text-gray-400">?</kbd>
                     </button>
 
                     <!-- AI Copilot Button -->

@@ -259,7 +259,7 @@
 
                         <!-- Desktop Table View -->
                         <div class="hidden md:block overflow-x-auto">
-                            <table class="w-full text-sm text-left border-collapse">
+                            <table data-keyboard-table class="w-full text-sm text-left border-collapse">
                                 <thead>
                                     <tr
                                         class="text-[10px] text-gray-400 uppercase bg-gray-50/50 dark:bg-gray-700/50 font-black tracking-widest">
@@ -333,7 +333,7 @@
 
                                                     <span>
                                                         @if ($route)
-                                                            <a href="{{ route($route, $params) }}"
+                                                            <a href="{{ route($route, $params) }}" data-action="view"
                                                                 class="text-indigo-400 hover:text-indigo-600 hover:underline">
                                                                 {{ $entry->reference_type }}
                                                                 @if (in_array(strtolower($entry->reference_type), ['sale', 'purchase']))
