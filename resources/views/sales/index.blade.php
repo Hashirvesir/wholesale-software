@@ -205,8 +205,9 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                             <x-dropdown align="right" width="48">
                                                 <x-slot name="trigger">
-                                                    <button
-                                                        class="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 transition duration-150 ml-auto">
+                                                    <button type="button" @click.stop="open = ! open"
+                                                        class="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 transition duration-150 ml-auto p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                                                        title="Actions Menu">
                                                         <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20">
                                                             <path
                                                                 d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />

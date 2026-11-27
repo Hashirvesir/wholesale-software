@@ -50,12 +50,36 @@
     }
 
     function findNextSpatialTarget(direction) {
+        // Special case: If inside an open dropdown menu, navigate strictly within its menu items
+        const openDropdownMenu = currentTarget ? (
+            currentTarget.closest('[x-show="open"]') ||
+            (currentTarget.closest('[x-data]') && currentTarget.closest('[x-data]').querySelector('[x-show="open"]:not([style*="display: none"])'))
+        ) : null;
+
+        if (openDropdownMenu && window.getComputedStyle(openDropdownMenu).display !== 'none') {
+            const dropdownItems = Array.from(openDropdownMenu.querySelectorAll('a, button')).filter(isVisible);
+            if (dropdownItems.length > 0) {
+                const currentIdx = dropdownItems.indexOf(currentTarget);
+                if (direction === 'down') {
+                    if (currentIdx === -1) return dropdownItems[0];
+                    return dropdownItems[Math.min(dropdownItems.length - 1, currentIdx + 1)];
+                } else if (direction === 'up') {
+                    if (currentIdx <= 0) {
+                        // Move back to dropdown trigger button
+                        const triggerBtn = openDropdownMenu.closest('[x-data]')?.querySelector('button');
+                        if (triggerBtn) return triggerBtn;
+                    }
+                    return dropdownItems[Math.max(0, currentIdx - 1)];
+                }
+            }
+        }
+
         const candidates = getAllCandidates();
         if (candidates.length === 0) return null;
 
         if (!currentTarget || !isVisible(currentTarget)) {
             // Find first visible primary button or input
-            const firstInput = candidates.find(el => el.tagName === 'INPUT' || el.tagName === 'BUTTON');
+            const firstInput = candidates.find(el => el.id === 'search' || el.tagName === 'INPUT' || el.tagName === 'BUTTON');
             return firstInput || candidates[0];
         }
 
@@ -181,8 +205,47 @@
             currentTarget.classList.add('scale-95');
             setTimeout(() => currentTarget.classList.remove('scale-95'), 120);
 
+            // 1. Check if clicking an Alpine dropdown trigger
+            const alpineDropdown = currentTarget.closest('[x-data]');
+            let isDropdownTrigger = false;
+
+            if (alpineDropdown && window.Alpine) {
+                try {
+                    const data = window.Alpine.$data(alpineDropdown);
+                    if (data && 'open' in data) {
+                        isDropdownTrigger = true;
+                        data.open = !data.open;
+
+                        if (data.open) {
+                            setTimeout(() => {
+                                const menu = alpineDropdown.querySelector('[x-show="open"]') || alpineDropdown;
+                                const items = Array.from(menu.querySelectorAll('a, button')).filter(el => el !== currentTarget && isVisible(el));
+                                if (items.length > 0) {
+                                    setSpatialFocus(items[0], true);
+                                }
+                            }, 80);
+                            return;
+                        }
+                    }
+                } catch(e) {}
+            }
+
+            // 2. If it's an item inside an open dropdown, close the dropdown after clicking
+            const openDropdown = currentTarget.closest('[x-show="open"]');
+            if (openDropdown && window.Alpine) {
+                try {
+                    const data = window.Alpine.$data(openDropdown.closest('[x-data]'));
+                    if (data && 'open' in data) {
+                        data.open = false;
+                    }
+                } catch(e) {}
+            }
+
             // Execute click
-            currentTarget.click();
+            currentTarget.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+            if (!isDropdownTrigger) {
+                currentTarget.click();
+            }
         } else if (tag === 'input' || tag === 'select' || tag === 'textarea') {
             // Second enter inside input executes action (submits form or filters)
             const form = currentTarget.closest('form');
@@ -353,6 +416,21 @@
 
         // Escape Key in Spatial Mode:
         if (e.key === 'Escape') {
+            // Check if an Alpine dropdown is currently open
+            const openDropdown = currentTarget?.closest('[x-data]');
+            if (openDropdown && window.Alpine) {
+                try {
+                    const data = window.Alpine.$data(openDropdown);
+                    if (data && data.open) {
+                        data.open = false;
+                        const triggerBtn = openDropdown.querySelector('button');
+                        if (triggerBtn) setSpatialFocus(triggerBtn);
+                        e.preventDefault();
+                        return;
+                    }
+                } catch(err) {}
+            }
+
             if (currentTarget) {
                 clearSpatialFocus();
                 currentTarget = null;
