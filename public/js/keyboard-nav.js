@@ -289,25 +289,45 @@
             }
         }
 
-        // Open Alpine dropdowns (customer, vendor, product, etc.)
+        // Open Alpine dropdowns ONLY if currentTarget is specifically a search/autocomplete input
+        const isCustomerSearch = currentTarget.matches && currentTarget.matches(
+            '[x-model*="customerSearch"], [x-model*="customer_search"], [x-ref="customerInput"], #customer_search, [id*="customer"]'
+        );
+        const isVendorSearch = currentTarget.matches && currentTarget.matches(
+            '[x-model*="vendorSearch"], [x-model*="vendor_search"], #vendor_search, [id*="vendor"]'
+        );
+        const isProductSearch = currentTarget.matches && currentTarget.matches(
+            '[x-model*="productSearch"], [x-ref="barcodeInput"]'
+        );
+        const isRowProductSearch = currentTarget.matches && currentTarget.matches(
+            '[x-model="item.search"], [x-model*="item.search"], [id*="col-0"]'
+        );
+
         if (window.Alpine) {
             try {
                 const data = window.Alpine.$data(currentTarget);
                 if (data) {
-                    if ('customerOpen' in data) data.customerOpen = true;
-                    if ('vendorOpen' in data) data.vendorOpen = true;
-                    if ('productDropdownOpen' in data) data.productDropdownOpen = true;
-                    if ('customerDropdownOpen' in data) data.customerDropdownOpen = true;
+                    if (isCustomerSearch) {
+                        if ('customerOpen' in data) data.customerOpen = true;
+                        if ('customerDropdownOpen' in data) data.customerDropdownOpen = true;
+                    }
+                    if (isVendorSearch) {
+                        if ('vendorOpen' in data) data.vendorOpen = true;
+                    }
+                    if (isProductSearch && currentTarget.value && currentTarget.value.trim().length > 0) {
+                        if ('productDropdownOpen' in data) data.productDropdownOpen = true;
+                    }
                 }
-                if (typeof window.Alpine.evaluate === 'function') {
+                if (isRowProductSearch && typeof window.Alpine.evaluate === 'function') {
                     try { window.Alpine.evaluate(currentTarget, 'item.open = true'); } catch (e) {}
                 }
             } catch (err) {}
         }
 
-        // Trigger input / focus events so reactive search lists show up immediately
-        currentTarget.dispatchEvent(new Event('input', { bubbles: true }));
-        currentTarget.dispatchEvent(new Event('focus', { bubbles: true }));
+        // Trigger input event ONLY on search inputs so reactive search lists show up without affecting price/qty inputs
+        if (isCustomerSearch || isVendorSearch || isRowProductSearch || (isProductSearch && currentTarget.value)) {
+            currentTarget.dispatchEvent(new Event('input', { bubbles: true }));
+        }
 
         updateHintBar();
     }
