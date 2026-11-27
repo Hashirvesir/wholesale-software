@@ -64,7 +64,7 @@
         try {
             const data = window.Alpine.$data(container);
             if (data && 'open' in data) {
-                const menu = container.querySelector('[x-show="open"]');
+                const menu = container.querySelector('[x-show="open"], [x-show*="open"]');
                 if (menu) {
                     return { container, data, menu, trigger: el };
                 }
@@ -76,13 +76,13 @@
     // Helper: Detect if element is an item inside an <x-dropdown> menu
     function getDropdownForMenuItem(el) {
         if (!el) return null;
-        const menu = el.closest('[x-show="open"]');
+        const menu = el.closest('[x-show="open"], [x-show*="open"]');
         if (!menu) return null;
         const container = menu.closest('[x-data]');
         if (!container || !window.Alpine) return null;
         try {
             const data = window.Alpine.$data(container);
-            const trigger = container.querySelector('button') || container.querySelector('a');
+            const trigger = container.querySelector('button, [role="button"]') || container.querySelector('a');
             return { container, data, menu, trigger };
         } catch (e) {}
         return null;
@@ -109,15 +109,22 @@
                     const prevIdx = (currentIdx - 1 + items.length) % items.length;
                     return items[prevIdx];
                 } else if (direction === 'left' || direction === 'right') {
-                    dropdownItem.data.open = false;
+                    if (dropdownItem.data && 'open' in dropdownItem.data) {
+                        dropdownItem.data.open = false;
+                    }
+                    if (dropdownItem.trigger) {
+                        setSpatialFocus(dropdownItem.trigger);
+                    }
                 }
             }
         }
 
         // 2. If on a dropdown trigger button and its dropdown is open, pressing down enters the menu
         const dropdownTrigger = getDropdownForTrigger(currentTarget);
-        if (dropdownTrigger && dropdownTrigger.data.open) {
-            if (direction === 'down') {
+        if (dropdownTrigger) {
+            let isOpen = false;
+            try { isOpen = dropdownTrigger.data.open; } catch (e) {}
+            if (isOpen && direction === 'down') {
                 const items = Array.from(dropdownTrigger.menu.querySelectorAll('a[href], button')).filter(el => {
                     const s = window.getComputedStyle(el);
                     return s.display !== 'none' && s.visibility !== 'hidden';
@@ -146,8 +153,19 @@
             if (cand === currentTarget) return;
 
             // Ignore items in closed dropdowns
-            const closedMenu = cand.closest('[x-show="open"]');
-            if (closedMenu && window.getComputedStyle(closedMenu).display === 'none') return;
+            const closedMenu = cand.closest('[x-show="open"], [x-show*="open"]');
+            if (closedMenu) {
+                const container = closedMenu.closest('[x-data]');
+                let isOpen = false;
+                if (container && window.Alpine) {
+                    try { isOpen = window.Alpine.$data(container)?.open; } catch (e) {}
+                }
+                if (!isOpen) {
+                    const style = window.getComputedStyle(closedMenu);
+                    isOpen = style.display !== 'none';
+                }
+                if (!isOpen) return;
+            }
 
             const candRect = cand.getBoundingClientRect();
             const candCenter = getCenter(candRect);
@@ -254,7 +272,7 @@
         }
 
         // Close any open <x-dropdown> menus
-        document.querySelectorAll('[x-show="open"]:not([style*="display: none"])').forEach(menu => {
+        document.querySelectorAll('[x-show="open"]:not([style*="display: none"]), [x-show*="open"]:not([style*="display: none"])').forEach(menu => {
             const container = menu.closest('[x-data]');
             if (container && window.Alpine) {
                 try {
@@ -352,38 +370,16 @@
     function executeCurrentTarget() {
         if (!currentTarget) return;
 
-        // 1. Check if clicking an <x-dropdown> trigger button (3-dots or navbar dropdown)
-        const dropdownTrigger = getDropdownForTrigger(currentTarget);
-        if (dropdownTrigger) {
-            if (!dropdownTrigger.data.open) {
-                // Open dropdown
-                dropdownTrigger.data.open = true;
-                setTimeout(() => {
-                    const items = Array.from(dropdownTrigger.menu.querySelectorAll('a[href], button')).filter(el => {
-                        const s = window.getComputedStyle(el);
-                        return s.display !== 'none' && s.visibility !== 'hidden';
-                    });
-                    if (items.length > 0) {
-                        setSpatialFocus(items[0], true);
-                    }
-                }, 40);
-            } else {
-                dropdownTrigger.data.open = false;
-            }
-            return;
-        }
-
-        // 2. Check if clicking an item inside an open <x-dropdown> menu
+        // 1. If currently inside an open <x-dropdown> menu, execute item & close menu
         const dropdownItem = getDropdownForMenuItem(currentTarget);
         if (dropdownItem) {
             const targetEl = currentTarget;
-            dropdownItem.data.open = false;
+            if (dropdownItem.data && 'open' in dropdownItem.data) {
+                dropdownItem.data.open = false;
+            }
 
-            if (targetEl.tagName.toLowerCase() === 'a' && targetEl.href) {
-                targetEl.click();
-                if (targetEl.href && !targetEl.href.startsWith('javascript:')) {
-                    window.location.href = targetEl.href;
-                }
+            if (targetEl.tagName.toLowerCase() === 'a' && targetEl.href && !targetEl.href.startsWith('javascript:')) {
+                window.location.href = targetEl.href;
                 return;
             }
 
@@ -397,9 +393,29 @@
             currentTarget.classList.add('scale-95');
             setTimeout(() => currentTarget.classList.remove('scale-95'), 120);
 
-            // Execute click
-            currentTarget.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+            // Check if this button is an <x-dropdown> trigger
+            const dropdown = getDropdownForTrigger(currentTarget);
+
+            // Execute single click natively
             currentTarget.click();
+
+            // If it was a dropdown trigger and just opened, move focus into its first item
+            if (dropdown) {
+                setTimeout(() => {
+                    let isOpen = false;
+                    try { isOpen = dropdown.data.open; } catch (e) {}
+                    if (isOpen) {
+                        const items = Array.from(dropdown.menu.querySelectorAll('a[href], button')).filter(el => {
+                            const s = window.getComputedStyle(el);
+                            return s.display !== 'none' && s.visibility !== 'hidden';
+                        });
+                        if (items.length > 0) {
+                            setSpatialFocus(items[0], true);
+                        }
+                    }
+                }, 60);
+            }
+            return;
         } else if (tag === 'input' || tag === 'select' || tag === 'textarea') {
             const form = currentTarget.closest('form');
             if (currentTarget.id === 'search' || currentTarget.name === 'search') {
@@ -503,7 +519,9 @@
             // If inside an open <x-dropdown> menu item, close menu and restore focus to trigger
             const dropdownItem = getDropdownForMenuItem(currentTarget);
             if (dropdownItem) {
-                dropdownItem.data.open = false;
+                if (dropdownItem.data && 'open' in dropdownItem.data) {
+                    dropdownItem.data.open = false;
+                }
                 if (dropdownItem.trigger) {
                     setSpatialFocus(dropdownItem.trigger, true);
                 }
@@ -512,7 +530,7 @@
 
             // If on a dropdown trigger whose menu is open, close it
             const dropdownTrigger = getDropdownForTrigger(currentTarget);
-            if (dropdownTrigger && dropdownTrigger.data.open) {
+            if (dropdownTrigger && dropdownTrigger.data && dropdownTrigger.data.open) {
                 dropdownTrigger.data.open = false;
                 return;
             }
