@@ -3,9 +3,9 @@
  * Full 2D Spatial Arrow-Key Navigation across all buttons, inputs, links & cards:
  * - Up / Down / Left / Right arrows to move focus ring anywhere on screen
  * - Distinct Browser Focus Ring (Blue pulsing ring with glow)
- * - 1st Enter: Activates / Enters Edit Mode on inputs (Ring turns Green)
- * - 2nd Enter: Executes / Submits / Clicks
- * - Esc: Exits Edit Mode / Closes Dropdown back to arrow-key navigation
+ * - 1st Enter: Activates Search/Edit Mode on inputs/selects (Ring turns Green, opens dropdowns)
+ * - 2nd Enter: Executes / Submits / Selects option / Advances to next field
+ * - Esc: Immediately closes open dropdowns, exits edit mode (Ring turns Blue), arrow keys roam freely everywhere
  */
 
 (function () {
@@ -37,7 +37,6 @@
         if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return false;
         const rect = el.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) return false;
-        // Check if inside a hidden or collapsed container (except open dropdowns)
         if (el.closest('[x-cloak]')) return false;
         return true;
     }
@@ -143,7 +142,7 @@
     function setSpatialFocus(el, smoothScroll = true) {
         if (!el) return;
 
-        // Blur previous active element to prevent rogue form submission
+        // Blur any previously focused element so native cursor doesn't trap arrow keys
         if (document.activeElement && document.activeElement !== el && document.activeElement.blur) {
             document.activeElement.blur();
         }
@@ -155,9 +154,11 @@
 
         currentTarget.classList.add('spatial-active-ring');
 
-        // Sync browser focus
-        if (el.focus) {
-            el.focus({ preventScroll: true });
+        // Only give native focus to buttons and links in roaming mode
+        // Inputs & selects stay unfocused until user presses Enter to activate Search/Edit Mode
+        const tag = el.tagName.toLowerCase();
+        if (tag === 'button' || tag === 'a' || el.getAttribute('role') === 'button') {
+            if (el.focus) el.focus({ preventScroll: true });
         }
 
         if (smoothScroll) {
@@ -177,6 +178,41 @@
         }
     }
 
+    function closeAllDropdowns() {
+        if (window.Alpine) {
+            try {
+                if (currentTarget) {
+                    const data = window.Alpine.$data(currentTarget);
+                    if (data) {
+                        if ('customerOpen' in data) data.customerOpen = false;
+                        if ('vendorOpen' in data) data.vendorOpen = false;
+                        if ('productDropdownOpen' in data) data.productDropdownOpen = false;
+                        if ('customerDropdownOpen' in data) data.customerDropdownOpen = false;
+                        if ('items' in data && Array.isArray(data.items)) {
+                            data.items.forEach(it => {
+                                if (it && typeof it === 'object' && 'open' in it) it.open = false;
+                            });
+                        }
+                    }
+                    if (typeof window.Alpine.evaluate === 'function') {
+                        try { window.Alpine.evaluate(currentTarget, 'item.open = false'); } catch (e) {}
+                    }
+                }
+            } catch (err) {}
+        }
+
+        // Close 3-dot dropdowns if open
+        const openDropdown = currentTarget?.closest('[x-data]');
+        if (openDropdown && window.Alpine) {
+            try {
+                const data = window.Alpine.$data(openDropdown);
+                if (data && 'open' in data) {
+                    data.open = false;
+                }
+            } catch (err) {}
+        }
+    }
+
     function enterEditingMode() {
         if (!currentTarget) return;
 
@@ -184,22 +220,57 @@
         currentTarget.classList.remove('spatial-active-ring');
         currentTarget.classList.add('spatial-editing-mode');
 
+        // Give native browser focus and select text
         if (currentTarget.focus) {
             currentTarget.focus();
         }
         if (currentTarget.select && typeof currentTarget.select === 'function' && currentTarget.type !== 'date') {
-            currentTarget.select();
+            try { currentTarget.select(); } catch (e) {}
         }
+
+        // Open native select picker if supported
+        if (currentTarget.tagName.toLowerCase() === 'select') {
+            if (typeof currentTarget.showPicker === 'function') {
+                try { currentTarget.showPicker(); } catch (e) {}
+            }
+        }
+
+        // Open Alpine dropdowns (customer, vendor, product, etc.)
+        if (window.Alpine) {
+            try {
+                const data = window.Alpine.$data(currentTarget);
+                if (data) {
+                    if ('customerOpen' in data) data.customerOpen = true;
+                    if ('vendorOpen' in data) data.vendorOpen = true;
+                    if ('productDropdownOpen' in data) data.productDropdownOpen = true;
+                    if ('customerDropdownOpen' in data) data.customerDropdownOpen = true;
+                }
+                if (typeof window.Alpine.evaluate === 'function') {
+                    try { window.Alpine.evaluate(currentTarget, 'item.open = true'); } catch (e) {}
+                }
+            } catch (err) {}
+        }
+
+        // Trigger input / focus / click events so reactive search lists show up immediately
+        currentTarget.dispatchEvent(new Event('input', { bubbles: true }));
+        currentTarget.dispatchEvent(new Event('focus', { bubbles: true }));
 
         updateHintBar();
     }
 
     function exitEditingMode() {
-        if (!currentTarget) return;
-
+        closeAllDropdowns();
         isEditingMode = false;
-        currentTarget.classList.remove('spatial-editing-mode');
-        currentTarget.classList.add('spatial-active-ring');
+
+        if (currentTarget) {
+            currentTarget.classList.remove('spatial-editing-mode');
+            currentTarget.classList.add('spatial-active-ring');
+        }
+
+        // Blur native focus so arrow keys roam freely across all elements
+        if (document.activeElement && document.activeElement.blur) {
+            document.activeElement.blur();
+        }
 
         updateHintBar();
     }
@@ -235,7 +306,7 @@
                             return;
                         }
                     }
-                } catch(e) {}
+                } catch (e) {}
             }
 
             // If it's an item inside an open dropdown, close the dropdown after clicking
@@ -246,7 +317,7 @@
                     if (data && 'open' in data) {
                         data.open = false;
                     }
-                } catch(e) {}
+                } catch (e) {}
             }
 
             // Execute click
@@ -255,7 +326,6 @@
                 currentTarget.click();
             }
         } else if (tag === 'input' || tag === 'select' || tag === 'textarea') {
-            // Second enter inside input executes action
             const form = currentTarget.closest('form');
             if (currentTarget.id === 'search' || currentTarget.name === 'search') {
                 if (form) form.submit();
@@ -308,28 +378,26 @@
                 <div class="flex items-center gap-2">
                     <span class="inline-flex items-center gap-1.5 text-emerald-400 font-bold">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                        <span>Editing Mode Active</span>
+                        <span>Search / Edit Mode Active</span>
                     </span>
                     <span class="text-gray-500">•</span>
-                    <span class="inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-emerald-600 text-white rounded text-[11px] font-mono">Enter</kbd> Save / Next</span>
+                    <span class="inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-emerald-600 text-white rounded text-[11px] font-mono">Enter</kbd> Select / Submit</span>
                     <span class="text-gray-500">•</span>
-                    <span class="inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-gray-700 rounded text-[11px] font-mono">Esc</kbd> Exit Edit</span>
+                    <span class="inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-red-600 text-white rounded text-[11px] font-mono">Esc</kbd> Exit & Roam Everywhere</span>
                 </div>
             `;
         } else if (isInputField) {
             bar.innerHTML = `
                 <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center gap-1 text-primary-400"><kbd class="px-1.5 py-0.5 bg-gray-700 rounded text-[11px] font-mono">↑ ↓ ← →</kbd> Move</span>
+                    <span class="inline-flex items-center gap-1 text-primary-400 font-bold"><kbd class="px-1.5 py-0.5 bg-gray-700 rounded text-[11px] font-mono">↑ ↓ ← →</kbd> Roam</span>
                     <span class="text-gray-500">•</span>
-                    <span class="inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-primary-600 text-white rounded text-[11px] font-mono">1st Enter</kbd> Type in Field</span>
-                    <span class="text-gray-500">•</span>
-                    <span class="inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-emerald-600 text-white rounded text-[11px] font-mono">2nd Enter</kbd> Execute</span>
+                    <span class="inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-primary-600 text-white rounded text-[11px] font-mono">Enter</kbd> Activate Search / Select</span>
                 </div>
             `;
         } else {
             bar.innerHTML = `
                 <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center gap-1 text-primary-400"><kbd class="px-1.5 py-0.5 bg-gray-700 rounded text-[11px] font-mono">↑ ↓ ← →</kbd> Move</span>
+                    <span class="inline-flex items-center gap-1 text-primary-400 font-bold"><kbd class="px-1.5 py-0.5 bg-gray-700 rounded text-[11px] font-mono">↑ ↓ ← →</kbd> Roam</span>
                     <span class="text-gray-500">•</span>
                     <span class="inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-primary-600 text-white rounded text-[11px] font-mono">Enter</kbd> Click / Open</span>
                     <span class="text-gray-500">•</span>
@@ -341,7 +409,6 @@
 
     // Global Key Listener (Bubble Phase - allows input autocomplete to handle keys first)
     window.addEventListener('keydown', function (e) {
-        // If another component already handled this event, yield immediately
         if (e.defaultPrevented) return;
 
         const active = document.activeElement;
@@ -352,49 +419,74 @@
             active.isContentEditable
         );
 
-        // Check if an autocomplete dropdown list is currently open
-        const isAutocompleteOpen = document.querySelector(
-            '[x-show*="customerOpen"]:not([style*="display: none"]), [x-show*="productDropdown"]:not([style*="display: none"]), [x-show*="item.open"]:not([style*="display: none"]), [x-show*="partyOpen"]:not([style*="display: none"])'
-        ) !== null;
+        // 1. ESCAPE KEY (Highest Priority):
+        // "or phr escape karo to wo har har joga ghuma samajy"
+        // Immediately closes all dropdowns, exits editing mode, blurs input, and restores roaming arrow keys!
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            e.stopPropagation();
 
-        // If user is actively typing in an input with autocomplete or dropdown
-        if (isInputActive) {
-            const hasCustomHandler = active.hasAttribute('@keydown') ||
-                active.hasAttribute('x-on:keydown') ||
-                active.classList.contains('keyboard-nav') ||
-                active.closest('[x-data*="customer"], [x-data*="saleForm"], [x-data*="purchaseForm"]');
-
-            if (hasCustomHandler || isAutocompleteOpen) {
-                if (e.key === 'Escape') {
-                    active.blur();
-                    setSpatialFocus(active);
-                    isEditingMode = false;
-                }
-                // Yield to input's native autocomplete and arrow keys
-                return;
-            }
-        }
-
-        // If actively typing inside an input in Editing Mode:
-        if (isEditingMode) {
-            if (e.key === 'Escape') {
-                e.preventDefault();
-                e.stopPropagation();
+            if (isEditingMode || isInputActive) {
                 exitEditingMode();
                 return;
             }
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                e.stopPropagation();
-                executeCurrentTarget();
-                exitEditingMode();
-                return;
-            }
-            // Allow normal typing and left/right cursor movement inside the text
+
+            closeAllDropdowns();
             return;
         }
 
-        // Global Shortcut: '?' for help (when not typing)
+        // 2. WHILE IN EDITING / SEARCHING MODE:
+        if (isEditingMode || isInputActive) {
+            // Check if an autocomplete dropdown list is currently visible
+            const openDropdown = document.querySelector(
+                '[x-show*="customerOpen"]:not([style*="display: none"]), ' +
+                '[x-show*="vendorOpen"]:not([style*="display: none"]), ' +
+                '[x-show*="item.open"]:not([style*="display: none"]), ' +
+                '[x-show*="productDropdown"]:not([style*="display: none"]), ' +
+                '[x-show*="partyOpen"]:not([style*="display: none"])'
+            );
+
+            // If Enter is pressed inside an input/select
+            if (e.key === 'Enter') {
+                const hasCustomHandler = active && (
+                    active.hasAttribute('@keydown') ||
+                    active.hasAttribute('x-on:keydown') ||
+                    active.classList.contains('keyboard-nav')
+                );
+
+                // If dropdown is open and input has custom Alpine handler (e.g. handleCustomerKey), let Alpine select the item
+                if (hasCustomHandler && openDropdown) {
+                    return;
+                }
+
+                e.preventDefault();
+                e.stopPropagation();
+                executeCurrentTarget();
+                return;
+            }
+
+            // Arrow keys inside open dropdown or native select
+            if (openDropdown || (active && active.tagName === 'SELECT')) {
+                if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                    return; // Let native select or Alpine autocomplete navigate suggestions
+                }
+            }
+
+            // ArrowLeft & ArrowRight move cursor inside the text input
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                return;
+            }
+
+            // If user presses ArrowUp or ArrowDown on a standard input with no dropdown open:
+            // Exit editing mode and navigate spatially!
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                exitEditingMode();
+            } else {
+                return;
+            }
+        }
+
+        // 3. GLOBAL SHORTCUT '?' FOR HELP
         if (e.key === '?' && !isEditingMode && !isInputActive) {
             window.dispatchEvent(new CustomEvent('toggle-shortcut-help'));
             e.preventDefault();
@@ -402,7 +494,7 @@
             return;
         }
 
-        // Spatial Arrow Keys Navigation
+        // 4. SPATIAL ARROW KEYS NAVIGATION (ROAMING MODE):
         let direction = null;
         if (e.key === 'ArrowRight') direction = 'right';
         else if (e.key === 'ArrowLeft') direction = 'left';
@@ -410,11 +502,6 @@
         else if (e.key === 'ArrowUp') direction = 'up';
 
         if (direction) {
-            // Do not steal arrow keys if typing in a normal text input
-            if (isInputActive && !isEditingMode) {
-                return;
-            }
-
             e.preventDefault();
             e.stopPropagation();
 
@@ -425,69 +512,44 @@
             return;
         }
 
-        // Enter Key in Spatial Mode:
+        // 5. ENTER KEY IN ROAMING MODE:
+        // "ma koi bhi select ya searching pr double enter karo to wo active searhing wagera ka liya"
         if (e.key === 'Enter') {
-            if (isInputActive && !isEditingMode) {
-                // If input has no special handler, enter editing mode
-                e.preventDefault();
-                e.stopPropagation();
-                enterEditingMode();
-                return;
-            }
-
             e.preventDefault();
             e.stopPropagation();
 
             if (currentTarget) {
                 const tag = currentTarget.tagName.toLowerCase();
-
                 if (tag === 'input' || tag === 'select' || tag === 'textarea') {
-                    // First Enter on input field: activates typing mode
+                    // Enter activates typing / searching / opens dropdown
                     enterEditingMode();
                 } else {
-                    // Enter on button or link: executes click / opens dropdown
+                    // Enter on button or link executes click / opens menu
                     executeCurrentTarget();
                 }
             }
             return;
         }
+    }, false);
 
-        // Escape Key in Spatial Mode:
-        if (e.key === 'Escape') {
-            e.preventDefault();
-            e.stopPropagation();
-
-            // Check if an Alpine dropdown is currently open
-            const openDropdown = currentTarget?.closest('[x-data]');
-            if (openDropdown && window.Alpine) {
-                try {
-                    const data = window.Alpine.$data(openDropdown);
-                    if (data && data.open) {
-                        data.open = false;
-                        const triggerBtn = openDropdown.querySelector('button');
-                        if (triggerBtn) setSpatialFocus(triggerBtn);
-                        return;
-                    }
-                } catch(err) {}
-            }
-
-            if (currentTarget) {
-                clearSpatialFocus();
-                currentTarget = null;
-                updateHintBar();
-            }
-            return;
-        }
-    }, false); // Bubble phase allows inputs & Alpine autocomplete to handle keys first
-
-    // Click synchronization: Clicking any element with mouse automatically sets spatial ring on it
-    document.addEventListener('click', function (e) {
+    // Focus synchronization: When an element receives browser focus (via click, tab, or code)
+    document.addEventListener('focusin', function (e) {
         const interactive = e.target.closest(FOCUSABLE_SELECTOR);
         if (interactive && isVisible(interactive)) {
-            setSpatialFocus(interactive, false);
-            if (interactive.tagName === 'INPUT' || interactive.tagName === 'TEXTAREA') {
-                enterEditingMode();
+            if (currentTarget !== interactive) {
+                clearSpatialFocus();
+                currentTarget = interactive;
             }
+            const tag = interactive.tagName.toLowerCase();
+            if (tag === 'input' || tag === 'select' || tag === 'textarea') {
+                isEditingMode = true;
+                interactive.classList.remove('spatial-active-ring');
+                interactive.classList.add('spatial-editing-mode');
+            } else {
+                isEditingMode = false;
+                interactive.classList.add('spatial-active-ring');
+            }
+            updateHintBar();
         }
     }, true);
 

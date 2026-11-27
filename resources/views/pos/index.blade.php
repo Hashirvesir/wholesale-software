@@ -168,6 +168,7 @@
                                     class="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 max-h-60 overflow-y-auto">
                                     <template x-for="(c, cIdx) in filteredCustomers()" :key="c.id">
                                         <div @click="selectCustomer(c)"
+                                            :id="'customer-item-' + cIdx"
                                             class="p-2.5 border-b last:border-0 dark:border-gray-700 cursor-pointer hover:bg-emerald-50 dark:hover:bg-gray-700/70 flex items-center justify-between transition-colors duration-150 text-xs"
                                             :class="customerHighlightedIndex === cIdx ? 'bg-emerald-100/70 dark:bg-gray-700' : ''">
                                             <div>
@@ -1298,11 +1299,13 @@
                         e.preventDefault();
                         if (list.length) {
                             this.customerHighlightedIndex = (this.customerHighlightedIndex + 1) % list.length;
+                            this.scrollHighlightedCustomerIntoView();
                         }
                     } else if (e.key === 'ArrowUp') {
                         e.preventDefault();
                         if (list.length) {
                             this.customerHighlightedIndex = (this.customerHighlightedIndex - 1 + list.length) % list.length;
+                            this.scrollHighlightedCustomerIntoView();
                         }
                     } else if (e.key === 'Enter') {
                         e.preventDefault();
@@ -1314,7 +1317,20 @@
                             this.customerDropdownOpen = false;
                             this.focusBarcode();
                         }
+                    } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        this.customerDropdownOpen = false;
+                        this.focusBarcode();
                     }
+                },
+
+                scrollHighlightedCustomerIntoView() {
+                    this.$nextTick(() => {
+                        const el = document.getElementById('customer-item-' + this.customerHighlightedIndex);
+                        if (el) {
+                            el.scrollIntoView({ block: 'nearest' });
+                        }
+                    });
                 },
 
                 openQuickCustomerModal() {
@@ -1451,6 +1467,9 @@
                             this.productHighlightedIndex = (this.productHighlightedIndex - 1 + list.length) % list.length;
                             this.scrollHighlightedProductIntoView();
                         }
+                    } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        this.productDropdownOpen = false;
                     }
                 },
 

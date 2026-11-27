@@ -878,6 +878,11 @@
                     const maxCol = this.currency === 'RMB' ? 4 : 3;
                     const maxRow = this.items.length - 1;
 
+                    if (col === 0 && e.key === 'Escape') {
+                        this.items[index].open = false;
+                        return;
+                    }
+
                     // Search Dropdown Navigation (Arrow Up/Down/Enter)
                     if (col === 0 && this.items[index].open) {
                         const filtered = this.getFilteredProducts(this.items[index].search);
@@ -899,9 +904,6 @@
                                 } else {
                                     this.selectProduct(index, filtered[0]);
                                 }
-                                return;
-                            } else if (e.key === 'Escape') {
-                                this.items[index].open = false;
                                 return;
                             }
                         }
@@ -1075,6 +1077,10 @@
                 },
 
                 handleVendorKey(e) {
+                    if (e.key === 'Escape') {
+                        this.vendorOpen = false;
+                        return;
+                    }
                     const filtered = this.getFilteredVendors();
                     if (this.vendorOpen && filtered.length > 0) {
                         if (e.key === 'ArrowDown') {
@@ -1091,8 +1097,6 @@
                             } else {
                                 this.selectVendor(filtered[0]);
                             }
-                        } else if (e.key === 'Escape') {
-                            this.vendorOpen = false;
                         }
                     } else if (e.key === 'Enter') {
                         e.preventDefault();

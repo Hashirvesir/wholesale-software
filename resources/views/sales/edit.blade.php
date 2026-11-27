@@ -648,6 +648,11 @@
                     const maxCol = 2;
                     const maxRow = this.items.length - 1;
 
+                    if (col === 0 && e.key === 'Escape') {
+                        this.items[index].open = false;
+                        return;
+                    }
+
                     if (col === 0 && this.items[index].open) {
                         const filtered = this.getFilteredProducts(this.items[index].search);
                         if (filtered.length > 0) {
@@ -669,9 +674,6 @@
                                 } else {
                                     this.selectProduct(index, filtered[0]);
                                 }
-                                return;
-                            } else if (e.key === 'Escape') {
-                                this.items[index].open = false;
                                 return;
                             }
                         }
@@ -811,6 +813,10 @@
                 },
 
                 handleCustomerKey: function(e) {
+                    if (e.key === 'Escape') {
+                        this.customerOpen = false;
+                        return;
+                    }
                     const filtered = this.getFilteredCustomers();
                     if (this.customerOpen && filtered.length > 0) {
                         if (e.key === 'ArrowDown') {
@@ -827,8 +833,6 @@
                             } else {
                                 this.selectCustomer(filtered[0]);
                             }
-                        } else if (e.key === 'Escape') {
-                            this.customerOpen = false;
                         }
                     } else if (e.key === 'Enter') {
                         e.preventDefault();

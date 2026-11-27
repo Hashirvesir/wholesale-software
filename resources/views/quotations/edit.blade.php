@@ -54,7 +54,7 @@
                                 <label class="block text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
                                     Customer *
                                 </label>
-                                <input type="text" x-model="customerSearch" @focus="customerOpen = true" @input="customerOpen = true"
+                                <input type="text" x-model="customerSearch" @focus="customerOpen = true" @input="customerOpen = true" @keydown="handleCustomerKey($event)"
                                     class="w-full text-xs font-bold rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500 shadow-sm"
                                     placeholder="Search customer by name or phone..." autocomplete="off" required />
 
@@ -62,8 +62,9 @@
 
                                 <div x-show="customerOpen && filteredCustomers().length > 0" x-cloak
                                     class="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 max-h-56 overflow-y-auto divide-y dark:divide-gray-700">
-                                    <template x-for="c in filteredCustomers()" :key="c.id">
+                                    <template x-for="(c, cIdx) in filteredCustomers()" :key="c.id">
                                         <div @click="selectCustomer(c)"
+                                            :class="customerHighlightedIndex === cIdx ? 'bg-primary-100 dark:bg-primary-900' : ''"
                                             class="p-2.5 cursor-pointer hover:bg-primary-50 dark:hover:bg-primary-950/40 flex justify-between items-center text-xs transition">
                                             <div>
                                                 <span class="font-bold uppercase text-gray-900 dark:text-gray-100" x-text="c.name"></span>
@@ -311,6 +312,7 @@
                 products: @json($products),
                 customerSearch: '{{ addslashes($quotation->party->name) }}',
                 customerOpen: false,
+                customerHighlightedIndex: -1,
                 party_id: '{{ $quotation->party_id }}',
                 selectedCustomer: null,
                 warehouse_id: '{{ $quotation->warehouse_id }}',
@@ -355,6 +357,32 @@
                     this.customerSearch = c.name + (c.phone ? ' (' + c.phone + ')' : '');
                     this.selectedCustomer = c;
                     this.customerOpen = false;
+                    this.customerHighlightedIndex = -1;
+                },
+
+                handleCustomerKey(e) {
+                    const filtered = this.filteredCustomers();
+                    if (this.customerOpen && filtered.length > 0) {
+                        if (e.key === 'ArrowDown') {
+                            e.preventDefault();
+                            this.customerHighlightedIndex = (this.customerHighlightedIndex + 1) % filtered.length;
+                        } else if (e.key === 'ArrowUp') {
+                            e.preventDefault();
+                            this.customerHighlightedIndex = (this.customerHighlightedIndex - 1 + filtered.length) % filtered.length;
+                        } else if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (this.customerHighlightedIndex >= 0) {
+                                this.selectCustomer(filtered[this.customerHighlightedIndex]);
+                            } else {
+                                this.selectCustomer(filtered[0]);
+                            }
+                        } else if (e.key === 'Escape') {
+                            this.customerOpen = false;
+                        }
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.customerOpen = true;
+                    }
                 },
 
                 getFilteredProducts(search) {
