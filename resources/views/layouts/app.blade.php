@@ -210,17 +210,6 @@
             const waUrl = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(fullText);
             window.open(waUrl, '_blank');
         };
-
-        // Autofocus first input on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Find the first visible, non-hidden input/select/textarea
-            const firstInput = document.querySelector(
-                'form input:not([type="hidden"]), form select, form textarea');
-            if (firstInput) {
-                // Small delay to ensure Alpine and other scripts are ready
-                setTimeout(() => firstInput.focus(), 100);
-            }
-        });
     </script>
 </body>
 

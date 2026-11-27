@@ -5,7 +5,7 @@
  * - Distinct Browser Focus Ring (Blue pulsing ring with glow)
  * - 1st Enter: Activates / Enters Edit Mode on inputs (Ring turns Green)
  * - 2nd Enter: Executes / Submits / Clicks
- * - Esc: Exits Edit Mode back to arrow-key navigation
+ * - Esc: Exits Edit Mode / Closes Dropdown back to arrow-key navigation
  */
 
 (function () {
@@ -32,8 +32,8 @@
         if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return false;
         const rect = el.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) return false;
-        // Check if inside a hidden or collapsed modal
-        if (el.closest('[x-cloak]') || el.closest('[style*="display: none"]')) return false;
+        // Check if inside a hidden or collapsed container (except open dropdowns)
+        if (el.closest('[x-cloak]')) return false;
         return true;
     }
 
@@ -50,7 +50,7 @@
     }
 
     function findNextSpatialTarget(direction) {
-        // Special case: If inside an open dropdown menu, navigate strictly within its menu items
+        // 1. If currently inside an open dropdown, navigate strictly up/down through its items
         const openDropdownMenu = currentTarget ? (
             currentTarget.closest('[x-show="open"]') ||
             (currentTarget.closest('[x-data]') && currentTarget.closest('[x-data]').querySelector('[x-show="open"]:not([style*="display: none"])'))
@@ -65,7 +65,6 @@
                     return dropdownItems[Math.min(dropdownItems.length - 1, currentIdx + 1)];
                 } else if (direction === 'up') {
                     if (currentIdx <= 0) {
-                        // Move back to dropdown trigger button
                         const triggerBtn = openDropdownMenu.closest('[x-data]')?.querySelector('button');
                         if (triggerBtn) return triggerBtn;
                     }
@@ -78,7 +77,6 @@
         if (candidates.length === 0) return null;
 
         if (!currentTarget || !isVisible(currentTarget)) {
-            // Find first visible primary button or input
             const firstInput = candidates.find(el => el.id === 'search' || el.tagName === 'INPUT' || el.tagName === 'BUTTON');
             return firstInput || candidates[0];
         }
@@ -91,6 +89,10 @@
 
         candidates.forEach(cand => {
             if (cand === currentTarget) return;
+            // Ignore items in closed dropdowns
+            const closedMenu = cand.closest('[x-show="open"]');
+            if (closedMenu && window.getComputedStyle(closedMenu).display === 'none') return;
+
             const candRect = cand.getBoundingClientRect();
             const candCenter = getCenter(candRect);
 
@@ -122,7 +124,6 @@
             }
 
             if (isValidDirection && primaryDist > 0) {
-                // Score formula: heavily penalize distance perpendicular to requested direction
                 const score = primaryDist + (secondaryDist * 2.2);
                 if (score < minScore) {
                     minScore = score;
@@ -137,13 +138,22 @@
     function setSpatialFocus(el, smoothScroll = true) {
         if (!el) return;
 
-        // Clear previous ring
+        // Blur previous active element to prevent rogue form submission
+        if (document.activeElement && document.activeElement !== el && document.activeElement.blur) {
+            document.activeElement.blur();
+        }
+
         clearSpatialFocus();
 
         currentTarget = el;
         isEditingMode = false;
 
         currentTarget.classList.add('spatial-active-ring');
+
+        // Sync browser focus
+        if (el.focus) {
+            el.focus({ preventScroll: true });
+        }
 
         if (smoothScroll) {
             currentTarget.scrollIntoView({
@@ -169,7 +179,6 @@
         currentTarget.classList.remove('spatial-active-ring');
         currentTarget.classList.add('spatial-editing-mode');
 
-        // Focus natively into the input
         if (currentTarget.focus) {
             currentTarget.focus();
         }
@@ -187,11 +196,6 @@
         currentTarget.classList.remove('spatial-editing-mode');
         currentTarget.classList.add('spatial-active-ring');
 
-        // Blur native focus so arrows don't scroll text
-        if (currentTarget.blur) {
-            currentTarget.blur();
-        }
-
         updateHintBar();
     }
 
@@ -201,11 +205,10 @@
         const tag = currentTarget.tagName.toLowerCase();
 
         if (tag === 'button' || tag === 'a' || currentTarget.getAttribute('role') === 'button') {
-            // Visual press animation
             currentTarget.classList.add('scale-95');
             setTimeout(() => currentTarget.classList.remove('scale-95'), 120);
 
-            // 1. Check if clicking an Alpine dropdown trigger
+            // Check if clicking an Alpine dropdown trigger
             const alpineDropdown = currentTarget.closest('[x-data]');
             let isDropdownTrigger = false;
 
@@ -230,7 +233,7 @@
                 } catch(e) {}
             }
 
-            // 2. If it's an item inside an open dropdown, close the dropdown after clicking
+            // If it's an item inside an open dropdown, close the dropdown after clicking
             const openDropdown = currentTarget.closest('[x-show="open"]');
             if (openDropdown && window.Alpine) {
                 try {
@@ -247,12 +250,11 @@
                 currentTarget.click();
             }
         } else if (tag === 'input' || tag === 'select' || tag === 'textarea') {
-            // Second enter inside input executes action (submits form or filters)
+            // Second enter inside input executes action
             const form = currentTarget.closest('form');
             if (currentTarget.id === 'search' || currentTarget.name === 'search') {
                 if (form) form.submit();
             } else if (form) {
-                // Find next input or submit form
                 const candidates = getAllCandidates().filter(c => form.contains(c));
                 const idx = candidates.indexOf(currentTarget);
                 if (idx !== -1 && idx < candidates.length - 1) {
@@ -332,50 +334,32 @@
         }
     }
 
-    // Global Key Listener
+    // Global Key Listener (Capture Phase)
     window.addEventListener('keydown', function (e) {
         // If actively typing inside an input in Editing Mode:
         if (isEditingMode) {
             if (e.key === 'Escape') {
                 e.preventDefault();
+                e.stopPropagation();
                 exitEditingMode();
                 return;
             }
             if (e.key === 'Enter') {
                 e.preventDefault();
+                e.stopPropagation();
                 executeCurrentTarget();
+                exitEditingMode();
                 return;
             }
             // Allow normal typing and left/right cursor movement inside the text
             return;
         }
 
-        // Check if user clicked natively into an input with mouse
-        const active = document.activeElement;
-        const isNativeTyping = active && (
-            active.tagName === 'INPUT' ||
-            active.tagName === 'TEXTAREA' ||
-            active.tagName === 'SELECT' ||
-            active.isContentEditable
-        );
-
-        if (isNativeTyping && !isEditingMode) {
-            if (e.key === 'Escape') {
-                active.blur();
-                setSpatialFocus(active);
-                e.preventDefault();
-                return;
-            }
-            if (e.key === 'Enter') {
-                // Enter-to-next within form
-                return;
-            }
-        }
-
-        // Global Shortcut: '?' for help
-        if (!isNativeTyping && e.key === '?') {
+        // Global Shortcut: '?' for help (when not typing)
+        if (e.key === '?' && !isEditingMode) {
             window.dispatchEvent(new CustomEvent('toggle-shortcut-help'));
             e.preventDefault();
+            e.stopPropagation();
             return;
         }
 
@@ -387,8 +371,8 @@
         else if (e.key === 'ArrowUp') direction = 'up';
 
         if (direction) {
-            // Prevent browser scroll
             e.preventDefault();
+            e.stopPropagation();
 
             const nextTarget = findNextSpatialTarget(direction);
             if (nextTarget) {
@@ -399,15 +383,17 @@
 
         // Enter Key in Spatial Mode:
         if (e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
+
             if (currentTarget) {
-                e.preventDefault();
                 const tag = currentTarget.tagName.toLowerCase();
 
                 if (tag === 'input' || tag === 'select' || tag === 'textarea') {
                     // First Enter on input field: activates typing mode
                     enterEditingMode();
                 } else {
-                    // Enter on button or link: executes click
+                    // Enter on button or link: executes click / opens dropdown
                     executeCurrentTarget();
                 }
             }
@@ -416,6 +402,9 @@
 
         // Escape Key in Spatial Mode:
         if (e.key === 'Escape') {
+            e.preventDefault();
+            e.stopPropagation();
+
             // Check if an Alpine dropdown is currently open
             const openDropdown = currentTarget?.closest('[x-data]');
             if (openDropdown && window.Alpine) {
@@ -425,7 +414,6 @@
                         data.open = false;
                         const triggerBtn = openDropdown.querySelector('button');
                         if (triggerBtn) setSpatialFocus(triggerBtn);
-                        e.preventDefault();
                         return;
                     }
                 } catch(err) {}
@@ -438,7 +426,7 @@
             }
             return;
         }
-    }, true); // Capture phase to guarantee priority over standard defaults
+    }, true); // Capture phase guarantees priority over standard form submissions
 
     // Click synchronization: Clicking any element with mouse automatically sets spatial ring on it
     document.addEventListener('click', function (e) {
@@ -456,14 +444,12 @@
         createHintBar();
         updateHintBar();
 
-        // Initialize spatial ring on first primary element after load
         setTimeout(() => {
             const candidates = getAllCandidates();
             if (candidates.length > 0 && !currentTarget) {
-                // Prioritize search input or primary create button
-                const priority = candidates.find(el => el.id === 'search' || el.dataset.action === 'new' || el.tagName === 'BUTTON');
+                const priority = candidates.find(el => el.dataset.action === 'new' || el.id === 'search' || el.tagName === 'BUTTON');
                 setSpatialFocus(priority || candidates[0], false);
             }
-        }, 300);
+        }, 200);
     });
 })();
