@@ -1,302 +1,391 @@
 /**
- * Invenco Unified Keyboard Navigation Engine
- * Provides Tally / Busy ERP style keyboard-first workflow:
- * - Up / Down arrows to navigate table rows
- * - Enter to open/view highlighted invoice or voucher
- * - V, E, P, R for View, Edit, Print, Return actions
- * - / or F1 to jump to search
- * - Alt+N or Insert for New Invoice/Bill
- * - Enter-to-Next-Field on form entry
- * - Ctrl+Enter to save/submit
+ * Invenco Universal Spatial Keyboard Navigation Engine
+ * Full 2D Spatial Arrow-Key Navigation across all buttons, inputs, links & cards:
+ * - Up / Down / Left / Right arrows to move focus ring anywhere on screen
+ * - Distinct Browser Focus Ring (Blue pulsing ring with glow)
+ * - 1st Enter: Activates / Enters Edit Mode on inputs (Ring turns Green)
+ * - 2nd Enter: Executes / Submits / Clicks
+ * - Esc: Exits Edit Mode back to arrow-key navigation
  */
 
 (function () {
     'use strict';
 
-    let currentRowIndex = -1;
-    let cachedRows = [];
-    let activeTable = null;
+    let currentTarget = null;
+    let isEditingMode = false;
     let hintBar = null;
 
-    function getTable() {
-        return document.querySelector('[data-keyboard-table]') ||
-            document.querySelector('.keyboard-nav-table') ||
-            document.querySelector('table');
+    const FOCUSABLE_SELECTOR = `
+        a[href]:not([disabled]):not([tabindex="-1"]),
+        button:not([disabled]):not([tabindex="-1"]),
+        input:not([type="hidden"]):not([disabled]):not([tabindex="-1"]),
+        select:not([disabled]):not([tabindex="-1"]),
+        textarea:not([disabled]):not([tabindex="-1"]),
+        [tabindex="0"],
+        [role="button"]
+    `;
+
+    function isVisible(el) {
+        if (!el) return false;
+        if (el.offsetParent === null && el.tagName !== 'BODY') return false;
+        const style = window.getComputedStyle(el);
+        if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return false;
+        const rect = el.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return false;
+        // Check if inside a hidden or collapsed modal
+        if (el.closest('[x-cloak]') || el.closest('[style*="display: none"]')) return false;
+        return true;
     }
 
-    function getRows() {
-        const table = getTable();
-        if (!table) return [];
-        const tbody = table.querySelector('tbody') || table;
-        const rows = Array.from(tbody.querySelectorAll('tr')).filter(tr => {
-            // Exclude empty state rows, headers or full-width alert rows
-            if (tr.offsetParent === null) return false;
-            if (tr.querySelector('td[colspan]')) return false;
-            if (tr.classList.contains('empty-row') || tr.classList.contains('no-kb-nav')) return false;
-            return true;
+    function getAllCandidates() {
+        const all = Array.from(document.querySelectorAll(FOCUSABLE_SELECTOR));
+        return all.filter(isVisible);
+    }
+
+    function getCenter(rect) {
+        return {
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2
+        };
+    }
+
+    function findNextSpatialTarget(direction) {
+        const candidates = getAllCandidates();
+        if (candidates.length === 0) return null;
+
+        if (!currentTarget || !isVisible(currentTarget)) {
+            // Find first visible primary button or input
+            const firstInput = candidates.find(el => el.tagName === 'INPUT' || el.tagName === 'BUTTON');
+            return firstInput || candidates[0];
+        }
+
+        const currRect = currentTarget.getBoundingClientRect();
+        const currCenter = getCenter(currRect);
+
+        let bestCandidate = null;
+        let minScore = Infinity;
+
+        candidates.forEach(cand => {
+            if (cand === currentTarget) return;
+            const candRect = cand.getBoundingClientRect();
+            const candCenter = getCenter(candRect);
+
+            let primaryDist = 0;
+            let secondaryDist = 0;
+            let isValidDirection = false;
+
+            switch (direction) {
+                case 'right':
+                    primaryDist = candCenter.x - currCenter.x;
+                    secondaryDist = Math.abs(candCenter.y - currCenter.y);
+                    isValidDirection = candRect.left >= currRect.left + 5;
+                    break;
+                case 'left':
+                    primaryDist = currCenter.x - candCenter.x;
+                    secondaryDist = Math.abs(candCenter.y - currCenter.y);
+                    isValidDirection = candRect.right <= currRect.right - 5;
+                    break;
+                case 'down':
+                    primaryDist = candCenter.y - currCenter.y;
+                    secondaryDist = Math.abs(candCenter.x - currCenter.x);
+                    isValidDirection = candRect.top >= currRect.top + 5;
+                    break;
+                case 'up':
+                    primaryDist = currCenter.y - candCenter.y;
+                    secondaryDist = Math.abs(candCenter.x - currCenter.x);
+                    isValidDirection = candRect.bottom <= currRect.bottom - 5;
+                    break;
+            }
+
+            if (isValidDirection && primaryDist > 0) {
+                // Score formula: heavily penalize distance perpendicular to requested direction
+                const score = primaryDist + (secondaryDist * 2.2);
+                if (score < minScore) {
+                    minScore = score;
+                    bestCandidate = cand;
+                }
+            }
         });
-        return rows;
+
+        return bestCandidate;
     }
 
-    function selectRow(index) {
-        cachedRows = getRows();
-        if (cachedRows.length === 0) return;
+    function setSpatialFocus(el, smoothScroll = true) {
+        if (!el) return;
 
-        // Clear previous selection
-        cachedRows.forEach(r => r.classList.remove('kb-selected-row'));
+        // Clear previous ring
+        clearSpatialFocus();
 
-        if (index < 0) index = 0;
-        if (index >= cachedRows.length) index = cachedRows.length - 1;
+        currentTarget = el;
+        isEditingMode = false;
 
-        currentRowIndex = index;
-        const row = cachedRows[currentRowIndex];
-        if (!row) return;
+        currentTarget.classList.add('spatial-active-ring');
 
-        row.classList.add('kb-selected-row');
+        if (smoothScroll) {
+            currentTarget.scrollIntoView({
+                block: 'nearest',
+                inline: 'nearest',
+                behavior: 'smooth'
+            });
+        }
 
-        // Smooth scroll into view if needed
-        row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-
-        // Update bottom hint bar
-        showHintBar(true);
+        updateHintBar();
     }
 
-    function clearRowSelection() {
-        cachedRows = getRows();
-        cachedRows.forEach(r => r.classList.remove('kb-selected-row'));
-        currentRowIndex = -1;
-        showHintBar(false);
+    function clearSpatialFocus() {
+        if (currentTarget) {
+            currentTarget.classList.remove('spatial-active-ring', 'spatial-editing-mode');
+        }
+    }
+
+    function enterEditingMode() {
+        if (!currentTarget) return;
+
+        isEditingMode = true;
+        currentTarget.classList.remove('spatial-active-ring');
+        currentTarget.classList.add('spatial-editing-mode');
+
+        // Focus natively into the input
+        if (currentTarget.focus) {
+            currentTarget.focus();
+        }
+        if (currentTarget.select && typeof currentTarget.select === 'function' && currentTarget.type !== 'date') {
+            currentTarget.select();
+        }
+
+        updateHintBar();
+    }
+
+    function exitEditingMode() {
+        if (!currentTarget) return;
+
+        isEditingMode = false;
+        currentTarget.classList.remove('spatial-editing-mode');
+        currentTarget.classList.add('spatial-active-ring');
+
+        // Blur native focus so arrows don't scroll text
+        if (currentTarget.blur) {
+            currentTarget.blur();
+        }
+
+        updateHintBar();
+    }
+
+    function executeCurrentTarget() {
+        if (!currentTarget) return;
+
+        const tag = currentTarget.tagName.toLowerCase();
+
+        if (tag === 'button' || tag === 'a' || currentTarget.getAttribute('role') === 'button') {
+            // Visual press animation
+            currentTarget.classList.add('scale-95');
+            setTimeout(() => currentTarget.classList.remove('scale-95'), 120);
+
+            // Execute click
+            currentTarget.click();
+        } else if (tag === 'input' || tag === 'select' || tag === 'textarea') {
+            // Second enter inside input executes action (submits form or filters)
+            const form = currentTarget.closest('form');
+            if (currentTarget.id === 'search' || currentTarget.name === 'search') {
+                if (form) form.submit();
+            } else if (form) {
+                // Find next input or submit form
+                const candidates = getAllCandidates().filter(c => form.contains(c));
+                const idx = candidates.indexOf(currentTarget);
+                if (idx !== -1 && idx < candidates.length - 1) {
+                    const nextEl = candidates[idx + 1];
+                    exitEditingMode();
+                    setSpatialFocus(nextEl);
+                    if (nextEl.tagName === 'INPUT' || nextEl.tagName === 'SELECT') {
+                        enterEditingMode();
+                    }
+                } else {
+                    form.dispatchEvent(new Event('submit', { cancelable: true }));
+                    form.submit();
+                }
+            }
+        }
     }
 
     function createHintBar() {
         if (hintBar) return hintBar;
         const bar = document.createElement('div');
-        bar.id = 'invenco-kb-hint-bar';
-        bar.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-gray-900/95 dark:bg-gray-800/95 text-white backdrop-blur-md px-4 py-2 rounded-2xl shadow-2xl border border-gray-700/80 text-xs font-semibold flex items-center gap-3 transition-all duration-200 opacity-0 pointer-events-none transform translate-y-2';
-        bar.innerHTML = `
-            <div class="flex items-center gap-2">
-                <span class="inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-gray-700 rounded text-[11px] font-mono">↑</kbd><kbd class="px-1.5 py-0.5 bg-gray-700 rounded text-[11px] font-mono">↓</kbd> Rows</span>
-                <span class="text-gray-500">•</span>
-                <span class="inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-primary-600 rounded text-[11px] font-mono text-white">Enter</kbd> Open</span>
-                <span class="text-gray-500">•</span>
-                <span class="inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-gray-700 rounded text-[11px] font-mono">E</kbd> Edit</span>
-                <span class="text-gray-500">•</span>
-                <span class="inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-gray-700 rounded text-[11px] font-mono">P</kbd> Print</span>
-                <span class="text-gray-500">•</span>
-                <span class="inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-gray-700 rounded text-[11px] font-mono">/</kbd> Search</span>
-                <span class="text-gray-500">•</span>
-                <span class="inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-gray-700 rounded text-[11px] font-mono">Alt+N</kbd> New</span>
-            </div>
-        `;
+        bar.id = 'invenco-spatial-hint-bar';
+        bar.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-gray-900/95 dark:bg-gray-800/95 text-white backdrop-blur-md px-4 py-2 rounded-2xl shadow-2xl border border-gray-700/80 text-xs font-semibold flex items-center gap-3 transition-all duration-200 opacity-90';
         document.body.appendChild(bar);
         hintBar = bar;
         return bar;
     }
 
-    function showHintBar(show) {
+    function updateHintBar() {
         const bar = createHintBar();
-        if (show && cachedRows.length > 0) {
-            bar.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
-            bar.classList.add('opacity-100', 'translate-y-0');
+        if (!currentTarget) {
+            bar.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center gap-1 text-primary-400 font-bold"><kbd class="px-1.5 py-0.5 bg-gray-700 rounded text-[11px] font-mono">↑ ↓ ← →</kbd> Spatial Nav</span>
+                    <span class="text-gray-500">•</span>
+                    <span>Press any arrow key to navigate</span>
+                </div>
+            `;
+            return;
+        }
+
+        const tag = currentTarget.tagName.toLowerCase();
+        const isInputField = tag === 'input' || tag === 'select' || tag === 'textarea';
+
+        if (isEditingMode) {
+            bar.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center gap-1.5 text-emerald-400 font-bold">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                        <span>Editing Mode Active</span>
+                    </span>
+                    <span class="text-gray-500">•</span>
+                    <span class="inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-emerald-600 text-white rounded text-[11px] font-mono">Enter</kbd> Save / Next</span>
+                    <span class="text-gray-500">•</span>
+                    <span class="inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-gray-700 rounded text-[11px] font-mono">Esc</kbd> Exit Edit</span>
+                </div>
+            `;
+        } else if (isInputField) {
+            bar.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center gap-1 text-primary-400"><kbd class="px-1.5 py-0.5 bg-gray-700 rounded text-[11px] font-mono">↑ ↓ ← →</kbd> Move</span>
+                    <span class="text-gray-500">•</span>
+                    <span class="inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-primary-600 text-white rounded text-[11px] font-mono">1st Enter</kbd> Type in Field</span>
+                    <span class="text-gray-500">•</span>
+                    <span class="inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-emerald-600 text-white rounded text-[11px] font-mono">2nd Enter</kbd> Execute</span>
+                </div>
+            `;
         } else {
-            bar.classList.remove('opacity-100', 'translate-y-0');
-            bar.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
-        }
-    }
-
-    function triggerRowAction(action) {
-        if (currentRowIndex < 0 || currentRowIndex >= cachedRows.length) return;
-        const row = cachedRows[currentRowIndex];
-        if (!row) return;
-
-        let target = null;
-        if (action === 'view') {
-            target = row.querySelector('[data-action="view"]') ||
-                row.querySelector('a[href*="/sales/"]:not([href*="/edit"]):not([href*="/pdf"]):not([href*="/thermal"]), a[href*="/purchases/"]:not([href*="/edit"]):not([href*="/pdf"]), a[href*="/vouchers/"], a[href*="/ledger"]') ||
-                row.querySelector('a');
-        } else if (action === 'edit') {
-            target = row.querySelector('[data-action="edit"]') ||
-                row.querySelector('a[href*="/edit"]');
-        } else if (action === 'print') {
-            target = row.querySelector('[data-action="print"]') ||
-                row.querySelector('a[href*="/thermal"]') ||
-                row.querySelector('a[href*="/pdf"]') ||
-                row.querySelector('a[href*="/print"]');
-        } else if (action === 'return') {
-            target = row.querySelector('[data-action="return"]') ||
-                row.querySelector('a[href*="/return"]');
-        }
-
-        if (target) {
-            target.click();
-        } else if (action === 'view' && row.dataset.href) {
-            window.location.href = row.dataset.href;
-        }
-    }
-
-    // Enter-to-Next-Field on Forms
-    function setupEnterToNext(e) {
-        if (e.key !== 'Enter' || e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return;
-
-        const target = e.target;
-        if (!target) return;
-
-        // Skip textareas, submit buttons, and search inputs with custom enter handlers
-        if (target.tagName === 'TEXTAREA' || target.type === 'submit' || target.type === 'button') return;
-        if (target.id === 'search' || target.name === 'search' || target.classList.contains('main-search-input')) return;
-
-        // Skip inputs that have their own custom keyboard navigation or Alpine keydown listeners
-        if (target.classList.contains('keyboard-nav') || target.hasAttribute('x-on:keydown') || target.hasAttribute('@keydown')) return;
-
-        const form = target.closest('form');
-        if (!form) return;
-
-        // Collect all focusable fields
-        const focusables = Array.from(form.querySelectorAll(
-            'input:not([type="hidden"]):not([disabled]):not([readonly]), select:not([disabled]):not([readonly]), textarea:not([disabled]):not([readonly]), button[type="submit"]:not([disabled])'
-        )).filter(el => el.offsetParent !== null);
-
-        const currentIndex = focusables.indexOf(target);
-        if (currentIndex !== -1 && currentIndex < focusables.length - 1) {
-            e.preventDefault();
-            const nextEl = focusables[currentIndex + 1];
-            nextEl.focus();
-            if (nextEl.select && typeof nextEl.select === 'function' && nextEl.type !== 'date') {
-                nextEl.select();
-            }
+            bar.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center gap-1 text-primary-400"><kbd class="px-1.5 py-0.5 bg-gray-700 rounded text-[11px] font-mono">↑ ↓ ← →</kbd> Move</span>
+                    <span class="text-gray-500">•</span>
+                    <span class="inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-primary-600 text-white rounded text-[11px] font-mono">Enter</kbd> Click / Open</span>
+                    <span class="text-gray-500">•</span>
+                    <span class="inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-gray-700 rounded text-[11px] font-mono">?</kbd> Keys</span>
+                </div>
+            `;
         }
     }
 
     // Global Key Listener
     window.addEventListener('keydown', function (e) {
+        // If actively typing inside an input in Editing Mode:
+        if (isEditingMode) {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                exitEditingMode();
+                return;
+            }
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                executeCurrentTarget();
+                return;
+            }
+            // Allow normal typing and left/right cursor movement inside the text
+            return;
+        }
+
+        // Check if user clicked natively into an input with mouse
         const active = document.activeElement;
-        const isTyping = active && (
+        const isNativeTyping = active && (
             active.tagName === 'INPUT' ||
             active.tagName === 'TEXTAREA' ||
             active.tagName === 'SELECT' ||
             active.isContentEditable
         );
 
-        // 1. Enter-to-Next in forms (when typing in form elements)
-        if (isTyping && e.key === 'Enter') {
-            setupEnterToNext(e);
-            return;
-        }
-
-        // 2. Quick Search: '/' or 'F1' (Only when not already typing)
-        if (!isTyping && (e.key === '/' || e.key === 'F1')) {
-            const searchInput = document.querySelector('#search, input[name="search"], input[type="search"], .main-search-input');
-            if (searchInput) {
-                e.preventDefault();
-                searchInput.focus();
-                if (searchInput.select) searchInput.select();
-                return;
-            }
-        }
-
-        // 3. New Invoice / Record: 'Alt + N' or 'Insert'
-        if ((e.altKey && (e.key.toLowerCase() === 'n')) || e.key === 'Insert') {
-            const newBtn = document.querySelector('[data-action="new"]') ||
-                document.querySelector('a[href*="/sales/create"], a[href*="/purchases/create"], a[href*="/parties/create"], a[href*="/create"]');
-            if (newBtn) {
-                e.preventDefault();
-                newBtn.click();
-                return;
-            }
-        }
-
-        // 4. Escape: Clear selection or blur input
-        if (e.key === 'Escape') {
-            if (isTyping) {
+        if (isNativeTyping && !isEditingMode) {
+            if (e.key === 'Escape') {
                 active.blur();
+                setSpatialFocus(active);
                 e.preventDefault();
-            } else if (currentRowIndex !== -1) {
-                clearRowSelection();
-                e.preventDefault();
+                return;
             }
-            return;
+            if (e.key === 'Enter') {
+                // Enter-to-next within form
+                return;
+            }
         }
 
-        // 5. Help Modal: '?' or 'F12'
-        if (!isTyping && e.key === '?') {
+        // Global Shortcut: '?' for help
+        if (!isNativeTyping && e.key === '?') {
             window.dispatchEvent(new CustomEvent('toggle-shortcut-help'));
             e.preventDefault();
             return;
         }
 
-        // 6. Table Navigation (Arrow Up, Arrow Down, Home, End, PageUp/Down)
-        if (!isTyping) {
-            const rows = getRows();
-            if (rows.length > 0) {
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    selectRow(currentRowIndex + 1);
-                    return;
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    selectRow(currentRowIndex - 1);
-                    return;
-                } else if (e.key === 'Home') {
-                    e.preventDefault();
-                    selectRow(0);
-                    return;
-                } else if (e.key === 'End') {
-                    e.preventDefault();
-                    selectRow(rows.length - 1);
-                    return;
-                } else if (e.key === 'Enter') {
-                    if (currentRowIndex >= 0) {
-                        e.preventDefault();
-                        triggerRowAction('view');
-                        return;
-                    }
-                } else if (e.key.toLowerCase() === 'v') {
-                    e.preventDefault();
-                    triggerRowAction('view');
-                    return;
-                } else if (e.key.toLowerCase() === 'e') {
-                    e.preventDefault();
-                    triggerRowAction('edit');
-                    return;
-                } else if (e.key.toLowerCase() === 'p') {
-                    e.preventDefault();
-                    triggerRowAction('print');
-                    return;
-                } else if (e.key.toLowerCase() === 'r') {
-                    e.preventDefault();
-                    triggerRowAction('return');
-                    return;
-                } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-                    const prevPage = document.querySelector('a[rel="prev"]');
-                    if (prevPage) {
-                        e.preventDefault();
-                        prevPage.click();
-                        return;
-                    }
-                } else if (e.key === 'ArrowRight' || e.key === 'PageDown') {
-                    const nextPage = document.querySelector('a[rel="next"]');
-                    if (nextPage) {
-                        e.preventDefault();
-                        nextPage.click();
-                        return;
-                    }
+        // Spatial Arrow Keys Navigation
+        let direction = null;
+        if (e.key === 'ArrowRight') direction = 'right';
+        else if (e.key === 'ArrowLeft') direction = 'left';
+        else if (e.key === 'ArrowDown') direction = 'down';
+        else if (e.key === 'ArrowUp') direction = 'up';
+
+        if (direction) {
+            // Prevent browser scroll
+            e.preventDefault();
+
+            const nextTarget = findNextSpatialTarget(direction);
+            if (nextTarget) {
+                setSpatialFocus(nextTarget);
+            }
+            return;
+        }
+
+        // Enter Key in Spatial Mode:
+        if (e.key === 'Enter') {
+            if (currentTarget) {
+                e.preventDefault();
+                const tag = currentTarget.tagName.toLowerCase();
+
+                if (tag === 'input' || tag === 'select' || tag === 'textarea') {
+                    // First Enter on input field: activates typing mode
+                    enterEditingMode();
+                } else {
+                    // Enter on button or link: executes click
+                    executeCurrentTarget();
                 }
             }
+            return;
         }
-    });
+
+        // Escape Key in Spatial Mode:
+        if (e.key === 'Escape') {
+            if (currentTarget) {
+                clearSpatialFocus();
+                currentTarget = null;
+                updateHintBar();
+            }
+            return;
+        }
+    }, true); // Capture phase to guarantee priority over standard defaults
+
+    // Click synchronization: Clicking any element with mouse automatically sets spatial ring on it
+    document.addEventListener('click', function (e) {
+        const interactive = e.target.closest(FOCUSABLE_SELECTOR);
+        if (interactive && isVisible(interactive)) {
+            setSpatialFocus(interactive, false);
+            if (interactive.tagName === 'INPUT' || interactive.tagName === 'TEXTAREA') {
+                enterEditingMode();
+            }
+        }
+    }, true);
 
     // Auto-initialize when DOM is ready
     document.addEventListener('DOMContentLoaded', function () {
-        const table = getTable();
-        if (table) {
-            createHintBar();
-            // Highlight first row on index pages automatically after small delay
-            setTimeout(() => {
-                const rows = getRows();
-                if (rows.length > 0 && currentRowIndex === -1) {
-                    selectRow(0);
-                }
-            }, 300);
-        }
+        createHintBar();
+        updateHintBar();
+
+        // Initialize spatial ring on first primary element after load
+        setTimeout(() => {
+            const candidates = getAllCandidates();
+            if (candidates.length > 0 && !currentTarget) {
+                // Prioritize search input or primary create button
+                const priority = candidates.find(el => el.id === 'search' || el.dataset.action === 'new' || el.tagName === 'BUTTON');
+                setSpatialFocus(priority || candidates[0], false);
+            }
+        }, 300);
     });
 })();

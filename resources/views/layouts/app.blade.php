@@ -54,6 +54,47 @@
             background-color: rgba(37, 99, 235, 0.3) !important;
             outline: 2px solid #3b82f6 !important;
         }
+
+        /* Universal Spatial Focus Ring (Web Browser TV/Accessibility Style) */
+        .spatial-active-ring {
+            outline: 3px solid #2563eb !important;
+            outline-offset: 3px !important;
+            box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.35), 0 0 16px rgba(37, 99, 235, 0.5) !important;
+            border-radius: 8px !important;
+            position: relative !important;
+            z-index: 9999 !important;
+            animation: spatialRingPulse 1.8s infinite ease-in-out !important;
+        }
+
+        .dark .spatial-active-ring {
+            outline: 3px solid #60a5fa !important;
+            box-shadow: 0 0 0 5px rgba(96, 165, 250, 0.4), 0 0 16px rgba(96, 165, 250, 0.6) !important;
+        }
+
+        /* Editing Mode: Active Green Ring */
+        .spatial-editing-mode {
+            outline: 3px solid #10b981 !important;
+            outline-offset: 3px !important;
+            box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.4), 0 0 18px rgba(16, 185, 129, 0.6) !important;
+            border-radius: 8px !important;
+            position: relative !important;
+            z-index: 9999 !important;
+            animation: none !important;
+        }
+
+        .dark .spatial-editing-mode {
+            outline: 3px solid #34d399 !important;
+            box-shadow: 0 0 0 5px rgba(52, 211, 153, 0.45), 0 0 18px rgba(52, 211, 153, 0.7) !important;
+        }
+
+        @keyframes spatialRingPulse {
+            0%, 100% {
+                box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.35), 0 0 16px rgba(37, 99, 235, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 0 7px rgba(59, 130, 246, 0.5), 0 0 24px rgba(59, 130, 246, 0.7);
+            }
+        }
     </style>
     <script>
         if (localStorage.getItem('dark-mode') === 'true' || (!('dark-mode' in localStorage) && window.matchMedia(
