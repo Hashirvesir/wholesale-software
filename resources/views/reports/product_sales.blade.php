@@ -36,53 +36,91 @@
                 </div>
             </div>
 
-            <!-- Quick Date Filter Presets Bar -->
-            <div class="bg-white dark:bg-gray-800 p-2.5 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-wrap items-center gap-1.5 sm:gap-2">
-                <span class="text-xs font-black uppercase tracking-wider text-gray-400 px-2 flex items-center gap-1">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    <span>Quick Dates:</span>
-                </span>
+            <!-- Quick Date & Status Filter Presets Bar -->
+            <div class="bg-white dark:bg-gray-800 p-2.5 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-wrap items-center justify-between gap-2.5">
+                <!-- Date Presets -->
+                <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                    <span class="text-xs font-black uppercase tracking-wider text-gray-400 px-2 flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <span>Dates:</span>
+                    </span>
 
-                <a href="{{ request()->fullUrlWithQuery(['preset' => 'today', 'start_date' => null, 'end_date' => null]) }}"
-                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ ($preset ?? '') === 'today' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
-                    Today
-                </a>
-
-                <a href="{{ request()->fullUrlWithQuery(['preset' => 'yesterday', 'start_date' => null, 'end_date' => null]) }}"
-                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ ($preset ?? '') === 'yesterday' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
-                    Yesterday
-                </a>
-
-                <a href="{{ request()->fullUrlWithQuery(['preset' => 'last_3_days', 'start_date' => null, 'end_date' => null]) }}"
-                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ ($preset ?? '') === 'last_3_days' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
-                    Last 3 Days
-                </a>
-
-                <a href="{{ request()->fullUrlWithQuery(['preset' => 'this_week', 'start_date' => null, 'end_date' => null]) }}"
-                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ ($preset ?? '') === 'this_week' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
-                    This Week
-                </a>
-
-                <a href="{{ request()->fullUrlWithQuery(['preset' => 'this_month', 'start_date' => null, 'end_date' => null]) }}"
-                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ ($preset ?? '') === 'this_month' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
-                    This Month
-                </a>
-
-                <a href="{{ request()->fullUrlWithQuery(['preset' => 'last_30_days', 'start_date' => null, 'end_date' => null]) }}"
-                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ ($preset ?? '') === 'last_30_days' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
-                    Last 30 Days
-                </a>
-
-                <div class="ml-auto flex items-center gap-1.5">
-                    <span class="text-xs font-bold text-gray-400">View:</span>
-                    <a href="{{ request()->fullUrlWithQuery(['view' => 'invoice']) }}"
-                        class="px-2.5 py-1 text-xs font-bold rounded-lg transition {{ ($viewMode ?? 'invoice') === 'invoice' ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                        By Invoice
+                    <a href="{{ request()->fullUrlWithQuery(['preset' => 'today', 'start_date' => null, 'end_date' => null]) }}"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ ($preset ?? '') === 'today' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
+                        Today
                     </a>
-                    <a href="{{ request()->fullUrlWithQuery(['view' => 'flat']) }}"
-                        class="px-2.5 py-1 text-xs font-bold rounded-lg transition {{ ($viewMode ?? 'invoice') === 'flat' ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                        Flat Items
+
+                    <a href="{{ request()->fullUrlWithQuery(['preset' => 'yesterday', 'start_date' => null, 'end_date' => null]) }}"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ ($preset ?? '') === 'yesterday' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
+                        Yesterday
                     </a>
+
+                    <a href="{{ request()->fullUrlWithQuery(['preset' => 'last_3_days', 'start_date' => null, 'end_date' => null]) }}"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ ($preset ?? '') === 'last_3_days' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
+                        Last 3 Days
+                    </a>
+
+                    <a href="{{ request()->fullUrlWithQuery(['preset' => 'this_week', 'start_date' => null, 'end_date' => null]) }}"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ ($preset ?? '') === 'this_week' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
+                        This Week
+                    </a>
+
+                    <a href="{{ request()->fullUrlWithQuery(['preset' => 'this_month', 'start_date' => null, 'end_date' => null]) }}"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ ($preset ?? '') === 'this_month' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
+                        This Month
+                    </a>
+
+                    <a href="{{ request()->fullUrlWithQuery(['preset' => 'last_30_days', 'start_date' => null, 'end_date' => null]) }}"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ ($preset ?? '') === 'last_30_days' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
+                        Last 30 Days
+                    </a>
+                </div>
+
+                <!-- Payment Status Quick Toggles & View Mode -->
+                <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                    <span class="text-xs font-black uppercase tracking-wider text-gray-400 px-1 flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        <span>Payment:</span>
+                    </span>
+
+                    <a href="{{ request()->fullUrlWithQuery(['payment_status' => null]) }}"
+                        class="px-2.5 py-1 text-xs font-bold rounded-lg transition {{ empty($paymentStatus) ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200' }}">
+                        All
+                    </a>
+
+                    <a href="{{ request()->fullUrlWithQuery(['payment_status' => 'paid']) }}"
+                        class="px-2.5 py-1 text-xs font-bold rounded-lg transition {{ ($paymentStatus ?? '') === 'paid' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 hover:bg-emerald-100' }}">
+                        Paid
+                    </a>
+
+                    <a href="{{ request()->fullUrlWithQuery(['payment_status' => 'unpaid']) }}"
+                        class="px-2.5 py-1 text-xs font-bold rounded-lg transition {{ ($paymentStatus ?? '') === 'unpaid' ? 'bg-rose-600 text-white shadow-sm' : 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 hover:bg-rose-100' }}">
+                        Unpaid
+                    </a>
+
+                    <a href="{{ request()->fullUrlWithQuery(['payment_status' => 'partial']) }}"
+                        class="px-2.5 py-1 text-xs font-bold rounded-lg transition {{ ($paymentStatus ?? '') === 'partial' ? 'bg-amber-600 text-white shadow-sm' : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 hover:bg-amber-100' }}">
+                        Partial
+                    </a>
+
+                    <a href="{{ request()->fullUrlWithQuery(['payment_status' => 'due']) }}"
+                        class="px-2.5 py-1 text-xs font-bold rounded-lg transition {{ ($paymentStatus ?? '') === 'due' ? 'bg-purple-600 text-white shadow-sm' : 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400 hover:bg-purple-100' }}">
+                        All Due
+                    </a>
+
+                    <div class="h-4 w-px bg-gray-300 dark:bg-gray-600 mx-1 hidden sm:block"></div>
+
+                    <div class="flex items-center gap-1">
+                        <span class="text-xs font-bold text-gray-400">View:</span>
+                        <a href="{{ request()->fullUrlWithQuery(['view' => 'invoice']) }}"
+                            class="px-2 py-1 text-xs font-bold rounded-lg transition {{ ($viewMode ?? 'invoice') === 'invoice' ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                            Invoice
+                        </a>
+                        <a href="{{ request()->fullUrlWithQuery(['view' => 'flat']) }}"
+                            class="px-2 py-1 text-xs font-bold rounded-lg transition {{ ($viewMode ?? 'invoice') === 'flat' ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                            Flat
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -134,8 +172,8 @@
                 <form action="{{ route('reports.product-sales') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4 items-end">
                     <input type="hidden" name="view" value="{{ $viewMode ?? 'invoice' }}" />
 
-                    <!-- Customer Filter (3 cols) -->
-                    <div class="lg:col-span-3">
+                    <!-- Customer Filter (4 cols) -->
+                    <div class="lg:col-span-4">
                         <label for="customer_id" class="block text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
                             Customer
                         </label>
@@ -150,8 +188,8 @@
                         </select>
                     </div>
 
-                    <!-- Search Product Name / SKU (3 cols) -->
-                    <div class="lg:col-span-3">
+                    <!-- Search Product Name / SKU (4 cols) -->
+                    <div class="lg:col-span-4">
                         <label for="search" class="block text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
                             Product Name or SKU
                         </label>
@@ -160,8 +198,8 @@
                             class="w-full text-xs font-bold rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500 shadow-sm" />
                     </div>
 
-                    <!-- Warehouse / Branch Filter (2 cols) -->
-                    <div class="lg:col-span-2">
+                    <!-- Warehouse / Branch Filter (4 cols) -->
+                    <div class="lg:col-span-4">
                         <label for="warehouse_id" class="block text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
                             Shop / Branch
                         </label>
@@ -176,8 +214,23 @@
                         </select>
                     </div>
 
-                    <!-- Date Range Start (2 cols) -->
-                    <div class="lg:col-span-2">
+                    <!-- Payment Status Filter (3 cols) -->
+                    <div class="lg:col-span-3">
+                        <label for="payment_status" class="block text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
+                            Payment Status
+                        </label>
+                        <select id="payment_status" name="payment_status"
+                            class="w-full text-xs font-bold rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500 shadow-sm">
+                            <option value="">-- All (Paid & Unpaid) --</option>
+                            <option value="paid" {{ ($paymentStatus ?? '') === 'paid' ? 'selected' : '' }}>Paid Only</option>
+                            <option value="unpaid" {{ ($paymentStatus ?? '') === 'unpaid' ? 'selected' : '' }}>Unpaid Only</option>
+                            <option value="partial" {{ ($paymentStatus ?? '') === 'partial' ? 'selected' : '' }}>Partial Paid Only</option>
+                            <option value="due" {{ ($paymentStatus ?? '') === 'due' ? 'selected' : '' }}>All Due (Unpaid & Partial)</option>
+                        </select>
+                    </div>
+
+                    <!-- Date Range Start (3 cols) -->
+                    <div class="lg:col-span-3">
                         <label for="start_date" class="block text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
                             From Date
                         </label>
@@ -185,24 +238,26 @@
                             class="w-full text-xs font-bold rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500 shadow-sm" />
                     </div>
 
-                    <!-- Date Range End (2 cols) -->
-                    <div class="lg:col-span-2">
+                    <!-- Date Range End (3 cols) -->
+                    <div class="lg:col-span-3">
                         <label for="end_date" class="block text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
                             To Date
                         </label>
-                        <div class="flex items-center gap-2">
-                            <input type="date" id="end_date" name="end_date" value="{{ $endDate ?? '' }}"
-                                class="w-full text-xs font-bold rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500 shadow-sm" />
-                            <button type="submit"
-                                class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow transition">
-                                Filter
-                            </button>
-                            <a href="{{ route('reports.product-sales') }}"
-                                class="px-2.5 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-xs font-bold transition"
-                                title="Reset Filters">
-                                ↺
-                            </a>
-                        </div>
+                        <input type="date" id="end_date" name="end_date" value="{{ $endDate ?? '' }}"
+                            class="w-full text-xs font-bold rounded-xl border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-primary-500 shadow-sm" />
+                    </div>
+
+                    <!-- Action Buttons (3 cols) -->
+                    <div class="lg:col-span-3 flex items-center gap-2">
+                        <button type="submit"
+                            class="flex-1 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow transition">
+                            Apply Filter
+                        </button>
+                        <a href="{{ route('reports.product-sales') }}"
+                            class="px-3.5 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1"
+                            title="Reset All Filters">
+                            <span>Reset</span>
+                        </a>
                     </div>
                 </form>
             </div>
@@ -213,6 +268,25 @@
                 <span class="px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
                     Date: {{ $startDate ? \Carbon\Carbon::parse($startDate)->format('d-M-Y') : 'All Time' }} to {{ $endDate ? \Carbon\Carbon::parse($endDate)->format('d-M-Y') : 'Today' }}
                 </span>
+                @if ($paymentStatus)
+                    @if ($paymentStatus === 'paid')
+                        <span class="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
+                            Status: Paid Only
+                        </span>
+                    @elseif ($paymentStatus === 'unpaid')
+                        <span class="px-2.5 py-1 rounded-lg bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300">
+                            Status: Unpaid Only
+                        </span>
+                    @elseif ($paymentStatus === 'partial')
+                        <span class="px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">
+                            Status: Partial Paid Only
+                        </span>
+                    @elseif ($paymentStatus === 'due')
+                        <span class="px-2.5 py-1 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300">
+                            Status: All Due (Pending)
+                        </span>
+                    @endif
+                @endif
                 @if ($selectedCustomer)
                     <span class="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
                         Customer: {{ $selectedCustomer->name }}
@@ -221,6 +295,11 @@
                 @if ($searchProduct)
                     <span class="px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">
                         Product: "{{ $searchProduct }}"
+                    </span>
+                @endif
+                @if ($selectedWarehouse)
+                    <span class="px-2.5 py-1 rounded-lg bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300">
+                        Branch: {{ $selectedWarehouse->name }}
                     </span>
                 @endif
             </div>

@@ -195,14 +195,27 @@
     <div class="meta-box">
         <table class="meta-table">
             <tr>
-                <td style="width: 28%;"><strong>Date Range:</strong> {{ $startDate ? \Carbon\Carbon::parse($startDate)->format('d-M-Y') : 'All Time' }} to {{ $endDate ? \Carbon\Carbon::parse($endDate)->format('d-M-Y') : 'Today' }}</td>
-                <td style="width: 30%;"><strong>Customer:</strong> {{ $selectedCustomer ? $selectedCustomer->name : 'All Customers' }}</td>
-                <td style="width: 24%;"><strong>Branch:</strong> {{ $selectedWarehouse ? $selectedWarehouse->name : 'All Branches' }}</td>
-                <td style="width: 18%; text-align: right;"><strong>Invoices:</strong> {{ number_format($totalInvoices) }}</td>
+                <td style="width: 25%;"><strong>Date Range:</strong> {{ $startDate ? \Carbon\Carbon::parse($startDate)->format('d-M-Y') : 'All Time' }} to {{ $endDate ? \Carbon\Carbon::parse($endDate)->format('d-M-Y') : 'Today' }}</td>
+                <td style="width: 25%;"><strong>Customer:</strong> {{ $selectedCustomer ? $selectedCustomer->name : 'All Customers' }}</td>
+                <td style="width: 20%;"><strong>Branch:</strong> {{ $selectedWarehouse ? $selectedWarehouse->name : 'All Branches' }}</td>
+                <td style="width: 15%;"><strong>Status:</strong>
+                    @if (($paymentStatus ?? '') === 'paid')
+                        Paid Only
+                    @elseif (($paymentStatus ?? '') === 'unpaid')
+                        Unpaid Only
+                    @elseif (($paymentStatus ?? '') === 'partial')
+                        Partial Only
+                    @elseif (($paymentStatus ?? '') === 'due')
+                        All Due
+                    @else
+                        All Invoices
+                    @endif
+                </td>
+                <td style="width: 15%; text-align: right;"><strong>Invoices:</strong> {{ number_format($totalInvoices) }}</td>
             </tr>
             @if ($searchProduct)
                 <tr>
-                    <td colspan="4"><strong>Product Filter:</strong> "{{ $searchProduct }}"</td>
+                    <td colspan="5"><strong>Product Filter:</strong> "{{ $searchProduct }}"</td>
                 </tr>
             @endif
         </table>

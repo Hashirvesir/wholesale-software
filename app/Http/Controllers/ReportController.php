@@ -2228,6 +2228,7 @@ class ReportController extends Controller
         $selectedCustomerId = $request->customer_id;
         $searchProduct = $request->search;
         $selectedWarehouseId = $request->warehouse_id;
+        $paymentStatus = $request->get('payment_status'); // 'paid', 'unpaid', 'partial', 'due'
         $viewMode = $request->get('view', 'invoice'); // 'invoice' or 'flat'
 
         // Customers list for filter dropdown
@@ -2275,6 +2276,15 @@ class ReportController extends Controller
         }
         if ($selectedWarehouseId) {
             $query->where('sales.warehouse_id', $selectedWarehouseId);
+        }
+        if ($paymentStatus === 'paid') {
+            $query->whereRaw('(sales.total_amount - sales.paid_amount) <= 0.01');
+        } elseif ($paymentStatus === 'unpaid') {
+            $query->whereRaw('sales.paid_amount <= 0.01');
+        } elseif ($paymentStatus === 'partial') {
+            $query->whereRaw('sales.paid_amount > 0.01 AND (sales.total_amount - sales.paid_amount) > 0.01');
+        } elseif ($paymentStatus === 'due') {
+            $query->whereRaw('(sales.total_amount - sales.paid_amount) > 0.01');
         }
         if ($searchProduct) {
             $query->where(function ($q) use ($searchProduct) {
@@ -2380,6 +2390,7 @@ class ReportController extends Controller
                 'startDate',
                 'endDate',
                 'preset',
+                'paymentStatus',
                 'selectedCustomer',
                 'selectedWarehouse',
                 'searchProduct',
@@ -2426,6 +2437,7 @@ class ReportController extends Controller
             'startDate',
             'endDate',
             'preset',
+            'paymentStatus',
             'viewMode',
             'settings'
         ));
