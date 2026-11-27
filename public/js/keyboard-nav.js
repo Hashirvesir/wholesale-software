@@ -1,20 +1,16 @@
 /**
  * Invenco Universal Spatial Keyboard Navigation Engine
  * Full 2D Spatial Arrow-Key Navigation across all buttons, inputs, links & cards:
- * - Up / Down / Left / Right arrows to move focus ring anywhere on screen
+ * - Up / Down / Left / Right arrows to move focus ring anywhere on screen (including POS)
  * - Distinct Browser Focus Ring (Blue pulsing ring with glow)
- * - 1st Enter: Activates Search/Edit Mode on inputs/selects (Ring turns Green, opens dropdowns)
+ * - Navigation & Action Dropdowns: Enter opens, Up/Down cycles menu items, Enter navigates, Esc closes
+ * - 1st Enter: Activates Search/Edit Mode on inputs/selects (Ring turns Green, opens search dropdowns)
  * - 2nd Enter: Executes / Submits / Selects option / Advances to next field
  * - Esc: Immediately closes open dropdowns, exits edit mode (Ring turns Blue), arrow keys roam freely everywhere
  */
 
 (function () {
     'use strict';
-
-    // Never run on POS Counter (POS has its own dedicated high-speed keyboard engine)
-    if (window.location.pathname.startsWith('/pos')) {
-        return;
-    }
 
     let currentTarget = null;
     let isEditingMode = false;
@@ -32,9 +28,12 @@
 
     function isVisible(el) {
         if (!el) return false;
-        if (el.offsetParent === null && el.tagName !== 'BODY') return false;
+        if (el.offsetParent === null && el.tagName !== 'BODY') {
+            const style = window.getComputedStyle(el);
+            if (style.position !== 'fixed' && style.position !== 'sticky') return false;
+        }
         const style = window.getComputedStyle(el);
-        if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return false;
+        if (style.display === 'none' || style.visibility === 'hidden') return false;
         const rect = el.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) return false;
         if (el.closest('[x-cloak]')) return false;
@@ -53,26 +52,78 @@
         };
     }
 
-    function findNextSpatialTarget(direction) {
-        // 1. If currently inside an open dropdown, navigate strictly up/down through its items
-        const openDropdownMenu = currentTarget ? (
-            currentTarget.closest('[x-show="open"]') ||
-            (currentTarget.closest('[x-data]') && currentTarget.closest('[x-data]').querySelector('[x-show="open"]:not([style*="display: none"])'))
-        ) : null;
+    // Helper: Detect if element is an <x-dropdown> trigger button
+    function getDropdownForTrigger(el) {
+        if (!el) return null;
+        const tag = el.tagName.toLowerCase();
+        if (tag !== 'button' && tag !== 'a' && el.getAttribute('role') !== 'button') return null;
 
-        if (openDropdownMenu && window.getComputedStyle(openDropdownMenu).display !== 'none') {
-            const dropdownItems = Array.from(openDropdownMenu.querySelectorAll('a, button')).filter(isVisible);
-            if (dropdownItems.length > 0) {
-                const currentIdx = dropdownItems.indexOf(currentTarget);
+        // Container is the closest relative container with x-data that has an open property
+        const container = el.closest('[x-data]');
+        if (!container || !window.Alpine) return null;
+        try {
+            const data = window.Alpine.$data(container);
+            if (data && 'open' in data) {
+                const menu = container.querySelector('[x-show="open"]');
+                if (menu) {
+                    return { container, data, menu, trigger: el };
+                }
+            }
+        } catch (e) {}
+        return null;
+    }
+
+    // Helper: Detect if element is an item inside an <x-dropdown> menu
+    function getDropdownForMenuItem(el) {
+        if (!el) return null;
+        const menu = el.closest('[x-show="open"]');
+        if (!menu) return null;
+        const container = menu.closest('[x-data]');
+        if (!container || !window.Alpine) return null;
+        try {
+            const data = window.Alpine.$data(container);
+            const trigger = container.querySelector('button') || container.querySelector('a');
+            return { container, data, menu, trigger };
+        } catch (e) {}
+        return null;
+    }
+
+    function findNextSpatialTarget(direction) {
+        // 1. If currently inside an open <x-dropdown> menu, navigate strictly up/down through its items
+        const dropdownItem = getDropdownForMenuItem(currentTarget);
+        if (dropdownItem) {
+            const items = Array.from(dropdownItem.menu.querySelectorAll('a[href], button')).filter(el => {
+                const s = window.getComputedStyle(el);
+                return s.display !== 'none' && s.visibility !== 'hidden';
+            });
+
+            if (items.length > 0) {
+                const currentIdx = items.indexOf(currentTarget);
                 if (direction === 'down') {
-                    if (currentIdx === -1) return dropdownItems[0];
-                    return dropdownItems[Math.min(dropdownItems.length - 1, currentIdx + 1)];
+                    const nextIdx = (currentIdx + 1) % items.length;
+                    return items[nextIdx];
                 } else if (direction === 'up') {
-                    if (currentIdx <= 0) {
-                        const triggerBtn = openDropdownMenu.closest('[x-data]')?.querySelector('button');
-                        if (triggerBtn) return triggerBtn;
+                    if (currentIdx === 0 && dropdownItem.trigger) {
+                        return dropdownItem.trigger;
                     }
-                    return dropdownItems[Math.max(0, currentIdx - 1)];
+                    const prevIdx = (currentIdx - 1 + items.length) % items.length;
+                    return items[prevIdx];
+                } else if (direction === 'left' || direction === 'right') {
+                    dropdownItem.data.open = false;
+                }
+            }
+        }
+
+        // 2. If on a dropdown trigger button and its dropdown is open, pressing down enters the menu
+        const dropdownTrigger = getDropdownForTrigger(currentTarget);
+        if (dropdownTrigger && dropdownTrigger.data.open) {
+            if (direction === 'down') {
+                const items = Array.from(dropdownTrigger.menu.querySelectorAll('a[href], button')).filter(el => {
+                    const s = window.getComputedStyle(el);
+                    return s.display !== 'none' && s.visibility !== 'hidden';
+                });
+                if (items.length > 0) {
+                    return items[0];
                 }
             }
         }
@@ -93,6 +144,7 @@
 
         candidates.forEach(cand => {
             if (cand === currentTarget) return;
+
             // Ignore items in closed dropdowns
             const closedMenu = cand.closest('[x-show="open"]');
             if (closedMenu && window.getComputedStyle(closedMenu).display === 'none') return;
@@ -201,16 +253,18 @@
             } catch (err) {}
         }
 
-        // Close 3-dot dropdowns if open
-        const openDropdown = currentTarget?.closest('[x-data]');
-        if (openDropdown && window.Alpine) {
-            try {
-                const data = window.Alpine.$data(openDropdown);
-                if (data && 'open' in data) {
-                    data.open = false;
-                }
-            } catch (err) {}
-        }
+        // Close any open <x-dropdown> menus
+        document.querySelectorAll('[x-show="open"]:not([style*="display: none"])').forEach(menu => {
+            const container = menu.closest('[x-data]');
+            if (container && window.Alpine) {
+                try {
+                    const data = window.Alpine.$data(container);
+                    if (data && 'open' in data) {
+                        data.open = false;
+                    }
+                } catch (e) {}
+            }
+        });
     }
 
     function enterEditingMode() {
@@ -251,7 +305,7 @@
             } catch (err) {}
         }
 
-        // Trigger input / focus / click events so reactive search lists show up immediately
+        // Trigger input / focus events so reactive search lists show up immediately
         currentTarget.dispatchEvent(new Event('input', { bubbles: true }));
         currentTarget.dispatchEvent(new Event('focus', { bubbles: true }));
 
@@ -278,53 +332,54 @@
     function executeCurrentTarget() {
         if (!currentTarget) return;
 
+        // 1. Check if clicking an <x-dropdown> trigger button (3-dots or navbar dropdown)
+        const dropdownTrigger = getDropdownForTrigger(currentTarget);
+        if (dropdownTrigger) {
+            if (!dropdownTrigger.data.open) {
+                // Open dropdown
+                dropdownTrigger.data.open = true;
+                setTimeout(() => {
+                    const items = Array.from(dropdownTrigger.menu.querySelectorAll('a[href], button')).filter(el => {
+                        const s = window.getComputedStyle(el);
+                        return s.display !== 'none' && s.visibility !== 'hidden';
+                    });
+                    if (items.length > 0) {
+                        setSpatialFocus(items[0], true);
+                    }
+                }, 40);
+            } else {
+                dropdownTrigger.data.open = false;
+            }
+            return;
+        }
+
+        // 2. Check if clicking an item inside an open <x-dropdown> menu
+        const dropdownItem = getDropdownForMenuItem(currentTarget);
+        if (dropdownItem) {
+            const targetEl = currentTarget;
+            dropdownItem.data.open = false;
+
+            if (targetEl.tagName.toLowerCase() === 'a' && targetEl.href) {
+                targetEl.click();
+                if (targetEl.href && !targetEl.href.startsWith('javascript:')) {
+                    window.location.href = targetEl.href;
+                }
+                return;
+            }
+
+            targetEl.click();
+            return;
+        }
+
         const tag = currentTarget.tagName.toLowerCase();
 
         if (tag === 'button' || tag === 'a' || currentTarget.getAttribute('role') === 'button') {
             currentTarget.classList.add('scale-95');
             setTimeout(() => currentTarget.classList.remove('scale-95'), 120);
 
-            // Check if clicking an Alpine dropdown trigger
-            const alpineDropdown = currentTarget.closest('[x-data]');
-            let isDropdownTrigger = false;
-
-            if (alpineDropdown && window.Alpine) {
-                try {
-                    const data = window.Alpine.$data(alpineDropdown);
-                    if (data && 'open' in data) {
-                        isDropdownTrigger = true;
-                        data.open = !data.open;
-
-                        if (data.open) {
-                            setTimeout(() => {
-                                const menu = alpineDropdown.querySelector('[x-show="open"]') || alpineDropdown;
-                                const items = Array.from(menu.querySelectorAll('a, button')).filter(el => el !== currentTarget && isVisible(el));
-                                if (items.length > 0) {
-                                    setSpatialFocus(items[0], true);
-                                }
-                            }, 80);
-                            return;
-                        }
-                    }
-                } catch (e) {}
-            }
-
-            // If it's an item inside an open dropdown, close the dropdown after clicking
-            const openDropdown = currentTarget.closest('[x-show="open"]');
-            if (openDropdown && window.Alpine) {
-                try {
-                    const data = window.Alpine.$data(openDropdown.closest('[x-data]'));
-                    if (data && 'open' in data) {
-                        data.open = false;
-                    }
-                } catch (e) {}
-            }
-
             // Execute click
             currentTarget.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-            if (!isDropdownTrigger) {
-                currentTarget.click();
-            }
+            currentTarget.click();
         } else if (tag === 'input' || tag === 'select' || tag === 'textarea') {
             const form = currentTarget.closest('form');
             if (currentTarget.id === 'search' || currentTarget.name === 'search') {
@@ -421,10 +476,26 @@
 
         // 1. ESCAPE KEY (Highest Priority):
         // "or phr escape karo to wo har har joga ghuma samajy"
-        // Immediately closes all dropdowns, exits editing mode, blurs input, and restores roaming arrow keys!
         if (e.key === 'Escape') {
             e.preventDefault();
             e.stopPropagation();
+
+            // If inside an open <x-dropdown> menu item, close menu and restore focus to trigger
+            const dropdownItem = getDropdownForMenuItem(currentTarget);
+            if (dropdownItem) {
+                dropdownItem.data.open = false;
+                if (dropdownItem.trigger) {
+                    setSpatialFocus(dropdownItem.trigger, true);
+                }
+                return;
+            }
+
+            // If on a dropdown trigger whose menu is open, close it
+            const dropdownTrigger = getDropdownForTrigger(currentTarget);
+            if (dropdownTrigger && dropdownTrigger.data.open) {
+                dropdownTrigger.data.open = false;
+                return;
+            }
 
             if (isEditingMode || isInputActive) {
                 exitEditingMode();
@@ -443,6 +514,7 @@
                 '[x-show*="vendorOpen"]:not([style*="display: none"]), ' +
                 '[x-show*="item.open"]:not([style*="display: none"]), ' +
                 '[x-show*="productDropdown"]:not([style*="display: none"]), ' +
+                '[x-show*="customerDropdownOpen"]:not([style*="display: none"]), ' +
                 '[x-show*="partyOpen"]:not([style*="display: none"])'
             );
 
@@ -513,7 +585,6 @@
         }
 
         // 5. ENTER KEY IN ROAMING MODE:
-        // "ma koi bhi select ya searching pr double enter karo to wo active searhing wagera ka liya"
         if (e.key === 'Enter') {
             e.preventDefault();
             e.stopPropagation();
