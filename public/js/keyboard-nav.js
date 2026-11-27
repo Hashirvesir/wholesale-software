@@ -11,6 +11,11 @@
 (function () {
     'use strict';
 
+    // Never run on POS Counter (POS has its own dedicated high-speed keyboard engine)
+    if (window.location.pathname.startsWith('/pos')) {
+        return;
+    }
+
     let currentTarget = null;
     let isEditingMode = false;
     let hintBar = null;
@@ -334,8 +339,42 @@
         }
     }
 
-    // Global Key Listener (Capture Phase)
+    // Global Key Listener (Bubble Phase - allows input autocomplete to handle keys first)
     window.addEventListener('keydown', function (e) {
+        // If another component already handled this event, yield immediately
+        if (e.defaultPrevented) return;
+
+        const active = document.activeElement;
+        const isInputActive = active && (
+            active.tagName === 'INPUT' ||
+            active.tagName === 'TEXTAREA' ||
+            active.tagName === 'SELECT' ||
+            active.isContentEditable
+        );
+
+        // Check if an autocomplete dropdown list is currently open
+        const isAutocompleteOpen = document.querySelector(
+            '[x-show*="customerOpen"]:not([style*="display: none"]), [x-show*="productDropdown"]:not([style*="display: none"]), [x-show*="item.open"]:not([style*="display: none"]), [x-show*="partyOpen"]:not([style*="display: none"])'
+        ) !== null;
+
+        // If user is actively typing in an input with autocomplete or dropdown
+        if (isInputActive) {
+            const hasCustomHandler = active.hasAttribute('@keydown') ||
+                active.hasAttribute('x-on:keydown') ||
+                active.classList.contains('keyboard-nav') ||
+                active.closest('[x-data*="customer"], [x-data*="saleForm"], [x-data*="purchaseForm"]');
+
+            if (hasCustomHandler || isAutocompleteOpen) {
+                if (e.key === 'Escape') {
+                    active.blur();
+                    setSpatialFocus(active);
+                    isEditingMode = false;
+                }
+                // Yield to input's native autocomplete and arrow keys
+                return;
+            }
+        }
+
         // If actively typing inside an input in Editing Mode:
         if (isEditingMode) {
             if (e.key === 'Escape') {
@@ -356,7 +395,7 @@
         }
 
         // Global Shortcut: '?' for help (when not typing)
-        if (e.key === '?' && !isEditingMode) {
+        if (e.key === '?' && !isEditingMode && !isInputActive) {
             window.dispatchEvent(new CustomEvent('toggle-shortcut-help'));
             e.preventDefault();
             e.stopPropagation();
@@ -371,6 +410,11 @@
         else if (e.key === 'ArrowUp') direction = 'up';
 
         if (direction) {
+            // Do not steal arrow keys if typing in a normal text input
+            if (isInputActive && !isEditingMode) {
+                return;
+            }
+
             e.preventDefault();
             e.stopPropagation();
 
@@ -383,6 +427,14 @@
 
         // Enter Key in Spatial Mode:
         if (e.key === 'Enter') {
+            if (isInputActive && !isEditingMode) {
+                // If input has no special handler, enter editing mode
+                e.preventDefault();
+                e.stopPropagation();
+                enterEditingMode();
+                return;
+            }
+
             e.preventDefault();
             e.stopPropagation();
 
@@ -426,7 +478,7 @@
             }
             return;
         }
-    }, true); // Capture phase guarantees priority over standard form submissions
+    }, false); // Bubble phase allows inputs & Alpine autocomplete to handle keys first
 
     // Click synchronization: Clicking any element with mouse automatically sets spatial ring on it
     document.addEventListener('click', function (e) {
