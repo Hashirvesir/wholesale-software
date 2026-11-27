@@ -49,44 +49,67 @@
                                 </div>
                             </div>
                             <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
-                                <span class="text-xs font-bold dark:text-gray-300">1st Enter: Activate / Type</span>
-                                <kbd class="px-2 py-0.5 bg-primary-600 text-white rounded text-[11px] font-mono font-bold">1st Enter</kbd>
+                                <span class="text-xs font-bold dark:text-gray-300">Open Dropdown / Menu</span>
+                                <kbd class="px-2 py-0.5 bg-primary-600 text-white rounded text-[11px] font-mono font-bold">Enter</kbd>
                             </div>
                             <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
-                                <span class="text-xs font-bold dark:text-gray-300">2nd Enter: Execute / Submit</span>
+                                <span class="text-xs font-bold dark:text-gray-300">Cycle Menu Items</span>
+                                <div class="flex gap-1">
+                                    <kbd class="px-1 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[10px] font-mono">↑</kbd>
+                                    <kbd class="px-1 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[10px] font-mono">↓</kbd>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">1st Enter: Search / Type</span>
+                                <kbd class="px-2 py-0.5 bg-emerald-600 text-white rounded text-[11px] font-mono font-bold">1st Enter</kbd>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">2nd Enter: Submit / Next</span>
                                 <kbd class="px-2 py-0.5 bg-emerald-600 text-white rounded text-[11px] font-mono font-bold">2nd Enter</kbd>
                             </div>
                             <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
-                                <span class="text-xs font-bold dark:text-gray-300">Exit Edit Mode</span>
-                                <kbd class="px-2 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono">Esc</kbd>
+                                <span class="text-xs font-bold dark:text-gray-300">Close Dropdown / Roam</span>
+                                <kbd class="px-2 py-0.5 bg-rose-600 text-white rounded text-[11px] font-mono font-bold">Esc</kbd>
                             </div>
                         </div>
                     </div>
-                    <!-- Navigation -->
+
+                    <!-- Global Navigation -->
                     <div>
                         <h4 class="text-xs font-black text-primary-600 uppercase tracking-widest mb-3">Global Navigation
                         </h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div
-                                class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded-lg">
-                                <span class="text-sm font-bold dark:text-gray-300">Quick Search</span>
-                                <kbd
-                                    class="px-2 py-1 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-xs font-mono">Ctrl
-                                    + K</kbd>
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">Dashboard</span>
+                                <kbd class="px-2 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono">Alt + B</kbd>
                             </div>
-                            <div
-                                class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded-lg">
-                                <span class="text-sm font-bold dark:text-gray-300">Dashboard</span>
-                                <kbd
-                                    class="px-2 py-1 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-xs font-mono">Alt
-                                    + B</kbd>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">POS Counter</span>
+                                <kbd class="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-700 rounded text-[11px] font-mono font-bold">Alt + X</kbd>
                             </div>
-                            <div
-                                class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded-lg">
-                                <span class="text-sm font-bold dark:text-gray-300">Shortcuts Help</span>
-                                <kbd
-                                    class="px-2 py-1 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-xs font-mono">Ctrl
-                                    + /</kbd>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">Sales Invoices</span>
+                                <kbd class="px-2 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono">Alt + L</kbd>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">Purchases List</span>
+                                <kbd class="px-2 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono">Alt + U</kbd>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">Products Catalog</span>
+                                <kbd class="px-2 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono">Alt + I</kbd>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">Reports Center</span>
+                                <kbd class="px-2 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono">Alt + R</kbd>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">Mobile Repairs</span>
+                                <kbd class="px-2 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono">Alt + M</kbd>
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <span class="text-xs font-bold dark:text-gray-300">Quick Search</span>
+                                <kbd class="px-2 py-0.5 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-[11px] font-mono">Ctrl + K</kbd>
                             </div>
                         </div>
                     </div>

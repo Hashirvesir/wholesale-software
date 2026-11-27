@@ -158,23 +158,41 @@
                 }
             }
 
-            // Alt + Key Shortcuts (Navigation/Actions)
+            // Alt + Key Shortcuts (Global Navigation & Quick Actions)
             if (e.altKey) {
                 switch (e.key.toLowerCase()) {
+                    case 'b': // Dashboard
+                        window.location.href = "{{ route('dashboard') }}";
+                        break;
+                    case 'x': // POS Counter
+                        window.location.href = "{{ route('pos.index') }}";
+                        break;
                     case 's': // New Sale
                         window.location.href = "{{ route('sales.create') }}";
+                        break;
+                    case 'l': // Sales Invoices List
+                        window.location.href = "{{ route('sales.index') }}";
                         break;
                     case 'p': // New Purchase
                         window.location.href = "{{ route('purchases.create') }}";
                         break;
+                    case 'u': // Purchases List
+                        window.location.href = "{{ route('purchases.index') }}";
+                        break;
                     case 'q': // New Product
                         window.location.href = "{{ route('products.create') }}";
+                        break;
+                    case 'i': // Products Catalog List
+                        window.location.href = "{{ route('products.index') }}";
                         break;
                     case 'c': // New Category
                         window.location.href = "{{ route('categories.create') }}";
                         break;
-                    case 'b': // Dashboard
-                        window.location.href = "{{ route('dashboard') }}";
+                    case 'r': // Reports
+                        window.location.href = "{{ route('reports.index') }}";
+                        break;
+                    case 'm': // Mobile Repairs / Lab
+                        window.location.href = "{{ route('repairs.index') }}";
                         break;
                 }
             }
