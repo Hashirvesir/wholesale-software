@@ -94,15 +94,15 @@
                 }
             });
 
-            // 3. Periodic real ping check (every 15s)
+            // 3. Periodic real ping check (every 45s)
             this.checkConnection(false);
             this.pingTimer = setInterval(() => {
                 this.checkConnection(false);
-            }, 15000);
+            }, 45000);
 
-            // 4. Initial Master Data sync if online
-            if (this.isOnline) {
-                setTimeout(() => this.fetchMasterData(), 1200);
+            // 4. Initial Master Data sync ONLY if online and master data is not yet cached or stale (> 20 mins)
+            if (this.isOnline && this.shouldFetchMasterData()) {
+                setTimeout(() => this.fetchMasterData(), 4000);
             }
         }
 
@@ -180,20 +180,30 @@
             window.dispatchEvent(new CustomEvent('offline-status-changed', { detail }));
         }
 
-        async fetchMasterData() {
+        shouldFetchMasterData() {
+            if (!this.masterData) return true;
+            const ts = localStorage.getItem('invenco_offline_last_sync_timestamp');
+            if (!ts) return true;
+            return (Date.now() - parseInt(ts, 10)) > (20 * 60 * 1000);
+        }
+
+        async fetchMasterData(force = false) {
             if (!this.isOnline) return false;
+            if (!force && !this.shouldFetchMasterData()) return false;
+            if (this.isFetchingMasterData) return false;
+            this.isFetchingMasterData = true;
 
             try {
-                const res = await fetch('/api/offline/master-data?_t=' + Date.now(), {
+                const res = await fetch('/api/offline/master-data', {
                     headers: { 'Accept': 'application/json' },
-                    credentials: 'same-origin',
-                    cache: 'no-store'
+                    credentials: 'same-origin'
                 });
 
                 if (res.ok) {
                     const data = await res.json();
                     this.masterData = data;
                     localStorage.setItem(STORAGE_KEY_MASTER, JSON.stringify(data));
+                    localStorage.setItem('invenco_offline_last_sync_timestamp', Date.now().toString());
                     this.lastSyncTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     localStorage.setItem(STORAGE_KEY_LAST_SYNC, this.lastSyncTime);
                     this.dispatchStatusEvent();
@@ -201,6 +211,8 @@
                 }
             } catch (e) {
                 console.warn('Failed to fetch master data:', e);
+            } finally {
+                this.isFetchingMasterData = false;
             }
             return false;
         }

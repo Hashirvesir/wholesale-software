@@ -17,6 +17,7 @@ use App\Models\Expense;
 use App\Models\Purchase;
 use App\Traits\TracksActivity;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -40,87 +41,91 @@ class OfflineSyncController extends Controller
      */
     public function masterData()
     {
-        $customers = Party::whereIn('type', ['customer', 'both'])
-            ->where('status', true)
-            ->orderBy('name')
-            ->get()
-            ->map(function ($party) {
-                return [
-                    'id' => $party->id,
-                    'name' => $party->name,
-                    'type' => $party->type,
-                    'salesman_id' => $party->salesman_id,
-                    'phone' => $party->phone ?? '',
-                    'address' => $party->address ?? '',
-                    'price_tier' => $party->price_tier ?? 'wholesale',
-                    'current_balance' => (float)$party->getCurrentBalance(),
-                    'credit_limit' => (float)($party->credit_limit ?? 0),
-                    'credit_days' => (int)($party->credit_days ?? 0),
-                    'has_overdue' => $party->type === 'customer' ? $party->hasOverdueInvoices() : false,
-                ];
-            });
+        $payload = Cache::remember('offline_master_data_payload', 300, function () {
+            $customers = Party::whereIn('type', ['customer', 'both'])
+                ->where('status', true)
+                ->orderBy('name')
+                ->get()
+                ->map(function ($party) {
+                    return [
+                        'id' => $party->id,
+                        'name' => $party->name,
+                        'type' => $party->type,
+                        'salesman_id' => $party->salesman_id,
+                        'phone' => $party->phone ?? '',
+                        'address' => $party->address ?? '',
+                        'price_tier' => $party->price_tier ?? 'wholesale',
+                        'current_balance' => (float)$party->getCurrentBalance(),
+                        'credit_limit' => (float)($party->credit_limit ?? 0),
+                        'credit_days' => (int)($party->credit_days ?? 0),
+                        'has_overdue' => $party->type === 'customer' ? $party->hasOverdueInvoices() : false,
+                    ];
+                });
 
-        $warehouses = Warehouse::where('status', true)->get(['id', 'name']);
+            $warehouses = Warehouse::where('status', true)->get(['id', 'name']);
 
-        $products = Product::with(['stocks', 'category', 'unit', 'brand'])
-            ->where('status', 1)
-            ->get()
-            ->map(function ($product) {
-                return [
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'sku' => $product->sku ?? '',
-                    'barcode' => $product->barcode ?? '',
-                    'category_id' => $product->category_id,
-                    'category_name' => $product->category->name ?? '',
-                    'brand_id' => $product->brand_id,
-                    'brand_name' => $product->brand->name ?? '',
-                    'unit_name' => $product->unit->name ?? 'pc',
-                    'sale_price' => (float)$product->sale_price,
-                    'wholesale_price' => (float)($product->wholesale_price ?? $product->sale_price),
-                    'retail_price' => (float)($product->retail_price ?? $product->sale_price),
-                    'dealer_price' => (float)($product->dealer_price ?? $product->sale_price),
-                    'purchase_price' => (float)$product->purchase_price,
-                    'warehouse_stocks' => $product->stocks->pluck('qty', 'warehouse_id'),
-                    'warehouse_costs' => $product->stocks->pluck('avg_cost', 'warehouse_id'),
-                ];
-            });
+            $products = Product::with(['stocks', 'category', 'unit', 'brand'])
+                ->where('status', 1)
+                ->get()
+                ->map(function ($product) {
+                    return [
+                        'id' => $product->id,
+                        'name' => $product->name,
+                        'sku' => $product->sku ?? '',
+                        'barcode' => $product->barcode ?? '',
+                        'category_id' => $product->category_id,
+                        'category_name' => $product->category->name ?? '',
+                        'brand_id' => $product->brand_id,
+                        'brand_name' => $product->brand->name ?? '',
+                        'unit_name' => $product->unit->name ?? 'pc',
+                        'sale_price' => (float)$product->sale_price,
+                        'wholesale_price' => (float)($product->wholesale_price ?? $product->sale_price),
+                        'retail_price' => (float)($product->retail_price ?? $product->sale_price),
+                        'dealer_price' => (float)($product->dealer_price ?? $product->sale_price),
+                        'purchase_price' => (float)$product->purchase_price,
+                        'warehouse_stocks' => $product->stocks->pluck('qty', 'warehouse_id'),
+                        'warehouse_costs' => $product->stocks->pluck('avg_cost', 'warehouse_id'),
+                    ];
+                });
 
-        $paymentAccounts = ChartOfAccount::where('type', 'Asset')
-            ->whereNotIn('name', ['Inventory', 'Accounts Receivable'])
-            ->where('status', true)
-            ->get(['id', 'name']);
+            $paymentAccounts = ChartOfAccount::where('type', 'Asset')
+                ->whereNotIn('name', ['Inventory', 'Accounts Receivable'])
+                ->where('status', true)
+                ->get(['id', 'name']);
 
-        $settings = Setting::first();
+            $settings = Setting::first();
 
-        // Cached dashboard & quick view stats for offline view
-        $today = now()->toDateString();
-        $dashboardStats = [
-            'total_sales' => (float)Sale::sum('total_amount'),
-            'total_purchases' => (float)Purchase::sum('total_amount'),
-            'total_expenses' => (float)Expense::sum('amount'),
-            'total_customers' => Party::where('type', 'customer')->count(),
-            'total_vendors' => Party::where('type', 'vendor')->count(),
-            'total_products' => Product::count(),
-            'today_sales' => (float)Sale::where('date', $today)->sum('total_amount'),
-            'today_sales_count' => Sale::where('date', $today)->count(),
-            'cached_at' => now()->format('d M, Y h:i A'),
-        ];
+            // Cached dashboard & quick view stats for offline view
+            $today = now()->toDateString();
+            $dashboardStats = [
+                'total_sales' => (float)Sale::sum('total_amount'),
+                'total_purchases' => (float)Purchase::sum('total_amount'),
+                'total_expenses' => (float)Expense::sum('amount'),
+                'total_customers' => Party::where('type', 'customer')->count(),
+                'total_vendors' => Party::where('type', 'vendor')->count(),
+                'total_products' => Product::count(),
+                'today_sales' => (float)Sale::where('date', $today)->sum('total_amount'),
+                'today_sales_count' => Sale::where('date', $today)->count(),
+                'cached_at' => now()->format('d M, Y h:i A'),
+            ];
 
-        return response()->json([
-            'customers' => $customers,
-            'products' => $products,
-            'warehouses' => $warehouses,
-            'payment_accounts' => $paymentAccounts,
-            'settings' => [
-                'walk_in_customer_id' => $settings->walk_in_customer_id ?? null,
-                'shop_warehouse_id' => $settings->shop_warehouse_id ?? null,
-                'currency_symbol' => $settings->currency_symbol ?? 'Rs',
-                'company_name' => $settings->company_name ?? 'Wholesale Software',
-            ],
-            'dashboard_stats' => $dashboardStats,
-            'synced_at' => now()->toIso8601String(),
-        ]);
+            return [
+                'customers' => $customers,
+                'products' => $products,
+                'warehouses' => $warehouses,
+                'payment_accounts' => $paymentAccounts,
+                'settings' => [
+                    'walk_in_customer_id' => $settings->walk_in_customer_id ?? null,
+                    'shop_warehouse_id' => $settings->shop_warehouse_id ?? null,
+                    'currency_symbol' => $settings->currency_symbol ?? 'Rs',
+                    'company_name' => $settings->company_name ?? 'Wholesale Software',
+                ],
+                'dashboard_stats' => $dashboardStats,
+                'synced_at' => now()->toIso8601String(),
+            ];
+        });
+
+        return response()->json($payload);
     }
 
     /**
