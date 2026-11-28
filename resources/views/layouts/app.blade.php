@@ -189,7 +189,7 @@
                         window.location.href = "{{ route('categories.create') }}";
                         break;
                     case 'r': // Reports
-                        window.location.href = "{{ route('reports.index') }}";
+                        window.location.href = "{{ route('reports.profit-loss') }}";
                         break;
                     case 'm': // Mobile Repairs / Lab
                         window.location.href = "{{ route('repairs.index') }}";

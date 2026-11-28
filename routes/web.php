@@ -136,6 +136,7 @@ Route::middleware('auth')->group(function () {
 
 
     // Reports
+    Route::get('/reports', fn() => redirect()->route('reports.profit-loss'))->name('reports.index');
     Route::get('/reports/account-ledger', [ReportController::class, 'accountLedger'])->name('reports.account-ledger')->middleware('permission:view account ledger');
     Route::get('/reports/party-ledger', [ReportController::class, 'partyLedger'])->name('reports.party-ledger')->middleware('permission:view party ledger');
     Route::get('/reports/trial-balance', [ReportController::class, 'trialBalance'])->name('reports.trial-balance')->middleware('permission:view trial balance');
