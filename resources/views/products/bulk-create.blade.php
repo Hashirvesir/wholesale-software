@@ -4,6 +4,8 @@
         brands: {{ Js::from($brands) }},
         units: {{ Js::from($units) }},
         warehouses: {{ Js::from($warehouses) }},
+        existingSkus: {{ Js::from($existingSkus ?? []) }},
+        existingBarcodes: {{ Js::from($existingBarcodes ?? []) }},
         defaultCategory: '{{ $categories->first()->id ?? '' }}',
         defaultBrand: '{{ $brands->first()->id ?? '' }}',
         defaultUnit: '{{ $units->first()->id ?? '' }}',
@@ -11,7 +13,7 @@
         currencySymbol: '{{ $settings->currency_symbol ?? 'Rs' }}'
     })"
     @keydown.window="handleGlobalKeys($event)">
-        <div class="max-w-[1900px] mx-auto px-2 sm:px-4 lg:px-6">
+        <div class="max-w-[1920px] mx-auto px-2 sm:px-4 lg:px-6">
 
             <!-- Header Card -->
             <div class="bg-white dark:bg-gray-800 shadow-md rounded-2xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 mb-4">
@@ -32,7 +34,7 @@
                                     </span>
                                 </h2>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                    Quickly type or paste dozens of products. Use <kbd class="px-1 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-[10px] font-mono">Arrow Keys</kbd>, <kbd class="px-1 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-[10px] font-mono">Tab</kbd>, and <kbd class="px-1 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-[10px] font-mono">Enter</kbd> to move across cells. Paste from Excel directly with <kbd class="px-1 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-[10px] font-mono">Ctrl+V</kbd>.
+                                    Type or paste dozens of products. Use <kbd class="px-1 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-[10px] font-mono">Arrow Keys</kbd>, <kbd class="px-1 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-[10px] font-mono">Tab</kbd>, and <kbd class="px-1 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-[10px] font-mono">Enter</kbd> to move across cells. Paste from Excel directly with <kbd class="px-1 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-[10px] font-mono">Ctrl+V</kbd>.
                                 </p>
                             </div>
                         </div>
@@ -40,6 +42,7 @@
 
                     <!-- Action Buttons -->
                     <div class="flex flex-wrap items-center gap-2">
+                        <!-- Add Row -->
                         <button type="button" @click="addRow()"
                             class="inline-flex items-center px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-bold uppercase tracking-wider transition">
                             <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -47,28 +50,55 @@
                             <span class="ml-1.5 text-[10px] text-gray-400 font-mono">Alt+A</span>
                         </button>
 
+                        <!-- +5 Rows -->
                         <button type="button" @click="addRows(5)"
                             class="inline-flex items-center px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-bold uppercase tracking-wider transition">
                             <span>+5 Rows</span>
                         </button>
 
+                        <!-- Auto SKUs -->
                         <button type="button" @click="generateAllMissingSkus()"
                             class="inline-flex items-center px-3 py-2 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded-lg text-xs font-bold uppercase tracking-wider transition">
                             <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                             <span>Auto SKUs</span>
                         </button>
 
+                        <!-- Price Markup Calculator Popover Toggle -->
+                        <button type="button" @click="showMarkupModal = true"
+                            class="inline-flex items-center px-3 py-2 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 rounded-lg text-xs font-bold uppercase tracking-wider transition">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                            <span>Markup Tool</span>
+                        </button>
+
+                        <!-- Download CSV Template -->
+                        <button type="button" @click="downloadCsvTemplate()"
+                            class="inline-flex items-center px-3 py-2 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 rounded-lg text-xs font-bold uppercase tracking-wider transition"
+                            title="Download blank sample template for Excel">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            <span>Sample CSV</span>
+                        </button>
+
+                        <!-- Import CSV File -->
+                        <label class="inline-flex items-center px-3 py-2 bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 rounded-lg text-xs font-bold uppercase tracking-wider transition cursor-pointer">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                            <span>Import File</span>
+                            <input type="file" accept=".csv,text/csv" @change="handleFileImport($event)" class="hidden">
+                        </label>
+
+                        <!-- Clean Blanks -->
                         <button type="button" @click="clearEmptyRows()"
                             class="inline-flex items-center px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-bold uppercase tracking-wider transition"
                             title="Remove blank rows">
                             <span>Clean Blanks</span>
                         </button>
 
+                        <!-- Cancel -->
                         <a href="{{ route('products.index') }}"
                             class="inline-flex items-center px-3 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-bold uppercase tracking-wider transition">
                             <span>Cancel</span>
                         </a>
 
+                        <!-- Save All Products -->
                         <button type="button" @click="submitForm()"
                             class="inline-flex items-center px-5 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-lg text-xs font-black uppercase tracking-wider transition shadow-lg shadow-emerald-600/30">
                             <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
@@ -78,10 +108,15 @@
                     </div>
                 </div>
 
-                <!-- Default Row Presets Toolbar -->
+                <!-- Default Row Presets Toolbar with Quick Add Modals -->
                 <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 bg-gray-50/70 dark:bg-gray-900/40 p-3 rounded-xl border border-gray-200 dark:border-gray-700">
                     <div>
-                        <label class="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-1">Preset Category</label>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-[10px] font-black uppercase text-gray-500 tracking-wider">Preset Category</label>
+                            <button type="button" @click="showQuickCategoryModal = true" class="text-[10px] font-bold text-emerald-600 hover:underline flex items-center gap-0.5">
+                                <span>+ New</span>
+                            </button>
+                        </div>
                         <select x-model="defaults.category_id" @change="applyDefault('category_id')"
                             class="w-full text-xs font-semibold rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 py-1.5 focus:ring-emerald-500 focus:border-emerald-500 dark:text-gray-200">
                             <template x-for="c in categories" :key="c.id">
@@ -91,7 +126,12 @@
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-1">Preset Brand</label>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-[10px] font-black uppercase text-gray-500 tracking-wider">Preset Brand</label>
+                            <button type="button" @click="showQuickBrandModal = true" class="text-[10px] font-bold text-emerald-600 hover:underline flex items-center gap-0.5">
+                                <span>+ New</span>
+                            </button>
+                        </div>
                         <select x-model="defaults.brand_id" @change="applyDefault('brand_id')"
                             class="w-full text-xs font-semibold rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 py-1.5 focus:ring-emerald-500 focus:border-emerald-500 dark:text-gray-200">
                             <template x-for="b in brands" :key="b.id">
@@ -188,13 +228,14 @@
                                                 class="w-full h-full px-2.5 py-2 text-xs font-medium border-0 focus:ring-2 focus:ring-emerald-500 focus:bg-white dark:focus:bg-gray-900 bg-transparent dark:text-gray-100 placeholder-gray-400">
                                         </td>
 
-                                        <!-- 2. SKU -->
-                                        <td class="p-0">
+                                        <!-- 2. SKU (with In-Cell Duplicate Detection) -->
+                                        <td class="p-0 relative">
                                             <div class="relative flex items-center">
                                                 <input type="text" :name="`rows[${rIndex}][sku]`" x-model="row.sku"
                                                     @keydown="handleCellKey($event, rIndex, 1)"
                                                     placeholder="SKU-XXXX"
                                                     :data-cell="`${rIndex}-1`"
+                                                    :class="{ 'ring-2 ring-red-500 bg-red-50/60 dark:bg-red-950/40 text-red-700 dark:text-red-400': isDuplicateSku(row.sku, rIndex) }"
                                                     class="w-full h-full px-2.5 py-2 pr-7 text-xs font-mono font-bold border-0 focus:ring-2 focus:ring-emerald-500 focus:bg-white dark:focus:bg-gray-900 bg-transparent text-emerald-700 dark:text-emerald-400 placeholder-gray-400">
                                                 <button type="button" @click="generateRowSku(rIndex)"
                                                     title="Auto Generate SKU"
@@ -203,15 +244,22 @@
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                                                 </button>
                                             </div>
+                                            <template x-if="isDuplicateSku(row.sku, rIndex)">
+                                                <div class="absolute -bottom-1 left-2 text-[9px] font-bold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-950 px-1 rounded z-10">Duplicate</div>
+                                            </template>
                                         </td>
 
-                                        <!-- 3. Barcode -->
-                                        <td class="p-0">
+                                        <!-- 3. Barcode (with Duplicate Detection) -->
+                                        <td class="p-0 relative">
                                             <input type="text" :name="`rows[${rIndex}][barcode]`" x-model="row.barcode"
                                                 @keydown="handleCellKey($event, rIndex, 2)"
-                                                placeholder="Scan or leave empty"
+                                                placeholder="Scan or empty"
                                                 :data-cell="`${rIndex}-2`"
+                                                :class="{ 'ring-2 ring-red-500 bg-red-50/60 dark:bg-red-950/40 text-red-700 dark:text-red-400': isDuplicateBarcode(row.barcode, rIndex) }"
                                                 class="w-full h-full px-2.5 py-2 text-xs font-mono border-0 focus:ring-2 focus:ring-emerald-500 focus:bg-white dark:focus:bg-gray-900 bg-transparent dark:text-gray-200 placeholder-gray-400">
+                                            <template x-if="isDuplicateBarcode(row.barcode, rIndex)">
+                                                <div class="absolute -bottom-1 left-2 text-[9px] font-bold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-950 px-1 rounded z-10">Duplicate</div>
+                                            </template>
                                         </td>
 
                                         <!-- 4. Category -->
@@ -375,6 +423,73 @@
                 </div>
             </form>
         </div>
+
+        <!-- Inline Quick-Add Category Modal -->
+        <div x-show="showQuickCategoryModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+            <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm" @click="showQuickCategoryModal = false"></div>
+            <div class="flex min-h-screen items-center justify-center p-4">
+                <div class="relative w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
+                    <h3 class="text-base font-black text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-4">Quick Add Category</h3>
+                    <input type="text" x-model="newCategoryName" @keydown.enter.prevent="quickAddCategory()" placeholder="Category Name"
+                        class="w-full text-sm rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 mb-4 focus:ring-emerald-500 focus:border-emerald-500">
+                    <div class="flex justify-end gap-2">
+                        <button type="button" @click="showQuickCategoryModal = false" class="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 text-xs font-bold rounded-lg text-gray-700 dark:text-gray-300">Cancel</button>
+                        <button type="button" @click="quickAddCategory()" class="px-4 py-1.5 bg-emerald-600 text-white text-xs font-black uppercase rounded-lg hover:bg-emerald-700">Save Category</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inline Quick-Add Brand Modal -->
+        <div x-show="showQuickBrandModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+            <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm" @click="showQuickBrandModal = false"></div>
+            <div class="flex min-h-screen items-center justify-center p-4">
+                <div class="relative w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
+                    <h3 class="text-base font-black text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-4">Quick Add Brand</h3>
+                    <input type="text" x-model="newBrandName" @keydown.enter.prevent="quickAddBrand()" placeholder="Brand Name"
+                        class="w-full text-sm rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 mb-4 focus:ring-emerald-500 focus:border-emerald-500">
+                    <div class="flex justify-end gap-2">
+                        <button type="button" @click="showQuickBrandModal = false" class="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 text-xs font-bold rounded-lg text-gray-700 dark:text-gray-300">Cancel</button>
+                        <button type="button" @click="quickAddBrand()" class="px-4 py-1.5 bg-emerald-600 text-white text-xs font-black uppercase rounded-lg hover:bg-emerald-700">Save Brand</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Markup & Margin Calculator Modal -->
+        <div x-show="showMarkupModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+            <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm" @click="showMarkupModal = false"></div>
+            <div class="flex min-h-screen items-center justify-center p-4">
+                <div class="relative w-full max-w-md rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
+                    <h3 class="text-base font-black text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        <span>Price Markup Calculator</span>
+                    </h3>
+                    <p class="text-xs text-gray-500 mb-4">Automatically calculate Wholesale, Retail, and Sale Prices from each product's Cost / Wholesale Price.</p>
+                    
+                    <div class="space-y-3 mb-6">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Wholesale Markup % (over cost)</label>
+                            <input type="number" step="0.5" x-model="markupSettings.wholesale" class="w-full text-xs font-mono rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Retail Markup % (over cost)</label>
+                            <input type="number" step="0.5" x-model="markupSettings.retail" class="w-full text-xs font-mono rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Dealer Markup % (over cost)</label>
+                            <input type="number" step="0.5" x-model="markupSettings.dealer" class="w-full text-xs font-mono rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-2">
+                        <button type="button" @click="showMarkupModal = false" class="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 text-xs font-bold rounded-lg text-gray-700 dark:text-gray-300">Cancel</button>
+                        <button type="button" @click="applyMarkupToRows()" class="px-4 py-1.5 bg-amber-600 text-white text-xs font-black uppercase rounded-lg hover:bg-amber-700">Apply to All Rows</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Alpine.js Spreadsheet Component Logic -->
@@ -385,6 +500,8 @@
                 brands: config.brands,
                 units: config.units,
                 warehouses: config.warehouses,
+                existingSkus: (config.existingSkus || []).map(s => String(s).toLowerCase().trim()),
+                existingBarcodes: (config.existingBarcodes || []).map(b => String(b).toLowerCase().trim()),
                 currencySymbol: config.currencySymbol,
                 defaults: {
                     category_id: config.defaultCategory,
@@ -394,6 +511,16 @@
                 },
                 rows: [],
                 TOTAL_COLUMNS: 14, // 0 to 13
+                showQuickCategoryModal: false,
+                newCategoryName: '',
+                showQuickBrandModal: false,
+                newBrandName: '',
+                showMarkupModal: false,
+                markupSettings: {
+                    wholesale: 15,
+                    retail: 25,
+                    dealer: 10
+                },
 
                 init() {
                     // Populate initial 8 empty rows
@@ -477,6 +604,33 @@
                     });
                 },
 
+                // In-Cell Duplicate SKU Checking
+                isDuplicateSku(sku, rIndex) {
+                    if (!sku || !sku.trim()) return false;
+                    const cleaned = sku.toLowerCase().trim();
+                    if (this.existingSkus.includes(cleaned)) return true;
+                    // Check other rows in spreadsheet
+                    for (let i = 0; i < this.rows.length; i++) {
+                        if (i !== rIndex && this.rows[i].sku && this.rows[i].sku.toLowerCase().trim() === cleaned) {
+                            return true;
+                        }
+                    }
+                    return false;
+                },
+
+                // In-Cell Duplicate Barcode Checking
+                isDuplicateBarcode(barcode, rIndex) {
+                    if (!barcode || !barcode.trim()) return false;
+                    const cleaned = barcode.toLowerCase().trim();
+                    if (this.existingBarcodes.includes(cleaned)) return true;
+                    for (let i = 0; i < this.rows.length; i++) {
+                        if (i !== rIndex && this.rows[i].barcode && this.rows[i].barcode.toLowerCase().trim() === cleaned) {
+                            return true;
+                        }
+                    }
+                    return false;
+                },
+
                 generateRowSku(index) {
                     const row = this.rows[index];
                     const prefix = row.name ? row.name.replace(/[^a-zA-Z0-9]/g, '').substr(0, 3).toUpperCase() : 'PRD';
@@ -501,7 +655,6 @@
                 },
 
                 handleCellKey(e, rowIndex, colIndex) {
-                    // ArrowDown: Move to same column in row below
                     if (e.key === 'ArrowDown') {
                         e.preventDefault();
                         if (rowIndex < this.rows.length - 1) {
@@ -513,7 +666,6 @@
                         return;
                     }
 
-                    // ArrowUp: Move to same column in row above
                     if (e.key === 'ArrowUp') {
                         if (rowIndex > 0) {
                             e.preventDefault();
@@ -522,7 +674,6 @@
                         return;
                     }
 
-                    // Enter: Move down or create new row at end
                     if (e.key === 'Enter') {
                         e.preventDefault();
                         if (rowIndex === this.rows.length - 1) {
@@ -534,7 +685,6 @@
                         return;
                     }
 
-                    // Tab at last cell of row -> wrap to first cell of next row
                     if (e.key === 'Tab' && !e.shiftKey && colIndex === this.TOTAL_COLUMNS - 1) {
                         if (rowIndex === this.rows.length - 1) {
                             e.preventDefault();
@@ -545,14 +695,11 @@
                 },
 
                 handleGlobalKeys(e) {
-                    // Alt + S -> Submit Form
                     if (e.altKey && (e.key.toLowerCase() === 's')) {
                         e.preventDefault();
                         this.submitForm();
                         return;
                     }
-
-                    // Alt + A -> Add Row
                     if (e.altKey && (e.key.toLowerCase() === 'a')) {
                         e.preventDefault();
                         this.addRow();
@@ -560,13 +707,14 @@
                     }
                 },
 
+                // Excel Clipboard Paste
                 handlePaste(e) {
                     const clipboardData = e.clipboardData || window.clipboardData;
                     if (!clipboardData) return;
 
                     const text = clipboardData.getData('text');
                     if (!text || (!text.includes('\t') && !text.includes('\n'))) {
-                        return; // Normal text paste, allow default
+                        return;
                     }
 
                     e.preventDefault();
@@ -593,7 +741,6 @@
                         const cells = line.split('\t');
                         const row = this.rows[targetRowIdx];
 
-                        // Mapping columns from current startCol
                         cells.forEach((val, cOffset) => {
                             const targetColIdx = startCol + cOffset;
                             const trimmed = val.trim();
@@ -603,7 +750,6 @@
                                 case 1: row.sku = trimmed; break;
                                 case 2: row.barcode = trimmed; break;
                                 case 3: 
-                                    // Match Category Name or ID
                                     const cat = this.categories.find(c => c.name.toLowerCase() === trimmed.toLowerCase() || c.id == trimmed);
                                     if (cat) row.category_id = cat.id;
                                     break;
@@ -633,6 +779,191 @@
                     this.$nextTick(() => {
                         this.focusCell(startRow, startCol);
                     });
+                },
+
+                // Download Sample CSV Template
+                downloadCsvTemplate() {
+                    const sampleCat = this.categories[0] ? this.categories[0].name : 'Accessories';
+                    const sampleBrand = this.brands[0] ? this.brands[0].name : 'Samsung';
+                    const sampleUnit = this.units[0] ? this.units[0].name : 'Piece';
+                    const sampleWh = this.warehouses[0] ? this.warehouses[0].name : 'Main Warehouse';
+
+                    const headers = [
+                        'Product Name', 'SKU', 'Barcode', 'Category', 'Brand', 'Unit',
+                        'Sale Price', 'Wholesale Rate', 'Retail Rate', 'Dealer Rate',
+                        'Opening Qty', 'Opening Cost', 'Warehouse', 'Alert Qty'
+                    ];
+
+                    const sampleRow1 = [
+                        'Samsung Fast Charger 25W', 'CHG-SAM-25W', '8901234567890', sampleCat, sampleBrand, sampleUnit,
+                        '1200.00', '1000.00', '1300.00', '950.00', '25', '850.00', sampleWh, '5'
+                    ];
+
+                    const sampleRow2 = [
+                        'USB-C Braided Cable 1M', 'CBL-USBC-1M', '', sampleCat, sampleBrand, sampleUnit,
+                        '350.00', '280.00', '400.00', '260.00', '50', '200.00', sampleWh, '10'
+                    ];
+
+                    const csvContent = "data:text/csv;charset=utf-8," 
+                        + [headers.join(','), sampleRow1.join(','), sampleRow2.join(',')].join("\n");
+
+                    const encodedUri = encodeURI(csvContent);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", "invenco_bulk_products_template.csv");
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                },
+
+                // Direct CSV File Import
+                handleFileImport(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const content = e.target.result;
+                        const lines = content.split(/\r\n|\n|\r/).filter(l => l.trim().length > 0);
+                        if (lines.length <= 1) {
+                            alert('CSV file appears to be empty or has only headers.');
+                            return;
+                        }
+
+                        // Skip header row
+                        const dataLines = lines.slice(1);
+                        this.rows = []; // Clear current rows
+
+                        dataLines.forEach((line) => {
+                            const cells = line.split(',').map(c => c.replace(/^["']|["']$/g, '').trim());
+                            if (!cells[0]) return; // Skip rows without name
+
+                            const row = this.createRowObject();
+                            row.name = cells[0] || '';
+                            row.sku = cells[1] || '';
+                            row.barcode = cells[2] || '';
+
+                            if (cells[3]) {
+                                const cat = this.categories.find(c => c.name.toLowerCase() === cells[3].toLowerCase() || c.id == cells[3]);
+                                if (cat) row.category_id = cat.id;
+                            }
+                            if (cells[4]) {
+                                const br = this.brands.find(b => b.name.toLowerCase() === cells[4].toLowerCase() || b.id == cells[4]);
+                                if (br) row.brand_id = br.id;
+                            }
+                            if (cells[5]) {
+                                const un = this.units.find(u => u.name.toLowerCase() === cells[5].toLowerCase() || u.id == cells[5]);
+                                if (un) row.unit_id = un.id;
+                            }
+
+                            row.sale_price = cells[6] || '';
+                            row.wholesale_price = cells[7] || '';
+                            row.retail_price = cells[8] || '';
+                            row.dealer_price = cells[9] || '';
+                            row.opening_stock_qty = cells[10] || '';
+                            row.opening_stock_rate = cells[11] || '';
+
+                            if (cells[12]) {
+                                const wh = this.warehouses.find(w => w.name.toLowerCase() === cells[12].toLowerCase() || w.id == cells[12]);
+                                if (wh) row.warehouse_id = wh.id;
+                            }
+
+                            row.alert_quantity = cells[13] || 5;
+                            this.rows.push(row);
+                        });
+
+                        if (this.rows.length === 0) {
+                            this.addRow(false);
+                        }
+
+                        alert(`Successfully imported ${this.rows.length} product rows from CSV file!`);
+                    };
+                    reader.readAsText(file);
+                    event.target.value = ''; // Reset input
+                },
+
+                // Apply Markup Tool
+                applyMarkupToRows() {
+                    const wm = parseFloat(this.markupSettings.wholesale) || 0;
+                    const rm = parseFloat(this.markupSettings.retail) || 0;
+                    const dm = parseFloat(this.markupSettings.dealer) || 0;
+
+                    let count = 0;
+                    this.rows.forEach(r => {
+                        const baseCost = parseFloat(r.opening_stock_rate) || parseFloat(r.wholesale_price) || parseFloat(r.sale_price) || 0;
+                        if (baseCost > 0) {
+                            if (wm > 0) r.wholesale_price = (baseCost * (1 + wm / 100)).toFixed(2);
+                            if (rm > 0) {
+                                r.retail_price = (baseCost * (1 + rm / 100)).toFixed(2);
+                                r.sale_price = r.retail_price;
+                            }
+                            if (dm > 0) r.dealer_price = (baseCost * (1 + dm / 100)).toFixed(2);
+                            count++;
+                        }
+                    });
+
+                    this.showMarkupModal = false;
+                    alert(`Applied markup formulas across ${count} products with base costs.`);
+                },
+
+                // Quick Add Category via AJAX
+                async quickAddCategory() {
+                    const name = this.newCategoryName.trim();
+                    if (!name) return;
+
+                    try {
+                        const res = await fetch('{{ route('categories.quick-add') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ name: name })
+                        });
+
+                        if (res.ok) {
+                            const newCat = await res.json();
+                            this.categories.push(newCat);
+                            this.defaults.category_id = newCat.id;
+                            this.newCategoryName = '';
+                            this.showQuickCategoryModal = false;
+                        } else {
+                            alert('Failed to save category. Please ensure the name is unique.');
+                        }
+                    } catch (e) {
+                        alert('Error communicating with server.');
+                    }
+                },
+
+                // Quick Add Brand via AJAX
+                async quickAddBrand() {
+                    const name = this.newBrandName.trim();
+                    if (!name) return;
+
+                    try {
+                        const res = await fetch('{{ route('brands.quick-add') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ name: name, status: 1 })
+                        });
+
+                        if (res.ok) {
+                            const newBrand = await res.json();
+                            this.brands.push(newBrand);
+                            this.defaults.brand_id = newBrand.id;
+                            this.newBrandName = '';
+                            this.showQuickBrandModal = false;
+                        } else {
+                            alert('Failed to save brand.');
+                        }
+                    } catch (e) {
+                        alert('Error communicating with server.');
+                    }
                 },
 
                 validProductCount() {
@@ -666,6 +997,17 @@
                         } else {
                             return;
                         }
+                    }
+
+                    // Check for duplicate SKUs before submitting
+                    const seen = new Set();
+                    for (const r of validRows) {
+                        const sku = r.sku.toLowerCase().trim();
+                        if (seen.has(sku) || this.existingSkus.includes(sku)) {
+                            alert(`Duplicate SKU detected: "${r.sku}". Please fix before saving.`);
+                            return;
+                        }
+                        seen.add(sku);
                     }
 
                     // Check for missing Sale Prices

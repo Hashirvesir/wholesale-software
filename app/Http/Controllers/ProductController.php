@@ -102,8 +102,10 @@ class ProductController extends Controller implements HasMiddleware
             $warehouses = Warehouse::all();
         }
         $settings = \App\Models\Setting::first();
+        $existingSkus = Product::pluck('sku')->map(fn($s) => strtolower(trim($s)))->filter()->values()->toArray();
+        $existingBarcodes = Product::whereNotNull('barcode')->pluck('barcode')->map(fn($b) => strtolower(trim($b)))->filter()->values()->toArray();
 
-        return view('products.bulk-create', compact('categories', 'brands', 'units', 'warehouses', 'settings'));
+        return view('products.bulk-create', compact('categories', 'brands', 'units', 'warehouses', 'settings', 'existingSkus', 'existingBarcodes'));
     }
 
     public function bulkStore(Request $request)
@@ -306,7 +308,9 @@ class ProductController extends Controller implements HasMiddleware
 
         $this->logActivity('Bulk Created Products', 'Products', null, null, ['count' => $createdCount]);
 
-        return redirect()->route('products.index')->with('success', "Successfully added {$createdCount} products in bulk!");
+        return redirect()->route('products.index')
+            ->with('success', "Successfully added {$createdCount} products in bulk!")
+            ->with('bulk_success_count', $createdCount);
     }
 
     public function store(Request $request)
