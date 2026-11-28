@@ -75,31 +75,17 @@
                 class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="p-0 text-gray-900 dark:text-gray-100">
                     <!-- Desktop Table View -->
-                    <div class="hidden md:block overflow-x-auto pb-48">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead>
+                    <div class="hidden md:block overflow-x-auto pb-28 xl:pb-36">
+                        <table class="w-full divide-y divide-gray-200 dark:divide-gray-700 text-left">
+                            <thead class="bg-gray-50 dark:bg-gray-700 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                 <tr>
-                                    <th
-                                        class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Name / Phone</th>
-                                    <th
-                                        class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Type</th>
-                                    <th
-                                        class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Opening Bal.</th>
-                                    <th
-                                        class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-bold text-gray-700 dark:text-gray-100 uppercase tracking-wider">
-                                        Current Balance</th>
-                                    <th
-                                        class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Credit Terms</th>
-                                    <th
-                                        class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Status</th>
-                                    <th
-                                        class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Actions</th>
+                                    <th class="px-3.5 py-3 xl:px-4">Name / Phone</th>
+                                    <th class="px-3.5 py-3 xl:px-4">Type</th>
+                                    <th class="px-3.5 py-3 xl:px-4">Opening Bal.</th>
+                                    <th class="px-3.5 py-3 xl:px-4">Current Balance</th>
+                                    <th class="px-3.5 py-3 xl:px-4">Credit Terms</th>
+                                    <th class="px-3.5 py-3 xl:px-4">Status</th>
+                                    <th class="px-3.5 py-3 xl:px-4 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -107,10 +93,9 @@
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 cursor-pointer"
                                         ondblclick="window.location='{{ route('reports.party-ledger', ['party_id' => $party->id]) }}'"
                                         title="Double-click to view ledger">
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-xs xl:text-sm font-medium text-gray-900 dark:text-gray-100">
                                             <div class="flex flex-col">
-                                                <span>{{ $party->name }}</span>
+                                                <span class="font-semibold">{{ $party->name }}</span>
                                                 <span
                                                     class="text-xs text-gray-400">{{ $party->phone ?? 'No Phone' }}</span>
                                                 @if ($party->salesman)
@@ -121,7 +106,7 @@
                                                 @endif
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-xs xl:text-sm">
                                             <div class="flex flex-col gap-1 items-start">
                                                 <span
                                                     class="px-2 py-0.5 rounded text-xs font-bold uppercase {{ $party->type == 'customer'
@@ -142,22 +127,22 @@
                                                 @endif
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-xs xl:text-sm">
                                             <span class="text-gray-500">Rs.
                                                 {{ number_format($party->opening_balance, 2) }}</span>
                                             <span
                                                 class="text-[10px] uppercase font-bold {{ $party->balance_type == 'credit' ? 'text-red-500' : 'text-green-500' }}">({{ $party->balance_type }})</span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-xs xl:text-sm">
                                             @php $currentBal = $party->getCurrentBalance(); @endphp
                                             <span
-                                                class="font-black text-lg {{ $currentBal >= 0 ? 'text-indigo-600' : 'text-orange-600' }}">
+                                                class="font-black text-sm xl:text-base {{ $currentBal >= 0 ? 'text-indigo-600' : 'text-orange-600' }}">
                                                 Rs. {{ number_format(abs($currentBal), 2) }}
                                                 <span
                                                     class="text-xs uppercase">{{ $currentBal >= 0 ? 'Dr' : 'Cr' }}</span>
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-xs xl:text-sm">
                                             @if ($party->type === 'customer')
                                                 @if ($party->credit_limit > 0)
                                                     <div class="flex flex-col gap-0.5">
@@ -188,16 +173,16 @@
                                                 <span class="text-xs text-gray-400 italic">—</span>
                                             @endif
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-xs xl:text-sm">
                                             @if ($party->status)
                                                 <span
-                                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Active</span>
+                                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] xl:text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Active</span>
                                             @else
                                                 <span
-                                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Inactive</span>
+                                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] xl:text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Inactive</span>
                                             @endif
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                        <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-right text-xs xl:text-sm">
                                             <x-dropdown align="right" width="48">
                                                 <x-slot name="trigger">
                                                     <button

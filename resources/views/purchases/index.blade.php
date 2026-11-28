@@ -24,7 +24,7 @@
             <div
                 class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 mb-6">
                 <form action="{{ route('purchases.index') }}" method="GET"
-                    class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                     <!-- Search -->
                     <div>
                         <label for="search"
@@ -87,65 +87,50 @@
                 class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="p-0 text-gray-900 dark:text-gray-100">
                     <!-- Desktop Table View -->
-                    <div class="hidden md:block overflow-x-auto pb-48">
-                        <table data-keyboard-table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead>
+                    <div class="hidden md:block overflow-x-auto pb-28 xl:pb-36">
+                        <table data-keyboard-table class="w-full divide-y divide-gray-200 dark:divide-gray-700 text-left">
+                            <thead class="bg-gray-50 dark:bg-gray-700 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                 <tr>
-                                    <th
-                                        class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Invoice Info</th>
-                                    <th
-                                        class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Vendor</th>
-                                    <th
-                                        class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Warehouse</th>
-                                    <th
-                                        class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Total Qty</th>
-                                    <th
-                                        class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Amount</th>
-                                    <th
-                                        class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Actions</th>
+                                    <th class="px-3.5 py-3 xl:px-4">Invoice Info</th>
+                                    <th class="px-3.5 py-3 xl:px-4">Vendor &amp; Warehouse</th>
+                                    <th class="px-3.5 py-3 xl:px-4 text-center">Total Qty</th>
+                                    <th class="px-3.5 py-3 xl:px-4">Amount</th>
+                                    <th class="px-3.5 py-3 xl:px-4 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 @forelse ($purchases as $p)
                                     <tr data-href="{{ route('purchases.show', $p) }}" class="hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 cursor-pointer">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-xs xl:text-sm font-medium">
                                             <div class="flex flex-col">
                                                 <a href="{{ route('purchases.show', $p) }}" data-action="view" class="text-gray-900 dark:text-gray-100 font-bold hover:underline">
                                                     {{ $settings->invoice_prefix }}{{ $p->id }}
                                                 </a>
-                                                <span class="text-xs text-gray-500">{{ $p->date }}</span>
+                                                <span class="text-[11px] text-gray-500 dark:text-gray-400">{{ $p->date }}</span>
                                             </div>
                                         </td>
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                            {{ $p->party->name }}
+                                        <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 text-xs xl:text-sm">
+                                            <div class="font-semibold text-gray-900 dark:text-gray-100 truncate max-w-[160px] xl:max-w-[220px]" title="{{ $p->party->name }}">
+                                                {{ $p->party->name }}
+                                            </div>
+                                            <div class="text-[11px] text-gray-500 dark:text-gray-400 truncate max-w-[160px] xl:max-w-[220px]">
+                                                {{ $p->warehouse->name }}
+                                            </div>
                                         </td>
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            {{ $p->warehouse->name }}
-                                        </td>
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-700 dark:text-gray-300">
+                                        <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-xs xl:text-sm text-center font-bold text-gray-700 dark:text-gray-300">
                                             {{ number_format($p->items->sum('qty'), 2) }}
                                         </td>
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm text-primary-600 dark:text-primary-400 font-bold">
+                                        <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-xs xl:text-sm text-primary-600 dark:text-primary-400 font-bold">
                                             <div class="flex flex-col">
-                                                <span>{{ $settings->currency_symbol }}
+                                                <span class="text-gray-900 dark:text-gray-100">{{ $settings->currency_symbol }}
                                                     {{ number_format($p->total_amount, 2) }}</span>
                                                 @if ($p->total_amount - $p->paid_amount > 0)
-                                                    <span class="text-[10px] text-red-500 font-bold italic">Due:
+                                                    <span class="text-[10px] text-red-500 font-bold">Due:
                                                         {{ $settings->currency_symbol }}
                                                         {{ number_format($p->total_amount - $p->paid_amount, 2) }}</span>
                                                 @else
                                                     <span
-                                                        class="text-[10px] text-green-500 font-black italic uppercase">Paid</span>
+                                                        class="inline-block w-fit text-[9px] text-green-700 dark:text-green-300 font-black uppercase px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-950/60">Paid</span>
                                                 @endif
                                             </div>
                                             @if ($p->currency == 'RMB')
@@ -153,7 +138,7 @@
                                                     {{ $p->exchange_rate }})</div>
                                             @endif
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                        <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-right text-xs xl:text-sm">
                                             <x-dropdown align="right" width="48">
                                                 <x-slot name="trigger">
                                                     <button type="button" @click.stop="open = ! open"

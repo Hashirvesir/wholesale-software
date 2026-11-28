@@ -70,45 +70,33 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
                     <!-- Desktop Table View -->
-                    <div class="hidden md:block overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <div class="hidden md:block overflow-x-auto pb-6">
+                        <table class="w-full divide-y divide-gray-200 dark:divide-gray-700 text-left">
                         <thead>
-                            <tr>
-                                <th
-                                    class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Date</th>
-                                <th
-                                    class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Category</th>
-                                <th
-                                    class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Paid From</th>
-                                <th
-                                    class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Note</th>
-                                <th
-                                    class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Amount</th>
-                                <th
-                                    class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Actions</th>
+                            <tr class="bg-gray-50 dark:bg-gray-700 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                <th class="px-3.5 py-3 xl:px-4">Date</th>
+                                <th class="px-3.5 py-3 xl:px-4">Category</th>
+                                <th class="px-3.5 py-3 xl:px-4">Paid From</th>
+                                <th class="px-3.5 py-3 xl:px-4">Note</th>
+                                <th class="px-3.5 py-3 xl:px-4 text-right">Amount</th>
+                                <th class="px-3.5 py-3 xl:px-4 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             @forelse($expenses as $expense)
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                                    <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-xs xl:text-sm font-medium text-gray-900 dark:text-gray-100">
                                         {{ $expense->date }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                    <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-xs xl:text-sm text-gray-900 dark:text-gray-100">
                                         {{ $expense->category->name ?? '-' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                    <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-xs xl:text-sm text-gray-500 dark:text-gray-400">
                                         {{ $expense->account->name ?? '-' }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                    <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 text-xs xl:text-sm text-gray-500 dark:text-gray-400">
                                         {{ Str::limit($expense->note, 30) }}</td>
                                     <td
-                                        class="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-900 dark:text-gray-100">
+                                        class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-xs xl:text-sm text-right font-bold text-gray-900 dark:text-gray-100">
                                         {{ number_format($expense->amount, 2) }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                    <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-xs xl:text-sm text-center">
                                         <div class="flex items-center justify-center space-x-2">
                                             <a href="{{ route('expenses.edit', $expense) }}"
                                                 class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold text-xs uppercase">Edit</a>
@@ -124,7 +112,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">No expenses
+                                    <td colspan="6" class="px-3.5 py-4 text-center text-xs text-gray-500">No expenses
                                         found.</td>
                                 </tr>
                             @endforelse

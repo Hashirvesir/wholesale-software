@@ -28,7 +28,7 @@
                     <div
                         class="bg-gray-50 dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-700 mb-6">
                         <form action="{{ route('sales.index') }}" method="GET"
-                            class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                             <!-- Search -->
                             <div>
                                 <label for="search"
@@ -129,80 +129,57 @@
                     </div>
 
                     <!-- Desktop Table View -->
-                    <div class="hidden md:block overflow-x-auto pb-64">
-                        <table data-keyboard-table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
+                    <div class="hidden md:block overflow-x-auto pb-28 xl:pb-36">
+                        <table data-keyboard-table class="w-full divide-y divide-gray-200 dark:divide-gray-700 text-left">
+                            <thead class="bg-gray-50 dark:bg-gray-700 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                 <tr>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        ID</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Date</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Customer</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Warehouse</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Total Qty</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Total</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Paid</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Payment Method</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Balance</th>
-                                    <th
-                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Actions</th>
+                                    <th class="px-3.5 py-3 xl:px-4">Invoice</th>
+                                    <th class="px-3.5 py-3 xl:px-4">Customer &amp; Warehouse</th>
+                                    <th class="px-3.5 py-3 xl:px-4 text-center">Total Qty</th>
+                                    <th class="px-3.5 py-3 xl:px-4">Amount</th>
+                                    <th class="px-3.5 py-3 xl:px-4">Payment Method</th>
+                                    <th class="px-3.5 py-3 xl:px-4 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 @forelse($sales as $sale)
+                                    @php
+                                        $saleDue = max(0, $sale->total_amount - $sale->paid_amount);
+                                    @endphp
                                     <tr data-href="{{ route('sales.show', $sale) }}" class="hover:bg-gray-50 dark:hover:bg-gray-700 transition cursor-pointer">
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary-600 dark:text-primary-400">
+                                        <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-xs xl:text-sm font-bold text-primary-600 dark:text-primary-400">
                                             <a href="{{ route('sales.show', $sale) }}" data-action="view" class="hover:underline">
                                                 {{ $settings->invoice_prefix }}{{ $sale->id }}
                                             </a>
+                                            <div class="text-[11px] font-normal text-gray-500 dark:text-gray-400">{{ $sale->date }}</div>
                                         </td>
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                            {{ $sale->date }}</td>
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                            {{ $sale->party->name }}</td>
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            {{ $sale->warehouse->name }}</td>
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-700 dark:text-gray-300">
-                                            {{ number_format($sale->items->sum('qty'), 2) }}</td>
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-gray-100">
-                                            {{ $settings->currency_symbol }}
-                                            {{ number_format($sale->total_amount, 2) }}</td>
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm text-green-600 dark:text-green-400 font-bold">
-                                            {{ $settings->currency_symbol }}
-                                            {{ number_format($sale->paid_amount, 2) }}</td>
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 italic">
-                                            {{ $sale->account->name ?? 'N/A' }}</td>
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm font-bold {{ $sale->total_amount - $sale->paid_amount > 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500' }}">
-                                            {{ $settings->currency_symbol }}
-                                            {{ number_format($sale->total_amount - $sale->paid_amount, 2) }}
+                                        <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 text-xs xl:text-sm">
+                                            <div class="font-semibold text-gray-900 dark:text-gray-100 truncate max-w-[160px] xl:max-w-[210px]" title="{{ $sale->party->name }}">
+                                                {{ $sale->party->name }}
+                                            </div>
+                                            <div class="text-[11px] text-gray-500 dark:text-gray-400 truncate max-w-[160px] xl:max-w-[210px]">
+                                                {{ $sale->warehouse->name }}
+                                            </div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                        <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-xs xl:text-sm text-center font-bold text-gray-700 dark:text-gray-300">
+                                            {{ number_format($sale->items->sum('qty'), 2) }}
+                                        </td>
+                                        <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-xs xl:text-sm font-bold">
+                                            <div class="text-gray-900 dark:text-gray-100">
+                                                {{ $settings->currency_symbol }} {{ number_format($sale->total_amount, 2) }}
+                                            </div>
+                                            @if ($saleDue > 0)
+                                                <div class="text-[10px] text-red-600 dark:text-red-400 font-bold">
+                                                    Due: {{ $settings->currency_symbol }} {{ number_format($saleDue, 2) }}
+                                                </div>
+                                            @else
+                                                <span class="inline-block text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300">Paid</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-xs xl:text-sm text-gray-500 dark:text-gray-400 truncate max-w-[120px]" title="{{ $sale->account->name ?? 'N/A' }}">
+                                            {{ $sale->account->name ?? 'N/A' }}
+                                        </td>
+                                        <td class="px-3.5 py-2.5 xl:px-4 xl:py-3 whitespace-nowrap text-right text-xs xl:text-sm">
                                             <x-dropdown align="right" width="48">
                                                 <x-slot name="trigger">
                                                     <button type="button" @click.stop="open = ! open"
