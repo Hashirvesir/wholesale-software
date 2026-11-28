@@ -188,6 +188,9 @@
                     case 'c': // New Category
                         window.location.href = "{{ route('categories.create') }}";
                         break;
+                    case 'e': // Bulk Product Sheet Entry (Excel)
+                        window.location.href = "{{ route('products.bulk-create') }}";
+                        break;
                     case 'r': // Reports
                         window.location.href = "{{ route('reports.profit-loss') }}";
                         break;

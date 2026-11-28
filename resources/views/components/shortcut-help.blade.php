@@ -146,6 +146,13 @@
                                     class="px-2 py-1 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-xs font-mono">Alt
                                     + C</kbd>
                             </div>
+                            <div
+                                class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded-lg">
+                                <span class="text-sm font-bold dark:text-gray-300">Bulk Product Sheet</span>
+                                <kbd
+                                    class="px-2 py-1 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded text-xs font-mono">Alt
+                                    + E</kbd>
+                            </div>
                         </div>
                     </div>
 

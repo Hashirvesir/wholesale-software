@@ -129,4 +129,102 @@ class ProductOpeningStockTest extends TestCase
         $showResponse->assertSee('Initial Opening Stock Entries');
         $showResponse->assertSee('7,500.00');
     }
+
+    public function test_bulk_create_page_renders_successfully(): void
+    {
+        $response = $this->actingAs($this->user)->get(route('products.bulk-create'));
+
+        $response->assertOk();
+        $response->assertSee('Bulk Product Quick Entry');
+        $response->assertSee('Excel Sheet Mode');
+    }
+
+    public function test_can_bulk_create_products_with_validation_and_stock(): void
+    {
+        $payload = [
+            'rows' => [
+                [
+                    'name' => 'Bulk Product Alpha',
+                    'sku' => 'BULK-ALPHA-01',
+                    'barcode' => 'BAR-ALPHA-01',
+                    'category_id' => $this->category->id,
+                    'brand_id' => $this->brand->id,
+                    'unit_id' => $this->unit->id,
+                    'sale_price' => 500.00,
+                    'wholesale_price' => 450.00,
+                    'retail_price' => 550.00,
+                    'dealer_price' => 420.00,
+                    'opening_stock_qty' => 20,
+                    'opening_stock_rate' => 400.00,
+                    'warehouse_id' => $this->warehouse->id,
+                    'alert_quantity' => 5,
+                ],
+                [
+                    'name' => 'Bulk Product Beta',
+                    'sku' => 'BULK-BETA-02',
+                    'barcode' => '',
+                    'category_id' => $this->category->id,
+                    'brand_id' => $this->brand->id,
+                    'unit_id' => $this->unit->id,
+                    'sale_price' => 250.00,
+                    'wholesale_price' => 220.00,
+                    'retail_price' => 300.00,
+                    'dealer_price' => 200.00,
+                    'opening_stock_qty' => 0,
+                    'warehouse_id' => $this->warehouse->id,
+                    'alert_quantity' => 10,
+                ],
+            ]
+        ];
+
+        $response = $this->actingAs($this->user)->post(route('products.bulk-store'), $payload);
+
+        $response->assertRedirect(route('products.index'));
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('products', [
+            'name' => 'Bulk Product Alpha',
+            'sku' => 'BULK-ALPHA-01',
+            'sale_price' => 500.00,
+        ]);
+
+        $this->assertDatabaseHas('products', [
+            'name' => 'Bulk Product Beta',
+            'sku' => 'BULK-BETA-02',
+            'sale_price' => 250.00,
+        ]);
+
+        $alpha = Product::where('sku', 'BULK-ALPHA-01')->first();
+        $this->assertEquals(20, $alpha->getCurrentStock());
+    }
+
+    public function test_bulk_create_rejects_duplicate_skus(): void
+    {
+        $payload = [
+            'rows' => [
+                [
+                    'name' => 'Duplicate A',
+                    'sku' => 'SAME-SKU-99',
+                    'category_id' => $this->category->id,
+                    'brand_id' => $this->brand->id,
+                    'unit_id' => $this->unit->id,
+                    'sale_price' => 100,
+                ],
+                [
+                    'name' => 'Duplicate B',
+                    'sku' => 'SAME-SKU-99',
+                    'category_id' => $this->category->id,
+                    'brand_id' => $this->brand->id,
+                    'unit_id' => $this->unit->id,
+                    'sale_price' => 200,
+                ],
+            ]
+        ];
+
+        $response = $this->actingAs($this->user)->post(route('products.bulk-store'), $payload);
+
+        $response->assertSessionHasErrors();
+        $this->assertDatabaseMissing('products', ['name' => 'Duplicate A']);
+        $this->assertDatabaseMissing('products', ['name' => 'Duplicate B']);
+    }
 }

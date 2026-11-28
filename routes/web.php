@@ -55,6 +55,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/products/{product}/get-barcode', [ProductController::class, 'getBarcode'])->name('products.get-barcode')->middleware('permission:view products');
     Route::get('/products/export/pdf', [ProductController::class, 'exportPdf'])->name('products.export.pdf')->middleware('permission:export data');
     Route::get('/products/export/excel', [ProductController::class, 'exportExcel'])->name('products.export.excel')->middleware('permission:export data');
+    Route::get('/products/bulk-create', [ProductController::class, 'bulkCreate'])->name('products.bulk-create');
+    Route::post('/products/bulk-store', [ProductController::class, 'bulkStore'])->name('products.bulk-store');
     Route::resource('products', ProductController::class)->middleware('permission:view products');
     Route::get('/opening-stocks/export/pdf', [OpeningStockController::class, 'exportPdf'])->name('opening-stocks.export.pdf')->middleware('permission:export data');
     Route::get('/opening-stocks/export/excel', [OpeningStockController::class, 'exportExcel'])->name('opening-stocks.export.excel')->middleware('permission:export data');

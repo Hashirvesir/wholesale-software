@@ -136,6 +136,7 @@
                                 <x-slot name="content">
                                     @can('view products')
                                         <x-dropdown-link :href="route('products.index')">{{ __('Products Catalog') }}</x-dropdown-link>
+                                        <x-dropdown-link :href="route('products.bulk-create')" class="font-semibold text-emerald-600 dark:text-emerald-400">{{ __('Bulk Product Entry (Excel)') }}</x-dropdown-link>
                                     @endcan
                                     @can('print barcodes')
                                         <x-dropdown-link :href="route('products.print-labels')">{{ __('Print Barcodes') }}</x-dropdown-link>
@@ -997,6 +998,7 @@
                     <div x-show="activeSection === 'masters'" x-cloak class="px-3 pb-2 space-y-1 bg-gray-50/40 dark:bg-gray-900/30">
                         @can('view products')
                             <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.index')">{{ __('Products Catalog') }}</x-responsive-nav-link>
+                            <x-responsive-nav-link :href="route('products.bulk-create')" :active="request()->routeIs('products.bulk-create')">{{ __('Bulk Product Entry (Excel)') }}</x-responsive-nav-link>
                         @endcan
                         @can('print barcodes')
                             <x-responsive-nav-link :href="route('products.print-labels')" :active="request()->routeIs('products.print-labels')">{{ __('Print Barcodes') }}</x-responsive-nav-link>

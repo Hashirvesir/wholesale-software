@@ -92,6 +92,223 @@ class ProductController extends Controller implements HasMiddleware
         return view('products.create', compact('categories', 'brands', 'units', 'warehouses'));
     }
 
+    public function bulkCreate()
+    {
+        $categories = Category::orderBy('name')->get();
+        $brands = Brand::orderBy('name')->get();
+        $units = Unit::all();
+        $warehouses = Warehouse::where('status', true)->get();
+        if ($warehouses->isEmpty()) {
+            $warehouses = Warehouse::all();
+        }
+        $settings = \App\Models\Setting::first();
+
+        return view('products.bulk-create', compact('categories', 'brands', 'units', 'warehouses', 'settings'));
+    }
+
+    public function bulkStore(Request $request)
+    {
+        $rows = $request->input('rows', []);
+        
+        if (empty($rows) || !is_array($rows)) {
+            return back()->withErrors(['rows' => 'Please enter at least one product row in the spreadsheet.'])->withInput();
+        }
+
+        // Filter out completely blank rows
+        $validRows = [];
+        foreach ($rows as $index => $row) {
+            $name = trim($row['name'] ?? '');
+            if ($name !== '') {
+                $validRows[] = $row;
+            }
+        }
+
+        if (empty($validRows)) {
+            return back()->withErrors(['rows' => 'No products entered. Please provide product names.'])->withInput();
+        }
+
+        // Check internal duplicates within the submitted batch
+        $submittedSkus = [];
+        $submittedBarcodes = [];
+        $errors = [];
+
+        foreach ($validRows as $idx => $row) {
+            $rowNum = $idx + 1;
+            $name = trim($row['name'] ?? '');
+            $sku = trim($row['sku'] ?? '');
+            $barcode = trim($row['barcode'] ?? '');
+            $salePrice = $row['sale_price'] ?? null;
+            $catId = $row['category_id'] ?? null;
+            $brandId = $row['brand_id'] ?? null;
+            $unitId = $row['unit_id'] ?? null;
+
+            if (empty($name)) {
+                $errors[] = "Row #{$rowNum}: Product Name is required.";
+            }
+            if (empty($sku)) {
+                $errors[] = "Row #{$rowNum} ('{$name}'): SKU is required.";
+            } else {
+                $lowerSku = strtolower($sku);
+                if (in_array($lowerSku, $submittedSkus)) {
+                    $errors[] = "Row #{$rowNum}: Duplicate SKU '{$sku}' found within your spreadsheet entries.";
+                }
+                $submittedSkus[] = $lowerSku;
+            }
+
+            if (!empty($barcode)) {
+                $lowerBarcode = strtolower($barcode);
+                if (in_array($lowerBarcode, $submittedBarcodes)) {
+                    $errors[] = "Row #{$rowNum}: Duplicate Barcode '{$barcode}' found within your spreadsheet entries.";
+                }
+                $submittedBarcodes[] = $lowerBarcode;
+            }
+
+            if (empty($catId)) {
+                $errors[] = "Row #{$rowNum} ('{$name}'): Category is required.";
+            }
+            if (empty($brandId)) {
+                $errors[] = "Row #{$rowNum} ('{$name}'): Brand is required.";
+            }
+            if (empty($unitId)) {
+                $errors[] = "Row #{$rowNum} ('{$name}'): Unit is required.";
+            }
+            if ($salePrice === null || $salePrice === '' || !is_numeric($salePrice) || (float)$salePrice < 0) {
+                $errors[] = "Row #{$rowNum} ('{$name}'): Valid Sale Price is required.";
+            }
+        }
+
+        // Check against existing database
+        $submittedSkuList = array_values(array_filter(array_map('trim', array_column($validRows, 'sku'))));
+        if (!empty($submittedSkuList)) {
+            $existingSkus = Product::whereIn('sku', $submittedSkuList)->pluck('sku')->toArray();
+            if (!empty($existingSkus)) {
+                $errors[] = "The following SKU(s) already exist in database: " . implode(', ', array_unique($existingSkus));
+            }
+        }
+
+        $submittedBarcodeList = array_values(array_filter(array_map('trim', array_column($validRows, 'barcode'))));
+        if (!empty($submittedBarcodeList)) {
+            $existingBarcodes = Product::whereIn('barcode', $submittedBarcodeList)->pluck('barcode')->toArray();
+            if (!empty($existingBarcodes)) {
+                $errors[] = "The following Barcode(s) already exist in database: " . implode(', ', array_unique($existingBarcodes));
+            }
+        }
+
+        if (!empty($errors)) {
+            return back()->withErrors($errors)->withInput();
+        }
+
+        // Transactional Batch Insert
+        $createdCount = DB::transaction(function () use ($validRows) {
+            $count = 0;
+            $defaultWarehouse = Warehouse::first();
+            $inventoryAcc = ChartOfAccount::where('name', 'Inventory')->first();
+            $equityAcc = ChartOfAccount::firstOrCreate(
+                ['name' => 'Opening Balance Equity'],
+                ['type' => 'Equity', 'status' => true]
+            );
+
+            foreach ($validRows as $row) {
+                $sku = trim($row['sku']);
+                $barcode = !empty(trim($row['barcode'] ?? '')) ? trim($row['barcode']) : null;
+                $salePrice = (float)($row['sale_price'] ?? 0);
+                $wholesalePrice = isset($row['wholesale_price']) && is_numeric($row['wholesale_price']) && (float)$row['wholesale_price'] > 0
+                    ? (float)$row['wholesale_price']
+                    : $salePrice;
+                $retailPrice = isset($row['retail_price']) && is_numeric($row['retail_price']) && (float)$row['retail_price'] > 0
+                    ? (float)$row['retail_price']
+                    : $salePrice;
+                $dealerPrice = isset($row['dealer_price']) && is_numeric($row['dealer_price']) && (float)$row['dealer_price'] > 0
+                    ? (float)$row['dealer_price']
+                    : $salePrice;
+                $alertQty = isset($row['alert_quantity']) && is_numeric($row['alert_quantity']) ? (float)$row['alert_quantity'] : 5;
+
+                $product = Product::create([
+                    'name' => trim($row['name']),
+                    'sku' => $sku,
+                    'barcode' => $barcode,
+                    'category_id' => $row['category_id'],
+                    'brand_id' => $row['brand_id'],
+                    'unit_id' => $row['unit_id'],
+                    'sale_price' => $salePrice,
+                    'wholesale_price' => $wholesalePrice,
+                    'retail_price' => $retailPrice,
+                    'dealer_price' => $dealerPrice,
+                    'alert_quantity' => $alertQty,
+                    'status' => true,
+                ]);
+
+                // Handle Opening Stock if provided
+                $openingQty = isset($row['opening_stock_qty']) && is_numeric($row['opening_stock_qty']) ? (float)$row['opening_stock_qty'] : 0;
+                if ($openingQty > 0) {
+                    $warehouseId = !empty($row['warehouse_id']) ? $row['warehouse_id'] : ($defaultWarehouse->id ?? 1);
+                    $rate = isset($row['opening_stock_rate']) && is_numeric($row['opening_stock_rate']) && (float)$row['opening_stock_rate'] > 0
+                        ? (float)$row['opening_stock_rate']
+                        : $wholesalePrice;
+                    $total = round($openingQty * $rate, 2);
+                    $date = now()->toDateString();
+
+                    $openingStock = OpeningStock::create([
+                        'product_id' => $product->id,
+                        'warehouse_id' => $warehouseId,
+                        'qty' => $openingQty,
+                        'rate' => $rate,
+                        'cargo_amount' => 0,
+                        'total' => $total,
+                        'date' => $date,
+                        'note' => "Bulk Excel Initial Stock",
+                    ]);
+
+                    // Stock record
+                    Stock::create([
+                        'product_id' => $product->id,
+                        'warehouse_id' => $warehouseId,
+                        'qty' => $openingQty,
+                        'avg_cost' => $rate,
+                    ]);
+
+                    // Double-entry accounting ledger entries
+                    if ($total > 0) {
+                        if ($inventoryAcc) {
+                            LedgerEntry::create([
+                                'account_id' => $inventoryAcc->id,
+                                'party_id' => null,
+                                'warehouse_id' => $warehouseId,
+                                'debit' => $total,
+                                'credit' => 0,
+                                'date' => $date,
+                                'reference_type' => 'opening_stock',
+                                'reference_id' => $openingStock->id,
+                                'note' => "Opening Stock for {$product->name}",
+                            ]);
+                        }
+
+                        LedgerEntry::create([
+                            'account_id' => $equityAcc->id,
+                            'party_id' => null,
+                            'warehouse_id' => $warehouseId,
+                            'debit' => 0,
+                            'credit' => $total,
+                            'date' => $date,
+                            'reference_type' => 'opening_stock',
+                            'reference_id' => $openingStock->id,
+                            'note' => "Opening Stock for {$product->name}",
+                        ]);
+                    }
+                }
+
+                $count++;
+            }
+
+            \Illuminate\Support\Facades\Cache::forget('offline_master_data_payload');
+            return $count;
+        });
+
+        $this->logActivity('Bulk Created Products', 'Products', null, null, ['count' => $createdCount]);
+
+        return redirect()->route('products.index')->with('success', "Successfully added {$createdCount} products in bulk!");
+    }
+
     public function store(Request $request)
     {
         $request->validate([
